@@ -1,4 +1,4 @@
-# 🍷 "Stoic winery API - Backend" 
+# 🍷 "Stoic winery" 
 
 ### ▶️How to set up and start the project
 
