@@ -44,6 +44,7 @@ services:
       - backend-db
 
   frontend_wine_site:
+    env_file: .env
     build: ./wine_site_project
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
