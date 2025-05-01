@@ -1,6 +1,10 @@
-# 🍷 "Wine Store API" !
+# 🍷 "Stoic winery API - Backend" 
 
-### 👓Project description
+---
+
+### 👓Stoic winery API backend project description
+
+Development repository with all commits - https://github.com/ArtemMakovskyy/wine-store-app
 
 With the Wine Store API, you can:
 
@@ -74,7 +78,7 @@ With the Wine Store API, you can:
 
 1. Authentication Controller:
 
-- POST: /login - get JWT tokens
+- POST: localhost:8080/api/auth/login - get JWT tokens
 
 #### Input email address and password to login.
 
@@ -100,13 +104,13 @@ With the Wine Store API, you can:
     }
    ```
 
-- POST: api/auth/logout
+- POST: localhost:8080/api/auth/logout
 
 #### Logout user. Disable current token.
 
 2. Users Controller: Endpoints for managing users
 
-- PUT: /users/{id}/role - update user role
+- PUT: localhost:8080/api/users/{id}/role - update user role
 
 #### Update user role by user identification number. Only for ADMIN. Available roles: ROLE_CUSTOMER, ROLE_MANAGER, ROLE_ADMIN.
 
@@ -118,9 +122,9 @@ With the Wine Store API, you can:
 
 3. Wines Controller: Endpoints to managing wines
 
-- GET: /api/wines - Find all wines.
+- GET: localhost:8080/api/wines - Find all wines.
 #### Find all wines. You can set pagination by: page, size, and sort parameters. By default, size 50, page = 0, sort by 'averageRatingScore,DESC' and after sort by 'id,DESC'. Pagination example: /wines?size=5&page=0&sort=id Available for all users.
-- POST: /api/wines - Creating a new Wine with valid data. Available for manager12345@gmail.com
+- POST: localhost:8080/api/wines - Creating a new Wine with valid data. Available for manager12345@gmail.com
  ```shell
 {
   "vendorCode": "MSD 2019",
@@ -146,19 +150,19 @@ With the Wine Store API, you can:
   "pictureLink2": "Fill this link if you already have file into drive"
 }
    ```
-- PATCH: api/wines/{id}/image - Add an image into path. Available for manager12345@gmail.com. After you add or change photos, you will have to restart the app to view the changes.
+- PATCH: localhost:8080/api/wines/{id}/image - Add an image into path. Available for manager12345@gmail.com. After you add or change photos, you will have to restart the app to view the changes.
  ```shell
 {
   "imageA": "path to an image",
   "imageB": "path to an image"
 }
    ```
-- GET: /api/wines/{id} - Find existing wine by id. Available for all users.
+- GET: localhost:8080//api/wines/{id} - Find existing wine by id. Available for all users.
 - DELETE: /api/wines/{id} - Delete existing wine by id. Available for manager12345@gmail.com
 
 4. Review management: Endpoints to managing reviews
 
-- POST: api/reviews - Adds a review to wine from a specific User. 
+- POST: localhost:8080/api/reviews - Adds a review to wine from a specific User. 
 #### A specific user can't leave more than one review of one kind of wine. If a review already exists, an earlier review with a rating is deleted, new adds. If there is no user with first and last name, a new one is created. Users are compared by first and last name. Available for all users.
 ```shell
 {
@@ -168,14 +172,14 @@ With the Wine Store API, you can:
   "rating": 5
 }
    ```
-- GET: api/reviews/wines/{wineId} - Find all reviews by wine id.
+- GET: localhost:8080/api/reviews/wines/{wineId} - Find all reviews by wine id.
 #### Find all reviews by wine id, sort by reviewDate.DESC, size = 4, page = 0. Pagination example: /reviews/wine/{wineId}?size=5&page=0&sort=id Available for all users
 
 5. Order management. Endpoints to managing orders
 
-- GET: api/orders - Find all orders.
+- GET: localhost:8080/api/orders - Find all orders.
 #### Find all orders. Use size, page and sort for pagination. Pagination example: /orders?size=5&page=0&sort=id Available for all users
-- POST: api/orders - Adds an order for wine from a specific User.
+- POST: localhost:8080/api/orders - Adds an order for wine from a specific User.
 ####  Users are identified by first name, last name, and telephone number. If there is already a user in the database with first name, last name, and phone number, this user is linked to the order. Otherwise, the database is searched for a user by first and last name, and if one is found, a phone number is added to the found user and linked to the order. If in this case there is no user in the database, it is created anew. Available to all users.
 ```shell
 {
@@ -201,44 +205,13 @@ With the Wine Store API, you can:
   }
 }
    ```
-- PATCH: api/orders/{id}/paid - Set the status PAID for the order and set current data. Available for manager12345@gmail.com
-- GET: api/orders/{id} - Find order by id from database. Available for all users
-- DELETE: api/orders/{id} - Delete order by id from database. Available for manager12345@gmail.com
-- GET: /orders/users/{userId} - Find all orders by user ID. Use size, page and sort for pagination. Pagination example: /orders/users/{userId}?size=5&page=0&sort=id Available for all users
+- PATCH: localhost:8080/api/orders/{id}/paid - Set the status PAID for the order and set current data. Available for manager12345@gmail.com
+- GET: localhost:8080/api/orders/{id} - Find order by id from database. Available for all users
+- DELETE: localhost:8080/api/orders/{id} - Delete order by id from database. Available for manager12345@gmail.com
+- GET: localhost:8080/api/orders/users/{userId} - Find all orders by user ID. Use size, page and sort for pagination. Pagination example: /orders/users/{userId}?size=5&page=0&sort=id Available for all users
 
 6. Notifications Service (Telegram):
 - Notifications about creation new order, changing payment status.
 - Registration in api with enter order number.
 - Uses Telegram API, Telegram Chats, and Bots.
-
-### ▶️How to set up and start the project
-
-- **Soft requirements**
-    - Java Development Kit (JDK) version 11 or higher.
-    - Maven Version: 4.0.0
-    - Git
-    - MySQL
-    - Docker
-    - PostMan
-- **Instalation**
-    - Clone the repository from github:
-  ```shell
-  git clone git@github.com:https://github.com/ArtemMakovskyy/wine-store-app.git
-   ```
-    - Start the Docker
-    - Configure the database parameters in the .env file
-    - Open a terminal and navigate to the root directory of your project
-    - Into the terminal use command to build the container and start project.
-  ```shell
-    docker-compose build
-    docker-compose up
-   ```
-    - First way to use the WINE STORE API it is SWAGGER
-
-   ```shell
-     http://localhost:8080/api/swagger-ui/index.html#/
-   ```
-    - Second way to use the BookStoreApi it is PostMan
-
----
 

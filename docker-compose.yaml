@@ -2,14 +2,15 @@ version: "3.8"
 
 services:
   db_sql:
+    env_file: .env
     container_name: mysql-winery-db-container
     image: mysql:8
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: rootPassword
-      MYSQL_DATABASE: wine_store_db
-      MYSQL_USER: userName
-      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
       - "3309:3306"
     healthcheck:
@@ -23,6 +24,7 @@ services:
       - backend-db
 
   api_backend:
+    env_file: .env
     container_name: winery-api-container
     depends_on:
       db_sql:
@@ -30,22 +32,21 @@ services:
     restart: on-failure
     build: ./stoic-winery-api
     ports:
-      - "8080:8080"
+      - "${BACKEND_PORT:-8080}:8080"
       - "5006:5005"
     environment:
-      SPRING_DATASOURCE_URL: "jdbc:mysql://db_sql:3306/wine_store_db?serverTimezone=UTC&characterEncoding=UTF-8"
-      SPRING_DATASOURCE_USERNAME: "userName"
-      SPRING_DATASOURCE_PASSWORD: "secret"
+      SPRING_DATASOURCE_URL: ${DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${DATASOURCE_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DATASOURCE_PASSWORD}
       SPRING_JPA_HIBERNATE_DDL_AUTO: "validate"
       JAVA_TOOL_OPTIONS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
-      port: "8080"
     networks:
       - backend-db
 
   frontend_wine_site:
     build: ./wine_site_project
     ports:
-      - "3000:3000"
+      - "${FRONTEND_PORT:-3000}:3000"
     stdin_open: true
     tty: true
     depends_on:

@@ -28,5 +28,6 @@ public class Application {
                 + "admin12345@gmail.com, and password: 12345"
                 + "\nDefault login for using documentation for Manager: "
                 + "manager12345@gmail.com, and password: 12345");
+        log.info("\nBackend: " + "http://localhost:3000/#/products");
     }
 }

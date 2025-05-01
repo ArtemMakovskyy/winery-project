@@ -1,7 +1,5 @@
-# Stoic Winery
-
-You can watch project here [DEMO LINK](https://wine-site-project.vercel.app/).
-
+# Stoic Winery - frontend
+Development repository with all commits - https://github.com/RodionSav/wine_site_project
 ## Technologies
 
 - React
