@@ -1,0 +1,127 @@
+@import '../../styles/typography';
+@import '../../styles/variables';
+
+.comment {
+  &__form {
+    position: fixed;
+    background: rgba(42, 42, 45, 0.80);
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    overflow-y: auto;
+
+    &__main-container {
+      position: relative;
+      background: $back-color;
+      width: 935px;
+      height: 677px;
+      max-width: auto;
+      box-sizing: border-box;
+      margin: auto;
+      margin-top: 8vh;
+    }
+
+    &-container {
+      width: 855px;
+      margin: auto;
+      padding: 40px;
+    }
+
+    &__title {
+      @extend %mohave-400;
+      color: var(--80-Grey, $back-more-color);
+      font-size: 48px;
+      font-style: normal;
+      line-height: 120%;
+      text-transform: uppercase;
+
+      &-container {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 40px;
+      }
+    }
+
+    &__button {
+      width: 24px;
+      height: 24px;
+      border: none;
+      background: none;
+      background-repeat: no-repeat;
+      background-image: url(../../images/close.svg);
+      cursor: pointer;
+      transition: transform 0.3s;
+
+      &:hover {
+        transform: scale(1.2);
+      }
+
+      &-confirm {
+        &-container {
+          display: flex;
+          justify-content: center;
+          margin-top: 40px;
+        }
+
+        &:disabled {
+          background-color: $disabled-color;
+        }
+      }
+
+    }
+
+    &__input {
+      color: $input-title-color;
+      background: $input-back-color;
+      box-sizing: border-box;
+      font-size: 20px;
+      @extend %cormorant-infant-500;
+      line-height: 150%;
+      outline: none;
+
+      &__name {
+        border: 1px solid $additional-title-color;
+        padding: 16px;
+
+
+        &__label {
+          @extend %cormorant-infant-500;
+          color: $back-more-color;
+          font-size: 20px;
+          font-style: normal;
+          line-height: 150%;
+        }
+
+        &-container {
+          display: flex;
+          flex-direction: column;
+        }
+      }
+
+      &__textarea {
+        position: relative;
+        resize: none;
+        width: 855px;
+        height: 284px;
+        padding-top: 10px;
+        padding-left: 15px;
+        margin-top: 40px;
+        border: 1px solid $back-more-color;
+      }
+    }
+
+    &__stars {
+      position: absolute;
+      top: 287px;
+      right: 60px;
+      z-index: 10;
+    }
+
+    &__error {
+      position: absolute;
+      top: 230px;
+      color: red;
+      margin-top: 5px;
+    }
+  }
+}

@@ -1,0 +1,54 @@
+@import '../../styles/typography';
+@import '../../styles/variables';
+
+.wine {
+  width: 1280px;
+  margin: auto;
+  padding-top: 232px;
+
+  &__title {
+    font-size: 48px;
+    line-height: 120%;
+    @extend %mohave-400;
+    margin-bottom: 16px;
+  }
+
+  &__paragraph {
+    font-size: 24px;
+    @extend %cormorant-infant-500;
+    line-height: 150%;
+  }
+
+  &__dropdown-container {
+    display: flex;
+    justify-content: center;
+    gap: 35px;
+    margin-top: 74px;
+    margin-bottom: 80px;
+  }
+
+  &-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+    width: 1280px;
+    min-height: 50vh;
+
+    &-second {
+      margin-bottom: 80px;
+    }
+  }
+
+  &-course {
+    &-container {
+      margin-top: 48px;
+      margin-bottom: 124px;
+    }
+
+    &-img {
+      height: 480px;
+      width: 100vw;
+      object-fit: cover;
+    }
+  }
+}

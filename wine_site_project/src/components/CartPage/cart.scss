@@ -1,0 +1,325 @@
+@import '../../styles/typography';
+@import '../../styles/variables';
+
+.cart {
+  padding-top: 306px;
+  max-width: 1280px;
+  margin: auto;
+  display: flex;
+  gap: 32px;
+
+  &-container {
+    &-second {
+      width: 625px;
+    }
+  }
+
+  &__products {
+    &-container {
+      display: flex;
+      flex-direction: column;
+      gap: 25px;
+    }
+  }
+
+  &__title {
+    @extend %mohave-400;
+    font-size: 48px;
+    line-height: 57.6px;
+    margin-bottom: 40px;
+  }
+
+  &__subtitle {
+    text-transform: uppercase;
+    @extend %mohave-500;
+    font-size: 24px;
+    line-height: 28.8px;
+    color: $title-color;
+    margin-bottom: 24px;
+  }
+
+  &__label {
+    @extend %cormorant-infant-500;
+    font-size: 20px;
+    line-height: 30px;
+    color: $back-more-color;
+
+  }
+
+  &__input {
+    box-sizing: border-box;
+    background-color: $input-back-color;
+    border: 1px solid $additional-title-color;
+    @extend %cormorant-infant-500;
+
+    width: 623px;
+    height: 62px;
+    font-size: 20px;
+    line-height: 30px;
+    color: $input-title-color;
+    padding-left: 16px;
+    outline: none;
+
+    &:focus {
+      color: $title-color;
+      border: 1px solid $additional-title-color;
+    }
+
+    &:invalid {
+      border: 1px solid $invalid-input-color;
+    }
+
+    &-container {
+      display: flex;
+      flex-direction: column;
+    }
+  }
+
+  &__inputs {
+    &-container {
+      margin-bottom: 56px;
+    }
+  }
+
+  &__total {
+    @extend %mohave-500;
+    font-size: 24px;
+    line-height: 28.8px;
+    color: $input-title-color;
+    text-transform: uppercase;
+
+    &-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 96px;
+      margin-bottom: 40px;
+    }
+  }
+
+  &__radio {
+    border-radius: 100%;
+    appearance: none;
+    outline: none;
+
+    &::before {
+      content: '';
+      position: relative;
+      display: block;
+      top: 5px;
+      right: 5px;
+      width: 22px;
+      height: 22px;
+      border-radius: 5px;
+      border: 1px solid $additional-title-color;
+      cursor: pointer;
+    }
+
+    &:checked {
+      &::before {
+        content: '';
+        position: relative;
+        display: block;
+        top: 5px;
+        right: 5px;
+        width: 22px;
+        height: 22px;
+        border-radius: 5px;
+        background-repeat: no-repeat;
+        background-image: url(../../images/check-mark.svg);
+        cursor: pointer;
+      }
+    }
+
+    &__label {
+      @extend %cormorant-infant-500;
+      font-size: 24px;
+      line-height: 36px;
+      cursor: pointer;
+    }
+
+    &-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+  }
+
+  &__card {
+    position: relative;
+    display: flex;
+    border-bottom: 2px solid $input-back-color;
+
+    &-img {
+      width: 105px;
+      height: 185px;
+
+      &-container {
+        display: flex;
+        align-items: center;
+        gap: 24px ;
+      }
+    }
+
+    &__title {
+      width: 159px;
+      color: $title-color;
+      @extend %cormorant-infant-500;
+      text-transform: capitalize;
+      font-size: 24px;
+      font-style: normal;
+      line-height: 150%;
+    }
+
+    &__price {
+      color: $title-color;
+      @extend %mohave-400;
+      font-size: 48px;
+      font-style: normal;
+      line-height: 120%;
+      text-transform: uppercase;
+      margin-top: 67px;
+    }
+
+    &__button {
+
+      border: 0;
+      background-color: $back-color;
+      color: $active-color;
+      width: 24px;
+      height: 24px;
+      font-size: 24px;
+      cursor: pointer;
+
+      &-minus {
+        margin-bottom: 15px;
+      }
+
+      &-plus {
+        margin-bottom: 5px;
+      }
+
+      &__cross {
+        position: absolute;
+        width: 15px;
+        height: 15px;
+        background: none;
+        border: none;
+        right: 0;
+        cursor: pointer;
+        transition: transform 0.3s;
+
+        &:hover {
+          transform: scale(1.2);
+        }
+      }
+
+      &-container {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        justify-content: center;
+        width: 109px;
+        height: 48px;
+        border: 1px solid $active-color;
+        margin-top: 68px;
+        margin-left: 40px;
+        margin-right: 25px;
+      }
+    }
+
+    &__number {
+      @extend %mohave-400;
+      line-height: 100%;
+      font-size: 16px;
+      color: $active-color;
+    }
+  }
+
+  &-empty {
+    width: 100%;
+    height: 100%;
+
+    &__title {
+      @extend %mohave-400;
+      color: $back-more-color;
+      font-size: 64px;
+      line-height: 120%;
+      text-transform: uppercase;
+
+      &-container {
+        margin: auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+      }
+    }
+
+    &-img {
+      margin: auto;
+      display: block;
+      padding-top: 150px;
+      margin-bottom: 60px;
+    }
+
+    &__subtitle {
+      @extend %cormorant-infant-500;
+      color: var(--60-Grey, $additional-title-color);
+      font-size: 24px;
+      line-height: 150%;
+      margin-bottom: 40px;
+    }
+
+    &__button {
+      @extend %mohave-400;
+      font-size: 16px;
+      display: flex;
+      width: 296px;
+      padding: 12px 32px;
+      justify-content: center;
+      align-items: center;
+      color: $white-color;
+      text-transform: uppercase;
+      border: none;
+      background: $active-color;
+      margin-bottom: 186px;
+      text-decoration: none;
+      gap: 8px;
+
+      &:hover {
+        background-color: $active-color-hover;
+      }
+    }
+  }
+}
+
+.error {
+  position: relative;
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 10px;
+  background-color: $error-color;
+
+  &__button {
+    border: none;
+    background: none;
+    cursor: pointer;
+    position: absolute;
+    right: 10px;
+
+    &:hover {
+      transform: scale(1.2);
+    }
+  }
+
+  &__title {
+    padding-top: 30px;
+    text-align: center;
+    @extend %mohave-400;
+    color: $white-color;
+    font-size: 36px;
+    line-height: 120%;
+    text-transform: uppercase;
+  }
+}

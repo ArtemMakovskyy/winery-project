@@ -1,0 +1,52 @@
+@import '../../styles/typography';
+@import '../../styles/variables';
+
+.comment {
+  height: 463px;
+  width: 624px;
+  border: 2px solid $input-back-color;
+  box-sizing: border-box;
+
+  &-container {
+    margin: 32px
+  }
+
+  &__paragraph {
+    width: 416px;
+    @extend %cormorant-infant-500;
+    line-height: 36px;
+    font-size: 24px;
+  }
+
+  &__name {
+    margin-top: 16px;
+    @extend %cormorant-infant-500;
+    line-height: 30px;
+    font-size: 20px;
+  }
+
+  &-img {
+    &-first {
+      margin-bottom: 86px;
+    }
+
+    &-second {
+      transform: rotate(180deg);
+      margin-top: 161px;
+    }
+  }
+
+  &__avatar {
+    &-container {
+      display: flex;
+      justify-content: space-between;
+    }
+  }
+
+  &-lower {
+    &-container {
+      display: flex;
+      justify-content: space-between;
+    }
+  }
+}

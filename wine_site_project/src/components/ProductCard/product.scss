@@ -1,0 +1,479 @@
+@import '../../styles/typography';
+@import '../../styles/variables';
+
+.product {
+  &__card {
+    position: relative;
+    width: 295px;
+    transition: transform 0.3s;
+
+    &:hover {
+      transform: scale(1.05);
+    }
+  }
+
+  &__list {
+    width: 1280px;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    margin-bottom: 128px;
+    height: 600px;
+
+    &-container {
+      display: flex;
+      justify-content: center;
+      width: 1372px;
+      margin: auto;
+    }
+
+    &-container {
+      display: flex;
+    }
+  }
+
+  &-img {
+    width: 295px;
+    height: 458px;
+    object-fit: cover;
+  }
+
+  &-container {
+    border-bottom: 1px solid $additional-title-color;
+
+  }
+
+  &__title {
+    font-size: 24px;
+    @extend %cormorant-infant-500;
+    line-height: 150%;
+
+    &-container {
+      display: flex;
+      justify-content: space-between;
+    }
+  }
+
+  &__subtitle {
+    font-size: 24px;
+    @extend %cormorant-infant-500;
+    line-height: 150%;
+  }
+
+  &__price {
+    font-size: 24px;
+    @extend %mohave-400;
+    line-height: 150%;
+
+    &-container {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 16px;
+    }
+  }
+
+  &__grade {
+    font-size: 24px;
+    @extend %cormorant-infant-500;
+    line-height: 150%;
+
+    &-container {
+      position: absolute;
+      right: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+  }
+
+  &__star {
+    margin-bottom: 3px;
+  }
+
+  &__button {
+    border: 0;
+    cursor: pointer;
+    background-color: $back-color;
+    background: none;
+    background-repeat: no-repeat;
+
+    &-adding {
+      border: 0;
+      cursor: pointer;
+      background-color: $back-color;
+      background: none;
+      background-repeat: no-repeat;
+      background-image: url(../../images/plus.svg);
+      width: 24px;
+      height: 24px;
+      margin-top: 10px;
+      transition: transform 0.3s;
+
+      &:hover {
+        transform: scale(1.2);
+      }
+
+      &_active {
+        border: 0;
+        cursor: pointer;
+        background-color: $back-color;
+        background: none;
+        background-repeat: no-repeat;
+        background-image: url(../../images/plus-active.svg);
+        width: 24px;
+        height: 24px;
+        position: relative;
+      }
+    }
+
+    &-heart {
+      border: 0;
+      cursor: pointer;
+      background-color: $back-color;
+      background: none;
+      background-repeat: no-repeat;
+      background-image: url(../../images/heart.svg);
+      width: 22px;
+      height: 24px;
+      margin-top: 5.5px;
+      transition: transform 0.3s;
+
+      &:hover {
+        transform: scale(1.2);
+      }
+
+      &_active {
+        border: 0;
+        cursor: pointer;
+        background-color: $back-color;
+        background: none;
+        background-repeat: no-repeat;
+        background-image: url(../../images/heart-active-1.svg);
+        width: 20px;
+        height: 18px;
+        margin-top: 8px;
+      }
+    }
+
+
+    &-arrow {
+      &-left {
+        transform: scaleX(-1);
+      }
+    }
+
+    &-container {
+      display: flex;
+      gap: 15px;
+    }
+  }
+
+  &-details {
+    border-bottom: 1px solid $title-color;
+    padding-bottom: 48px;
+    margin-bottom: 80px;
+
+    &-container {
+      padding-top: 200px;
+      margin: auto;
+      width: 1280px;
+
+      &-second {
+        margin: auto;
+        width: 1280px;
+      }
+    }
+
+    &__title {
+      line-height: 120%;
+      font-size: 64px;
+      @extend %mohave-400;
+
+      &_ad {
+        font-size: 48px;
+        line-height: 120%;
+        @extend %mohave-400;
+        color: $additional-title-color;
+        margin-bottom: 24px;
+      }
+
+      &-container {
+        display: flex;
+        justify-content: space-between;
+      }
+    }
+
+    &__mrd {
+      color: $input-title-color;
+      line-height: 150%;
+      font-size: 24px;
+      @extend %cormorant-infant-500;
+      width: 140px;
+    }
+
+    &__edition {
+      color: $input-title-color;
+      line-height: 150%;
+      font-size: 24px;
+      margin-top: 16px;
+      margin-bottom: 40px;
+      @extend %cormorant-infant-500;
+    }
+
+    &__list {
+      display: flex;
+      gap: 25px;
+    }
+
+    &__item {
+      line-height: 150%;
+      @extend %cormorant-infant-500;
+      font-size: 24px;
+      color: $active-color;
+      margin-left: 8px;
+
+      &-first {
+        list-style: none;
+        margin-left: 0;
+        margin-bottom: 80px;
+      }
+    }
+
+    &__link {
+      cursor: pointer;
+      text-decoration: none;
+      color: $title-color;
+    }
+
+    &__span {
+      color: $title-color;
+    }
+
+    &__grade {
+      font-size: 20px;
+      @extend %cormorant-infant-500;
+      line-height: 150%;
+      color: $additional-title-color;
+
+      &-container {
+        display: flex;
+        align-items: center;
+        gap: 27px;
+      }
+
+      &__main-container {
+        display: flex;
+        justify-content: space-between;
+        width: 624px;
+      }
+    }
+
+    &__star {
+      &-container {
+        display: flex;
+        gap: 6px;
+      }
+    }
+
+    &__review {
+      @extend %mohave-400;
+      font-size: 16px;
+      line-height: 100%;
+      text-transform: uppercase;
+      color: $additional-title-color;
+
+      &-container {
+        display: flex;
+        align-items: center;
+        margin-top: 32px;
+        background: none;
+        border: none;
+      }
+    }
+
+    &-pen {
+      margin-left: 10px;
+      margin-right: 17px;
+    }
+
+    &__price {
+      font-size: 64px;
+      @extend %mohave-400;
+      line-height: 120%;
+    }
+
+    &-img {
+      width: 624px;
+
+      &-container {
+        display: flex;
+        justify-content: space-between;
+      }
+    }
+
+    &__keys {
+      &-container {
+        margin-top: 80px;
+      }
+    }
+
+    &__key {
+      @extend %mohave-500;
+      line-height: 120%;
+      font-size: 24px;
+      text-transform: uppercase;
+      color: $back-more-color;
+
+      &-container {
+        display: flex;
+        align-items: start;
+        justify-content: space-between;
+      }
+    }
+
+    &__value {
+      @extend %cormorant-infant-500;
+      font-size: 24px;
+      line-height: 150%;
+      color: $additional-title-color;
+      display: flex;
+      justify-content: start;
+      width: 294px;
+      margin-bottom: 32px;
+    }
+
+    &__button {
+      border: 0;
+      background-color: $back-color;
+      color: $active-color;
+      width: 24px;
+      height: 24px;
+      font-size: 24px;
+      cursor: pointer;
+      transition: transform 0.3s;
+
+      &:hover {
+        transform: scale(1.2);
+      }
+
+      &-minus {
+        margin-bottom: 15px;
+      }
+
+      &-plus {
+        margin-bottom: 5px;
+      }
+
+      &__main-container {
+        display: flex;
+        justify-content: space-between;
+      }
+
+      &-add-review {
+        display: flex;
+        align-items: center;
+        background: none;
+        border: none;
+        cursor: pointer;
+        transition: transform 0.3s;
+
+        &:hover {
+          transform: scale(1.1);
+        }
+      }
+
+      &-heart {
+        position: relative;
+        top: 10px;
+        border: none;
+        background-repeat: no-repeat;
+        width: 36px;
+        height: 36px;
+        cursor: pointer;
+        background: none;
+        background-repeat: no-repeat;
+        background-image: url(../../images/heart.svg);
+        transform: scale(1.5);
+        transition: transform 0.3s;
+
+        &:hover {
+          transform: scale(1.8);
+        }
+
+        &_active {
+          position: relative;
+          top: 14px;
+          left: 2.5px;
+          border: none;
+          background-repeat: no-repeat;
+          width: 36px;
+          height: 36px;
+          cursor: pointer;
+          background: none;
+          background-repeat: no-repeat;
+          background-image: url(../../images/heart-active.svg);
+          transform: scale(1.5);
+        }
+      }
+
+      &-container {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        justify-content: center;
+        width: 173px;
+        border: 1px solid $active-color;
+      }
+    }
+
+    &__number {
+      @extend %mohave-400;
+      line-height: 100%;
+      font-size: 16px;
+      color: $active-color;
+    }
+
+    &-heart-container {
+      display: flex;
+      justify-content: center;
+      width: 90px;
+    }
+
+    &__menu {
+      display: flex;
+      gap: 98px;
+      margin-top: 80px;
+      margin-bottom: 24px;
+
+      &__title {
+        line-height: 120%;
+        font-size: 48px;
+        @extend %mohave-400;
+        color: $input-title-color;
+        cursor: pointer;
+
+        &-active {
+          color: $active-color;
+        }
+
+      }
+
+      &__paragraph {
+        width: 952px;
+        color: $additional-title-color;
+        font-size: 24px;
+        line-height: 150%;
+        @extend %cormorant-infant-500;
+      }
+    }
+
+    &__slider {
+      display: flex;
+      justify-content: center;
+      width: 295 * 4;
+      margin: auto;
+    }
+  }
+}

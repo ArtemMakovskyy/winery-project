@@ -1,0 +1,82 @@
+@import '../../styles/typography';
+@import '../../styles/variables';
+
+.your-cart {
+  background: rgba(42, 42, 45, 0.80);
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 382.5%;
+  z-index: 1000;
+
+  &__main-container {
+    position: relative;
+    padding: 40px;
+    background: $back-color;
+    width: 1367px;
+    max-width: auto;
+    box-sizing: border-box;
+    margin: auto;
+    margin-top: 8vh;
+  }
+
+  &-container {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  &__title {
+    color: $title-color;
+    @extend %mohave-400;
+    font-size: 48px;
+    line-height: 120%;
+    text-transform: uppercase;
+    margin-bottom: 40px;
+  }
+
+  &__button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: $white-color;
+    @extend %mohave-400;
+    font-size: 16px;
+    line-height: 100%;
+    text-transform: uppercase;
+
+    &-container {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 80px;
+    }
+
+    &-back {
+      @extend %cormorant-infant-500;
+      color: $title-color;
+      font-size: 24px;
+      line-height: 150%;
+      text-decoration: none;
+      transition: transform 0.3s;
+      cursor: pointer;
+
+      &:hover {
+        transform: scale(1.2);
+      }
+
+      &::before {
+        content: url(../../images/right-arrow.svg);
+        position: relative;
+        width: 24px;
+        height: 24px;
+        top: 4px;
+      }
+    }
+  }
+
+  &__slider {
+    position: relative;
+    right: 43px;
+  }
+}

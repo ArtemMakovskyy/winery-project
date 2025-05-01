@@ -1,0 +1,45 @@
+@import '../../styles/typography';
+@import '../../styles/variables';
+
+.page {
+  background-color: $back-color;
+
+  &-container {
+    width: 1280px;
+    z-index: 1000;
+    padding-top: 470px;
+  }
+
+  &__title {
+    position: relative;
+    color: $white-color;
+    font-size: 64px;
+    z-index: 1000;
+  }
+
+  &__subtitle {
+    @extend %cormorant-infant-500;
+    color: $white-color;
+    line-height: 150%;
+  }
+
+  &__button {
+    width: 296px;
+    height: 42px;
+    background-color: $active-color;
+    border: 0;
+    color: $white-color;
+    font-size: 16px;
+    text-transform: uppercase;
+    @extend %mohave-400;
+    cursor: pointer;
+
+    &:hover {
+      background-color: $active-color-hover;
+    }
+
+    &_active {
+      background-color: $order-name-color;
+    }
+  }
+}

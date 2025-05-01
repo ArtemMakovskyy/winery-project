@@ -1,0 +1,98 @@
+@import '../../styles/typography';
+@import '../../styles/variables';
+
+.question {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%;
+  height: 100%;
+
+  &-back {
+    position: absolute;
+    background-color: rgba(21, 21, 22, 0.35);
+    z-index: 1000;
+    top: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  &__video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  &-container {
+    position: absolute;
+    z-index: 1100;
+    top:50%;
+    left:50%;
+    transform:translate(-50%, -50%);
+    height: 173px;
+  }
+
+  &__title {
+    @extend %mohave-400;
+    color: $white-color;
+    font-size: 64px;
+    line-height: 120%;
+    text-transform: uppercase;
+    text-align: center;
+  }
+
+  &__paragraph {
+    margin-top: 56px;
+    @extend %cormorant-infant-500;
+    color: $white-color;
+    font-size: 24px;
+    line-height: 150%;
+  }
+
+  &__button {
+    box-sizing: border-box;
+    display: flex;
+    width: 183px;
+    height: 40px;
+    padding: 12px 32px;
+    justify-content: center;
+    align-items: center;
+    @extend %mohave-400;
+    color: $active-color;
+    font-size: 16px;
+    line-height: 100%;
+    text-transform: uppercase;
+    text-decoration: none;
+
+    &-accept {
+      background-color: $active-color;
+      color: $white-color;
+      transition: all 0.3s;
+
+      &:hover {
+        background-color: $white-color;
+        color: $active-color;
+      }
+    }
+
+    &-deny {
+      background-color: $white-color;
+      color: $active-color;
+      border: 1px solid $active-color;
+      transition: all 0.3s;
+
+      &:hover {
+        background-color: $active-color;
+        color: $white-color;
+      }
+    }
+
+    &-container {
+      display: flex;
+      justify-content: center;
+      gap: 80px;
+      margin-top: 56px;
+    }
+  }
+}

@@ -1,0 +1,49 @@
+@import '../../styles/typography';
+@import '../../styles/variables';
+
+.founded {
+  padding-top: 200px;
+  padding-bottom: 100px;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  &-container {
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__title {
+    @extend %mohave-400;
+    color: $back-more-color;
+    font-size: 64px;
+    line-height: 120%;
+    text-transform: uppercase;
+    padding-top: 71px;
+  }
+
+  &__subtitle {
+    @extend %cormorant-infant-500;
+    color: var(--60-Grey, $additional-title-color);
+    font-size: 24px;
+    line-height: 150%;
+  }
+
+  &__button {
+    margin-top: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    gap: 8px;
+    @extend %mohave-400;
+    color: $white-color;
+    font-size: 16px;
+    line-height: 100%;
+    text-transform: uppercase;
+  }
+}

@@ -1,0 +1,84 @@
+@import '../../styles/_typography.scss';
+@import '../../styles/variables';
+
+.footer {
+  display: flex;
+  width: 1280px;
+  align-items: center;
+  justify-content: space-between;
+  background-color: $back-color;
+  margin-left: 80px;
+  margin: auto;
+
+  &-container {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    &-first {
+      width: 230px;
+    }
+
+    &-second {
+      width: 230px;
+    }
+
+    &-third {
+      width: 72px;
+    }
+  }
+
+  &__main-container {
+    display: flex;
+    justify-content: space-between;
+    width: 620px;
+  }
+
+  &__title {
+    font-size: 24px;
+  }
+
+  &__link {
+    display: block;
+    text-decoration: none;
+    color: black;
+    transition: transform 0.3s;
+
+    &:hover {
+      transform: scale(1.2)
+    }
+
+    &_active {
+      color: $active-color;
+      font-weight: 600;
+    }
+  }
+
+  &-logo {
+    background-image: url(../../images/LOGO.svg);
+    width: 251px;
+    height: 57px;
+
+    &-container {
+      width: 947px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+  }
+
+  &__icon {
+    &-plane {
+      width: 24px;
+      height: 25px;
+      background-image: url(../../images/facebook.svg);
+    }
+
+    &-heart {
+      width: 24px;
+      height: 25px;
+      background-image: url(../../images/instagram.svg);
+    }
+  }
+}

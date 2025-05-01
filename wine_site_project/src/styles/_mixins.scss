@@ -1,0 +1,9 @@
+@mixin onDesktop {
+  @media (min-width: 1280px) {
+    @content;
+  }
+
+  @media (max-width: 768px) {
+    @content;
+  }
+}

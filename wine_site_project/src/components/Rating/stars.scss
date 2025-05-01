@@ -1,0 +1,25 @@
+.stars {
+  display: flex;
+}
+
+.star {
+  width: 24px;
+  height: 24px;
+  background-repeat: no-repeat;
+  background-image: url(../../images/star-not-active.svg);
+  position: relative;
+  z-index: 0;
+  cursor: pointer;
+
+
+  &_active {
+    width: 24px;
+    height: 24px;
+    background-repeat: no-repeat;
+    background-image: url(../../images/star.svg);
+    position: relative;
+    z-index: 15;
+    cursor: pointer;
+
+  }
+}

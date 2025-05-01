@@ -1,0 +1,168 @@
+@import '../../styles/_typography.scss';
+@import '../../styles/variables';
+
+.header {
+  display: flex;
+  width: 1280px;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 83px;
+  position: absolute;
+  left:50%;
+  transform:translate(-50%);
+  z-index: 1000;
+
+  &-first-container {
+    min-height: 800px;
+  }
+
+  &-img {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    background-size: cover;
+
+    &-about {
+      background-image: url(../../images//back-about-img.png);
+      min-height: 800px;
+    }
+
+    &-contact {
+      background-image: url(../../images//back-contact-img.png);
+      min-height: 800px;
+    }
+
+    &-more {
+      background-image: url(../../images/back-more-img.png);
+      min-height: 800px;
+    }
+
+    &-wine {
+      height: 0;
+    }
+
+    &_none {
+      z-index: -1000;
+    }
+  }
+
+  &-container {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    &-first {
+      width: 230px;
+    }
+
+    &-second {
+      width: 230px;
+    }
+
+    &-third {
+      width: 147px;
+    }
+  }
+
+  &__main-container {
+    display: flex;
+    justify-content: space-between;
+    width: 620px;
+  }
+
+  &__title {
+    font-size: 24px;
+  }
+
+  &__link {
+    display: block;
+    text-decoration: none;
+    color: black;
+    transition: transform 0.3s;
+
+    &:hover {
+      transform: scale(1.2);
+    }
+
+    &_active {
+      color: $active-color;
+      font-weight: 600;
+    }
+  }
+
+  &-logo {
+    background-image: url(../../images/LOGO.svg);
+    width: 251px;
+    height: 57px;
+
+    &-container {
+      width: 947px;
+      display: flex;
+      justify-content: space-between;
+    }
+  }
+
+  &__icon {
+    position: relative;
+    transition: transform 0.3s;
+    text-decoration: none;
+
+    &:hover {
+      transform: scale(1.2);
+    }
+
+    &__amount {
+      position: absolute;
+      top: -2px;
+      left: 8px;
+      border-radius: 50%;
+      width: 14px;
+      height: 14px;
+      background-color: $active-color;
+      @extend %mohave-500;
+      color: $back-color;
+      font-size: 11px;
+      line-height: 120%;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid $back-color;
+      text-decoration: none;
+    }
+
+    &-plane {
+      width: 21px;
+      height: 18px;
+      background-image: url(../../images/telegram.svg);
+    }
+
+    &-heart {
+      width: 24px;
+      height: 24px;
+      background-repeat: no-repeat;
+      background-image: url(../../images/heart.svg);
+
+      &-active {
+        position: relative;
+        // top: 3.1px;
+        // right: -2px;
+        width: 24px;
+        height: 24px;
+        background-repeat: no-repeat;
+        background-image: url(../../images/heart-active.svg);
+      }
+    }
+
+    &-cart {
+      width: 24px;
+      height: 24px;
+      background-image: url(../../images/shop.svg);
+
+      &-active {
+        background-image: url(../../images/cart.svg);
+      }
+    }
+  }
+}

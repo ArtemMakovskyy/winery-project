@@ -1,0 +1,176 @@
+@import '../../styles/typography';
+@import '../../styles/variables';
+
+.more {
+
+  &__section {
+    height: 78vh;
+    width: 100%;
+  }
+
+  &-img {
+    position: absolute;
+    width: 100%;
+  }
+
+  &-container {
+    background-color: $back-more-color;
+    padding: 16px 8px 16px;
+    opacity: 70%;
+    width: 765px;
+  }
+
+  &__main {
+    &-container {
+      position: relative;
+      z-index: 100;
+      padding-top: 520px;
+      width: 1280px;
+      margin: auto;
+    }
+  }
+
+  &__subtitle {
+    font-size: 24px;
+  }
+
+
+}
+
+.event {
+  &__section {
+    width: 1280px;
+    margin: auto;
+    margin-top: 80px;
+  }
+  &__title {
+    font-size: 48px;
+    margin-bottom: 16px;
+    line-height: 150%;
+  }
+
+  &__caption {
+    font-size: 36px;
+    line-height: 150%;
+    @extend %cormorant-infant-500;
+    margin-bottom: 16px;
+  }
+
+  &__paragraph {
+    font-size: 24px;
+    line-height: 150%;
+    @extend %cormorant-infant-500;
+  }
+
+  &__main-container {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+
+    &-second {
+      justify-content: end;
+      margin-bottom: 150px;
+    }
+  }
+
+  &-container {
+    &-first {
+      grid-column: 1 / 4;
+    }
+
+    &-second {
+      grid-column: 2 / 5;
+    }
+
+    &-third {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+  }
+
+  &-img {
+    &-first {
+      grid-column: 4 / 5;
+    }
+
+    &-second {
+      position: absolute;
+      left: 0;
+      transform: translateY(-40%);
+    }
+  }
+
+  &__button {
+    margin-bottom: 24px;
+  }
+}
+
+.mastering {
+  &__section {
+    width: 1280px;
+    margin: auto;
+    margin-top: 80px;
+  }
+
+  &-img {
+    display: flex;
+    justify-content: center;
+    width: 1280px;
+    background-image: url(../../images/courseImg.jpg);
+    height: 911px;
+    max-width: 100%;
+    background-position: 90%;
+    background-position-y: 28%;
+    background-size:cover
+  }
+
+  &-container {
+    position: absolute;
+    right: 0;
+    left: 0;
+    background-color: $back-more-color;
+    padding: 40px 16px 40px;
+    opacity: 80%;
+  }
+
+  &__main-container {
+    position: relative;
+  }
+
+  &__title {
+    font-size: 48px;
+    line-height: 150%;
+    color: $white-color;
+  }
+
+  &__subtitle {
+    font-size: 36px;
+    color: $white-color;
+    line-height: 150%;
+    margin-top: 16px;
+    margin-bottom: 16px;
+    @extend %cormorant-infant-500;
+  }
+
+  &__paragraph {
+    font-size: 24px;
+    line-height: 150%;
+    color: $unique-dates-color;
+    margin-bottom: 32px;
+    @extend %cormorant-infant-500;
+  }
+
+  &__button {
+    opacity: 100%;
+  }
+
+  &-comment-container {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 80px;
+    margin-bottom: 128px;
+    gap: 32px;
+  }
+}

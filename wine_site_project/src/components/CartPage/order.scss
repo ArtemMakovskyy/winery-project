@@ -1,0 +1,158 @@
+@import '../../styles/typography';
+@import '../../styles/variables';
+
+.order {
+  background: rgba(42, 42, 45, 0.80);
+  position: fixed;
+  top: 0;
+  z-index: 1000;
+  width: 100%;
+  height: 100%;
+
+  &-container {
+    position: relative;
+    top: 100px;
+    background: $back-color;
+    width: 90%;
+    min-height: 400px;
+    margin: auto;
+  }
+
+  &__button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none;
+
+    &-cross {
+      position: absolute;
+      background: none;
+      border: none;
+      top: 40px;
+      right: 40px;
+      cursor: pointer;
+    }
+
+    &-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 50px;
+      padding-bottom: 40px;
+    }
+
+    &__subtitle {
+      @extend %mohave-500;
+      color: $title-color;
+      font-size: 24px;
+      line-height: 120%;
+      text-transform: uppercase;
+    }
+  }
+
+  &__title {
+    @extend %mohave-400;
+    color: $title-color;
+    text-align: center;
+    font-size: 48px;
+    line-height: 120%;
+    text-transform: uppercase;
+    padding-top: 40px;
+    padding-bottom: 40px;
+  }
+
+  &__name {
+    @extend %mohave-400;
+    color:$order-name-color;
+    font-size: 48px;
+    line-height: 120%;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  &__total {
+    @extend %mohave-500;
+    color: $input-title-color;
+    font-size: 24px;
+    line-height: 120%;
+    text-transform: uppercase;
+    width: 296px;
+
+
+    &-container {
+      display: flex;
+      align-items: center;
+      gap: 175px;
+      margin-top: 40px;
+      margin-left: 27%;
+      margin-bottom: 50px;
+    }
+  }
+
+  &__card {
+    position: relative;
+    display: flex;
+    align-items: center;
+    border-bottom: 3px solid $input-back-color;
+
+    &-container {
+      margin: auto;
+      display: flex;
+      align-items: center;
+      gap: 24px ;
+      flex-direction: column;
+    }
+
+    &__button {
+      &-cross {
+        position: absolute;
+        background: none;
+        border: none;
+        top: 0;
+        right: 0;
+        cursor: pointer;
+      }
+    }
+
+    &__title {
+      @extend %cormorant-infant-500;
+      color: $title-color;
+      font-size: 24px;
+      line-height: 150%;
+      text-transform: capitalize;
+      width: 611px;
+      gap: 43px;
+    }
+
+    &-img {
+
+      &-container {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+      }
+    }
+
+    &__amount {
+      @extend %mohave-400;
+      color: 000;
+      font-size: 48px;
+      line-height: 120%;
+      text-transform: uppercase;
+    }
+
+    &__price {
+      @extend %mohave-400;
+      color: 000;
+      font-size: 48px;
+      line-height: 120%;
+      text-transform: uppercase;
+
+      &-container {
+        display: flex;
+        gap: 168px;
+      }
+    }
+  }
+}
