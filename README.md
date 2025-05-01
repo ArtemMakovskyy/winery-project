@@ -5,6 +5,7 @@
 - **Soft requirements**
   - Docker
   - PostMan
+  - Git
   - Browser
 - **Instalation**
   - Clone the repository from github:
