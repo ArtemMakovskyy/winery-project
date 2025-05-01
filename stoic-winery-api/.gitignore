@@ -1,0 +1,46 @@
+.loadvines
+src/main/java/com/winestoreapp/temp/DockerfileTemplate
+HELP.md
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+.vscode/
+/src/main/java/com/winestoreapp/temp/
+/src/main/resources/info/
+/DockerfileTempl
+/upload/pictures/wine/*
+/.metadata/
+/.mvn/
+/x.dockerignore
+/mvnw.cmd
+/mvnw
+/src/main/resources/static/pages/
+/src/main/resources/static/index.html
