@@ -74,6 +74,23 @@ With the Wine Store API, you can:
 
 ---
 
+### 🛠️ Observability
+
+- **Logging**
+  - SLF4J (Simple Logging Facade for Java)
+  - Logback (default Spring Boot logging backend)
+- **Metrics and Monitoring**
+  - Micrometer (for application metrics)
+  - Spring Boot Actuator (for exposing operational information)
+- **Distributed Tracing**
+  - OpenTelemetry SDK (for tracing)
+  - Zipkin (for visualizing traces)
+- **Visualization and Aggregation**
+  - Prometheus (for scraping and storing metrics)
+  - Grafana (for metrics dashboards)
+
+
+
 ### 🧭Describing functionalities of controllers
 
 1. Authentication Controller:
@@ -215,3 +232,40 @@ With the Wine Store API, you can:
 - Registration in api with enter order number.
 - Uses Telegram API, Telegram Chats, and Bots.
 
+# Observability
+
+The project implements an observability system that enables real-time monitoring of metrics, logs, and traces. This allows for effective issue detection, performance analysis, and debugging.
+
+## 🔧 Tools and Technologies Used
+
+| Component                | Purpose |
+|--------------------------|---------|
+| **Spring Boot Actuator** | Exposes technical endpoints for gathering application state information |
+| **Micrometer + Prometheus** | Collects metrics (CPU usage, memory, HTTP requests, etc.) |
+| **Grafana** | Builds dashboards and visualizes metrics |
+| **Loki** | Aggregates and displays logs from the Java application via Grafana |
+| **Tempo** | Collects traces (distributed tracing) for request analysis across components |
+| **Zipkin Brave** | A tracing tool (Zipkin format) with Tempo support |
+| **Loki Logback Appender** | Sends logs from Spring Boot to Loki via Logback |
+
+## 🚀 How to Use
+
+### Open Grafana:
+- URL: [http://localhost:3030](http://localhost:3030)
+- By default, anonymous access is enabled with administrator privileges.
+
+### Metrics:
+1. Navigate to **Metrics → Prometheus**.
+2. View relevant metrics such as:
+- `http_server_requests_seconds_count`
+- `jvm_memory_used_bytes`
+
+### Logs:
+1. Go to **Explore → Loki**.
+2. Filter logs using queries:
+- `{app="wine-store-api"}`
+- `{level="ERROR"}`
+
+### Traces:
+1. Open **Traces → Tempo**.
+2. Select a service and inspect the request path for **end-to-end tracing**.
