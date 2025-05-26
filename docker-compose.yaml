@@ -21,7 +21,7 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
-      - backend-db
+      - backend
 
   api_backend:
     env_file: .env
@@ -29,6 +29,8 @@ services:
     depends_on:
       db_sql:
         condition: service_healthy
+      loki:
+        condition: service_started
     restart: on-failure
     build: ./stoic-winery-api
     ports:
@@ -40,8 +42,64 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${DATASOURCE_PASSWORD}
       SPRING_JPA_HIBERNATE_DDL_AUTO: "validate"
       JAVA_TOOL_OPTIONS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://tempo:9411/api/v2/spans
     networks:
-      - backend-db
+      - backend
+
+  prometheus:
+    image: prom/prometheus:v2.46.0
+    command:
+      - --enable-feature=exemplar-storage
+      - --config.file=/etc/prometheus/prometheus.yml
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - '9090:9090'
+    depends_on:
+      - api_backend
+    networks:
+      - backend
+
+
+  loki:
+    image: grafana/loki:main
+    command: [ '-config.file=/etc/loki/local-config.yaml' ]
+    ports:
+      - '3100:3100'
+    networks:
+      - backend
+
+  tempo:
+    image: grafana/tempo:2.2.2
+    command: [ '-config.file=/etc/tempo.yaml' ]
+    volumes:
+      - ./docker/tempo/tempo.yml:/etc/tempo.yaml:ro
+      - ./docker/tempo/tempo-data:/tmp/tempo
+    ports:
+      - '3110:3100'
+      - '9411:9411'
+    depends_on:
+      - api_backend
+    networks:
+      - backend
+
+  grafana:
+    image: grafana/grafana:10.1.0
+    volumes:
+      - ./docker/grafana:/etc/grafana/provisioning/datasources:ro
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+    ports:
+      - '3030:3000'
+    depends_on:
+      - prometheus
+      - loki
+      - tempo
+      - api_backend
+    networks:
+      - backend
 
   frontend_wine_site:
     env_file: .env
@@ -54,12 +112,12 @@ services:
       api_backend:
         condition: service_started
     networks:
-      - frontend-api
+      - frontend
 
 networks:
-  backend-db:
+  backend:
     driver: bridge
-  frontend-api:
+  frontend:
     driver: bridge
 
 volumes:
