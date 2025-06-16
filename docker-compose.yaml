@@ -43,6 +43,7 @@ services:
       SPRING_JPA_HIBERNATE_DDL_AUTO: "validate"
       JAVA_TOOL_OPTIONS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
       MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://tempo:9411/api/v2/spans
+      LOKI_URL: http://loki:3100/loki/api/v1/push
     networks:
       - backend
 
