@@ -33,14 +33,13 @@ Content-Type: application/json
   "pictureLink2": "https://example.com/images/wine_label.jpg"
 }
 
-
 ### Delete Wine (MANAGER only)
 DELETE http://localhost:8080/api/wines/1
 Authorization: Bearer {{auth_token}}
 
 ### Update Wine Images (MANAGER only)
-# Зауважте: Multipart запити краще тестувати через Swagger або Postman,
-# але в .http це виглядає так:
+# Note: Multipart requests are better tested via Swagger or Postman,
+# but in .http it looks like this:
 PATCH http://localhost:8080/api/wines/1/image
 Authorization: Bearer {{auth_token}}
 Content-Type: multipart/form-data; boundary=boundary

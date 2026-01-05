@@ -20,14 +20,16 @@ public class Application {
 
     @PostConstruct
     public void logUrls() {
+        log.info("▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞");
         log.info("Health check controller (without registration): "
                 + mainFrontEndUrl + "/api/health");
-        log.info("\nAPI Documentation Overview: "
+        log.info("API Documentation Overview: "
                 + mainFrontEndUrl + "/api/swagger-ui/index.html#/"
-                + "\nDefault login for using documentation for Admin: "
+                + "Default login for using documentation for Admin: "
                 + "admin12345@gmail.com, and password: 12345"
-                + "\nDefault login for using documentation for Manager: "
+                + "Default login for using documentation for Manager: "
                 + "manager12345@gmail.com, and password: 12345");
-        log.info("\nBackend: " + "http://localhost:3000/#/products");
+        log.info("Backend: " + "http://localhost:3000/#/products");
+        log.info("▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞▞");
     }
 }

@@ -6,7 +6,7 @@ Content-Type: application/json
   "wineId": 1,
   "firstName": "Ivan",
   "lastName": "Ivanov",
-  "text": "Чудове вино, дуже сподобався аромат!",
+  "text": "Great wine, I really enjoyed the aroma!",
   "rating": 5
 }
 

@@ -1,0 +1,14 @@
+package com.winestoreapp.user.dto;
+
+import com.winestoreapp.user.validation.ValidUserRole;
+import jakarta.validation.constraints.NotBlank;
+import io.swagger.v3.oas.annotations.media.Schema;
+
+public record UpdateUserRoleDto(
+        @ValidUserRole
+        @NotBlank(message = """
+                Role should not be blank.
+                Available roles: ROLE_CUSTOMER, ROLE_MANAGER, ROLE_ADMIN.""")
+        @Schema(example = "ROLE_MANAGER")
+        String role) {
+}

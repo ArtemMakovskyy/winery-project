@@ -1,7 +1,7 @@
 package com.winestoreapp.security;
 
-import com.winestoreapp.dto.user.UserLoginRequestDto;
-import com.winestoreapp.dto.user.UserLoginResponseDto;
+import com.winestoreapp.user.dto.UserLoginRequestDto;
+import com.winestoreapp.user.dto.UserLoginResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
