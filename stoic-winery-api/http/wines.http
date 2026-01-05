@@ -1,0 +1,58 @@
+### Get All Wines (with pagination)
+GET http://localhost:8080/api/wines?page=0&size=10&sort=id,desc
+
+### Get Wine by ID
+GET http://localhost:8080/api/wines/1
+
+### Create New Wine (MANAGER only)
+POST http://localhost:8080/api/wines
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "vendorCode": "MSD 2025",
+  "qualityLevel": "Premium",
+  "reserveType": "Limited Edition Wine",
+  "name": "Prince Trubetskoi Select Riesling",
+  "shortName": "Prince Trubetskoi",
+  "year": 2017,
+  "tasteWine": "fish",
+  "price": 25.59,
+  "grape": "Riesling",
+  "isDecantation": false,
+  "wineType": "DRY",
+  "strengthFrom": 10.9,
+  "strengthTo": 11.8,
+  "wineColor": "WHITE",
+  "colorDescribing": "Deep yellow with greenish hues",
+  "taste": "Delicate, balanced, round, with a fruity and honey aftertaste.",
+  "aroma": "Soft, generous, multifaceted, with hints of tropical fruits.",
+  "gastronomy": "Goes well with fish dishes, mature cheeses and stews.",
+  "description": "Elegant Riesling from Prince Trubetskoi winery, showcasing refined balance and aromatic complexity.",
+  "pictureLink": "https://example.com/images/wine_front.jpg",
+  "pictureLink2": "https://example.com/images/wine_label.jpg"
+}
+
+
+### Delete Wine (MANAGER only)
+DELETE http://localhost:8080/api/wines/1
+Authorization: Bearer {{auth_token}}
+
+### Update Wine Images (MANAGER only)
+# Зауважте: Multipart запити краще тестувати через Swagger або Postman,
+# але в .http це виглядає так:
+PATCH http://localhost:8080/api/wines/1/image
+Authorization: Bearer {{auth_token}}
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="imageA"; filename="wine_front.jpg"
+Content-Type: image/jpeg
+
+< ./wine_front.jpg
+--boundary
+Content-Disposition: form-data; name="imageB"; filename="wine_label.jpg"
+Content-Type: image/jpeg
+
+< ./wine_label.jpg
+--boundary--
