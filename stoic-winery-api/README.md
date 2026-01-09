@@ -2,6 +2,15 @@
 
 ---
 
+🏗️ Roadmap & Architecture Evolution
+Project is currently transitioning from Monolithic MVC to a Modular architecture:
+
+Current Main Branch: Refactored to Package-by-Feature structure.
+
+In Progress: Transition to a Multi-module Maven project. You can check the progress and architectural changes in this branch: https://github.com/ArtemMakovskyy/winery-project/tree/multi-module
+
+---
+
 ### 👓Stoic winery API backend project description
 
 Development repository with all commits - https://github.com/ArtemMakovskyy/wine-store-app
