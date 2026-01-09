@@ -1,5 +1,6 @@
-package com.winestoreapp.user;
+package com.winestoreapp.user.controller;
 
+import com.winestoreapp.user.UserService;
 import com.winestoreapp.user.dto.UpdateUserRoleDto;
 import com.winestoreapp.user.dto.UserResponseDto;
 import jakarta.validation.Valid;

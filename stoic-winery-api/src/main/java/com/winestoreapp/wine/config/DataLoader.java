@@ -9,7 +9,7 @@ import com.winestoreapp.review.ReviewService;
 import com.winestoreapp.review.dto.CreateReviewDto;
 import com.winestoreapp.user.UserService;
 import com.winestoreapp.user.dto.UserRegistrationRequestDto;
-import com.winestoreapp.wine.WineService;
+import com.winestoreapp.wine.service.WineService;
 import com.winestoreapp.wine.dto.WineCreateRequestDto;
 import com.winestoreapp.wine.model.WineColor;
 import com.winestoreapp.wine.model.WineType;

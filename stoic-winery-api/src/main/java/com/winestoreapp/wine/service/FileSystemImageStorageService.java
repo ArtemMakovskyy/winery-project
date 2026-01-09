@@ -1,25 +1,20 @@
-package com.winestoreapp.wine.impl;
+package com.winestoreapp.wine.service;
 
-import com.winestoreapp.wine.ImageStorageService;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.*;
+import java.util.Objects;
+
 @Service
 @Slf4j
-public class FileSystemImageStorageServiceImpl implements ImageStorageService {
+public class FileSystemImageStorageService {
     private static final String IMAGE_SAVE_PATH = "src/main/resources/static/images/wine/";
     private static final int CHARACTERS_LENGTH_CONTAINING_EXTENSION = 4;
     private static final int FIRST_POSITION = 0;
 
-    @Override
     public String saveImage(String originalName, String suffix, MultipartFile file) {
         try {
             Path uploadPath = Path.of(IMAGE_SAVE_PATH);
@@ -38,7 +33,6 @@ public class FileSystemImageStorageServiceImpl implements ImageStorageService {
         }
     }
 
-    @Override
     public void deleteImage(String pictureLink) {
         if (pictureLink == null || pictureLink.isEmpty()) return;
 

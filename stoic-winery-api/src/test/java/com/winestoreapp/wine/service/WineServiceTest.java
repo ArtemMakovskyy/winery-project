@@ -1,6 +1,5 @@
-package com.winestoreapp.wine.impl;
+package com.winestoreapp.wine.service;
 
-import com.winestoreapp.wine.ImageStorageService;
 import com.winestoreapp.wine.dto.WineCreateRequestDto;
 import com.winestoreapp.wine.dto.WineDto;
 import com.winestoreapp.wine.mapper.WineMapper;
@@ -8,9 +7,6 @@ import com.winestoreapp.wine.model.Wine;
 import com.winestoreapp.wine.model.WineColor;
 import com.winestoreapp.wine.model.WineType;
 import com.winestoreapp.wine.repository.WineRepository;
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,24 +19,26 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class WineServiceImplTest {
+class WineServiceTest {
     @Mock
     private WineMapper wineMapper;
     @Mock
     private WineRepository wineRepository;
     @Mock
-    private ImageStorageService imageStorageService;
+    private FileSystemImageStorageService imageStorageService;
     @InjectMocks
-    private WineServiceImpl wineService;
+    private WineService wineService;
 
     @Test
     @DisplayName("Update wine images successfully")
@@ -55,7 +53,6 @@ class WineServiceImplTest {
         Mockito.when(fileA.getOriginalFilename()).thenReturn("testA.png");
         Mockito.when(fileB.getOriginalFilename()).thenReturn("testB.png");
 
-        // Мокаємо збереження зображень
         Mockito.when(imageStorageService.saveImage(any(), any(), any()))
                 .thenReturn("saved_a.png")
                 .thenReturn("saved_b.png");

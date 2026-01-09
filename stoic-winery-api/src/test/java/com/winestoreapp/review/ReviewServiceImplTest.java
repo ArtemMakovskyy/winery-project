@@ -1,4 +1,4 @@
-package com.winestoreapp.review.impl;
+package com.winestoreapp.review;
 
 import com.winestoreapp.review.dto.CreateReviewDto;
 import com.winestoreapp.review.dto.ReviewDto;
@@ -10,9 +10,6 @@ import com.winestoreapp.user.model.User;
 import com.winestoreapp.user.repository.UserRepository;
 import com.winestoreapp.wine.model.Wine;
 import com.winestoreapp.wine.repository.WineRepository;
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,11 +18,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyDouble;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -41,7 +39,7 @@ class ReviewServiceImplTest {
     private ReviewMapper reviewMapper;
 
     @InjectMocks
-    private ReviewServiceImpl reviewService;
+    private ReviewService reviewService;
 
     @Test
     @DisplayName("Add review with valid data. Return ReviewWithUserDescriptionDto")
@@ -54,19 +52,15 @@ class ReviewServiceImplTest {
         Review review = getReview(reviewDto);
         ReviewWithUserDescriptionDto expected = getReviewWithUserDescriptionDto(reviewDto);
 
-        // Повертаємо логіку: користувача спочатку немає, він створюється
         when(userRepository.findFirstByFirstNameAndLastName(anyString(), anyString()))
                 .thenReturn(Optional.empty());
         when(userRepository.save(any(User.class))).thenReturn(user);
         when(wineRepository.findById(anyLong())).thenReturn(Optional.of(wine));
 
-        // Мок для видалення старого відгуку (нова логіка)
         Review oldReview = new Review();
         ReflectionTestUtils.setField(oldReview, "id", 99L);
         when(reviewRepository.findAllByWineIdAndUserId(anyLong(), anyLong()))
                 .thenReturn(List.of(oldReview));
-
-        // Моки для розрахунку рейтингу вина (нова логіка)
         when(reviewRepository.save(any(Review.class))).thenReturn(review);
         when(reviewRepository.findAllByWineId(anyLong())).thenReturn(List.of(review));
         when(reviewRepository.findAverageRatingByWineId(anyLong())).thenReturn(4.5);
@@ -81,9 +75,9 @@ class ReviewServiceImplTest {
         verify(userRepository).save(any(User.class));
         verify(wineRepository).findById(anyLong());
         verify(reviewRepository).findAllByWineIdAndUserId(anyLong(), anyLong());
-        verify(reviewRepository).deleteById(99L); // Перевірка видалення
+        verify(reviewRepository).deleteById(99L);
         verify(reviewRepository).save(any(Review.class));
-        verify(wineRepository).updateAverageRatingScore(anyLong(), anyDouble()); // Перевірка оновлення рейтингу
+        verify(wineRepository).updateAverageRatingScore(anyLong(), anyDouble());
     }
 
     private User getUser() {

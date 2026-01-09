@@ -1,7 +1,8 @@
-package com.winestoreapp.user;
+package com.winestoreapp.user.controller;
 
 import com.winestoreapp.exception.RegistrationException;
 import com.winestoreapp.security.AuthenticationService;
+import com.winestoreapp.user.UserService;
 import com.winestoreapp.user.dto.UserLoginRequestDto;
 import com.winestoreapp.user.dto.UserLoginResponseDto;
 import com.winestoreapp.user.dto.UserRegistrationRequestDto;

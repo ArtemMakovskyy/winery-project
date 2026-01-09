@@ -1,17 +1,9 @@
-package com.winestoreapp.order.impl;
+package com.winestoreapp.order;
 
-import com.winestoreapp.order.dto.CreateOrderDeliveryInformationDto;
-import com.winestoreapp.order.dto.CreateOrderDto;
-import com.winestoreapp.order.dto.CreatePurchaseObjectDto;
-import com.winestoreapp.order.dto.CreateShoppingCardDto;
-import com.winestoreapp.order.dto.OrderDto;
+import com.winestoreapp.order.dto.*;
 import com.winestoreapp.order.mapper.OrderDeliveryInformationMapper;
 import com.winestoreapp.order.mapper.OrderMapper;
-import com.winestoreapp.order.model.Order;
-import com.winestoreapp.order.model.OrderDeliveryInformation;
-import com.winestoreapp.order.model.OrderPaymentStatus;
-import com.winestoreapp.order.model.PurchaseObject;
-import com.winestoreapp.order.model.ShoppingCard;
+import com.winestoreapp.order.model.*;
 import com.winestoreapp.order.repository.OrderDeliveryInformationRepository;
 import com.winestoreapp.order.repository.OrderRepository;
 import com.winestoreapp.order.repository.PurchaseObjectRepository;
@@ -20,9 +12,6 @@ import com.winestoreapp.user.model.User;
 import com.winestoreapp.user.repository.UserRepository;
 import com.winestoreapp.wine.model.Wine;
 import com.winestoreapp.wine.repository.WineRepository;
-import java.math.BigDecimal;
-import java.util.Optional;
-import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,14 +20,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.math.BigDecimal;
+import java.util.Optional;
+import java.util.Set;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyLong;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class OrderServiceImplTest {
@@ -60,7 +48,7 @@ class OrderServiceImplTest {
     private ShoppingCardRepository shoppingCardRepository;
 
     @InjectMocks
-    private OrderServiceImpl orderService;
+    private OrderService orderService;
 
     @Test
     @DisplayName("Add order by valid data and return OrderDto")

@@ -1,4 +1,4 @@
-package com.winestoreapp.user.impl;
+package com.winestoreapp.user;
 
 import com.winestoreapp.exception.RegistrationException;
 import com.winestoreapp.user.dto.UserRegistrationRequestDto;
@@ -9,11 +9,6 @@ import com.winestoreapp.user.model.RoleName;
 import com.winestoreapp.user.model.User;
 import com.winestoreapp.user.repository.RoleRepository;
 import com.winestoreapp.user.repository.UserRepository;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,11 +18,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceImplTest {
@@ -41,7 +40,7 @@ class UserServiceImplTest {
     private UserMapper userMapper;
 
     @InjectMocks
-    private UserServiceImpl userService;
+    private UserService userService;
 
     @Test
     @DisplayName("New user registration with valid data, Return UserResponseDto")
@@ -53,7 +52,6 @@ class UserServiceImplTest {
 
         when(userRepository.findUserByEmail(anyString())).thenReturn(Optional.empty());
         when(passwordEncoder.encode(any())).thenReturn("encoded_pass");
-        // В сервісі ROLE_CUSTOMER має ID 3L згідно з вашим verify
         when(roleRepository.findById(3L)).thenReturn(Optional.of(roleCustomer));
         when(userRepository.save(any())).thenReturn(user);
 
@@ -72,7 +70,7 @@ class UserServiceImplTest {
     void updateRole_ValidData_ReturnUserResponseDto() {
         // given
         User user = getUser();
-        // Робимо користувача АДМІНОМ, щоб сервіс зайшов у блок перевірки findUsersByRole
+
         Role adminRole = new Role();
         ReflectionTestUtils.setField(adminRole, "name", RoleName.ROLE_ADMIN);
         ReflectionTestUtils.setField(user, "roles", Set.of(adminRole));
@@ -85,10 +83,7 @@ class UserServiceImplTest {
 
         when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
         when(roleRepository.findByName(RoleName.ROLE_MANAGER)).thenReturn(Optional.of(managerRole));
-
-        // Мок для перевірки останнього адміна (нова логіка)
         when(userRepository.findUsersByRole(RoleName.ROLE_ADMIN)).thenReturn(List.of(user, new User()));
-
         when(userRepository.save(any())).thenReturn(user);
         when(userMapper.toDto(any())).thenReturn(expected);
 

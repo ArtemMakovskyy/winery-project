@@ -1,5 +1,6 @@
-package com.winestoreapp.review;
+package com.winestoreapp.review.controller;
 
+import com.winestoreapp.review.ReviewService;
 import com.winestoreapp.review.dto.CreateReviewDto;
 import com.winestoreapp.review.dto.ReviewWithUserDescriptionDto;
 import jakarta.validation.Valid;

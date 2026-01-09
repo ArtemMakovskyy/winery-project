@@ -1,5 +1,6 @@
-package com.winestoreapp.wine;
+package com.winestoreapp.wine.controller;
 
+import com.winestoreapp.wine.service.WineService;
 import com.winestoreapp.wine.dto.WineCreateRequestDto;
 import com.winestoreapp.wine.dto.WineDto;
 import jakarta.validation.Valid;

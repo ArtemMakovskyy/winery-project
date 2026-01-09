@@ -1,5 +1,6 @@
-package com.winestoreapp.order;
+package com.winestoreapp.order.controller;
 
+import com.winestoreapp.order.OrderService;
 import com.winestoreapp.order.dto.CreateOrderDto;
 import com.winestoreapp.order.dto.OrderDto;
 import jakarta.validation.Valid;
