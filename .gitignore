@@ -24,3 +24,5 @@ yarn-debug.log*
 yarn-error.log*
 /.idea/
 /docker/tempo/tempo-data/blocks/
+/stoic-winery-api/src/
+/.baserock/mock_preferences.json

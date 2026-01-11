@@ -1,4 +1,5 @@
 # 🍷 "Stoic winery" 
+Welcome to the **Stoic Winery** project — a full-stack wine store application with frontend, backend, and observability features.
 
 ### ▶️How to set up and start the project
 
@@ -44,3 +45,24 @@ https://github.com/ArtemMakovskyy/winery-project/blob/master/wine_site_project/R
 
 ### 👓Stoic winery API backend project description
 https://github.com/ArtemMakovskyy/winery-project/blob/master/stoic-winery-api/README.md
+
+---
+# 🛠 Tech Stack
+
+- Language: Java 21
+
+- Framework: Spring Boot 3.2.1
+
+- Architecture: REST, Modular Monolith
+
+- Database: MySQL + H2 (dev), Liquibase migrations
+
+- Security: Spring Security + JWT
+
+- Integration: Telegram Bots
+
+- Observability: Prometheus, Grafana, Loki, Tempo
+
+- Frontend: React
+
+- Testing: JUnit, Mockito, Testcontainers

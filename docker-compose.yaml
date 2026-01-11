@@ -1,7 +1,7 @@
 version: "3.8"
 
 services:
-  db_sql:
+  db-sql:
     env_file: .env
     container_name: mysql-winery-db-container
     image: mysql:8
@@ -14,22 +14,24 @@ services:
     ports:
       - "3309:3306"
     healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
-      interval: 30s
-      timeout: 30s
-      retries: 3
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
       - backend
 
-  api_backend:
+  api-backend:
     env_file: .env
     container_name: winery-api-container
     depends_on:
-      db_sql:
+      db-sql:
         condition: service_healthy
       loki:
+        condition: service_started
+      tempo:
         condition: service_started
     restart: on-failure
     build: ./stoic-winery-api
@@ -40,10 +42,13 @@ services:
       SPRING_DATASOURCE_URL: ${DATASOURCE_URL}
       SPRING_DATASOURCE_USERNAME: ${DATASOURCE_USER}
       SPRING_DATASOURCE_PASSWORD: ${DATASOURCE_PASSWORD}
-      SPRING_JPA_HIBERNATE_DDL_AUTO: "validate"
-      JAVA_TOOL_OPTIONS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
       MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://tempo:9411/api/v2/spans
       LOKI_URL: http://loki:3100/loki/api/v1/push
+      JAVA_TOOL_OPTIONS: >
+        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+    volumes:
+      - wine_images:/app/upload/images/wine
     networks:
       - backend
 
@@ -57,7 +62,7 @@ services:
     ports:
       - '9090:9090'
     depends_on:
-      - api_backend
+      - api-backend
     networks:
       - backend
 
@@ -78,8 +83,6 @@ services:
     ports:
       - '3110:3100'
       - '9411:9411'
-    depends_on:
-      - api_backend
     networks:
       - backend
 
@@ -97,11 +100,11 @@ services:
       - prometheus
       - loki
       - tempo
-      - api_backend
+      - api-backend
     networks:
       - backend
 
-  frontend_wine_site:
+  frontend-wine-site:
     env_file: .env
     build: ./wine_site_project
     ports:
@@ -109,7 +112,7 @@ services:
     stdin_open: true
     tty: true
     depends_on:
-      api_backend:
+      api-backend:
         condition: service_started
     networks:
       - frontend
@@ -123,3 +126,4 @@ networks:
 
 volumes:
   mysql_data:
+  wine_images:

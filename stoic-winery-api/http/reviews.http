@@ -1,14 +1,13 @@
 ### Add Review to Wine
-POST http://localhost:8080/api/reviews
+POST {{base_url}}/reviews
 Content-Type: application/json
 
 {
   "wineId": 1,
-  "firstName": "Ivan",
-  "lastName": "Ivanov",
-  "text": "Great wine, I really enjoyed the aroma!",
+  "userFirstAndLastName": "Ivan Ivanov",
+  "message": "Great wine, I really enjoyed the aroma!",
   "rating": 5
 }
 
 ### Get Reviews for Wine
-GET http://localhost:8080/api/reviews/wines/1?size=4&page=0
+GET {{base_url}}/reviews/wines/1?size=4&page=0

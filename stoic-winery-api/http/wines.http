@@ -1,11 +1,11 @@
 ### Get All Wines (with pagination)
-GET http://localhost:8080/api/wines?page=0&size=10&sort=id,desc
+GET {{base_url}}/wines?page=0&size=10&sort=id,desc
 
 ### Get Wine by ID
-GET http://localhost:8080/api/wines/1
+GET {{base_url}}/wines/3
 
 ### Create New Wine (MANAGER only)
-POST http://localhost:8080/api/wines
+POST {{base_url}}/wines
 Authorization: Bearer {{auth_token}}
 Content-Type: application/json
 
@@ -34,13 +34,11 @@ Content-Type: application/json
 }
 
 ### Delete Wine (MANAGER only)
-DELETE http://localhost:8080/api/wines/1
+DELETE {{base_url}}/wines/15
 Authorization: Bearer {{auth_token}}
 
 ### Update Wine Images (MANAGER only)
-# Note: Multipart requests are better tested via Swagger or Postman,
-# but in .http it looks like this:
-PATCH http://localhost:8080/api/wines/1/image
+PATCH {{base_url}}/wines/1/image
 Authorization: Bearer {{auth_token}}
 Content-Type: multipart/form-data; boundary=boundary
 

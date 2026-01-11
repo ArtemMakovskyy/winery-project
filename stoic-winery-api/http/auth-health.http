@@ -1,26 +1,54 @@
 ### Health Check
-GET http://localhost:8080/api/health
+GET {{base_url}}/health
 
-### Login as ADMIN (to get token)
-POST http://localhost:8080/api/auth/login
+### 1. Register New User
+POST {{auth_url}}/register
 Content-Type: application/json
 
 {
-  "email": "admin12345@gmail.com",
-  "password": "12345"
+  "email": "tester@example.com",
+  "password": "password123",
+  "repeatPassword": "password123",
+  "firstName": "Ivan",
+  "lastName": "Ivanov",
+  "phoneNumber": "+380991112233"
 }
 
-> {%
-    client.global.set("auth_token", response.body.token);
-%}
-
-### Login as MANAGER
-POST http://localhost:8080/api/auth/login
+### 2. Login as USER
+POST {{auth_url}}/login
 Content-Type: application/json
 
 {
-  "email": "manager12345@gmail.com",
-  "password": "12345"
+  "email": "tester@example.com",
+  "password": "password123"
 }
 
 > {% client.global.set("auth_token", response.body.token); %}
+
+### 3. Login as ADMIN
+POST {{auth_url}}/login
+Content-Type: application/json
+
+{
+  "email": "{{admin_email}}",
+  "password": "{{password}}"
+}
+
+> {% client.global.set("auth_token", response.body.token); %}
+
+### 4. Login as MANAGER
+POST {{auth_url}}/login
+Content-Type: application/json
+
+{
+  "email": "{{manager_email}}",
+  "password": "{{password}}"
+}
+
+> {% client.global.set("auth_token", response.body.token); %}
+
+### 5. Logout
+POST {{auth_url}}/logout
+Authorization: Bearer {{auth_token}}
+
+> {% client.global.set("auth_token", ""); %}
