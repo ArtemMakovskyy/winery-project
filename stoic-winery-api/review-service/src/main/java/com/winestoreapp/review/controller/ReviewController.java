@@ -1,15 +1,9 @@
 package com.winestoreapp.review.controller;
 
-<<<<<<<< HEAD:stoic-winery-api/src/main/java/com/winestoreapp/review/controller/ReviewController.java
-import com.winestoreapp.review.ReviewService;
-import com.winestoreapp.review.dto.CreateReviewDto;
-import com.winestoreapp.review.dto.ReviewWithUserDescriptionDto;
-========
 import com.winestoreapp.common.dto.ResponseErrorDto;
 import com.winestoreapp.review.api.ReviewService;
 import com.winestoreapp.review.api.dto.CreateReviewDto;
 import com.winestoreapp.review.api.dto.ReviewWithUserDescriptionDto;
->>>>>>>> multi-module:stoic-winery-api/review-service/src/main/java/com/winestoreapp/review/controller/ReviewController.java
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;

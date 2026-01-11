@@ -10,13 +10,13 @@ import org.springframework.test.context.ContextConfiguration;
 
 @SpringBootTest
 @ContextConfiguration(initializers = ApplicationTest.Initializer.class)
-class ApplicationTest {
+public class ApplicationTest {
 
     @Test
     void contextLoads() {
     }
 
-    static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+    public static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
         @Override
         public void initialize(ConfigurableApplicationContext context) {
             CustomMySqlContainer container = CustomMySqlContainer.getInstance();

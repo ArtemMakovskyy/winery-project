@@ -1,7 +1,6 @@
 package com.winestoreapp.wine.impl;
 
 import com.winestoreapp.common.exception.EntityNotFoundException;
-import com.winestoreapp.wine.ImageStorageService;
 import com.winestoreapp.wine.api.dto.WineCreateRequestDto;
 import com.winestoreapp.wine.api.dto.WineDto;
 import com.winestoreapp.wine.mapper.WineMapper;

@@ -1,36 +1,34 @@
 package com.winestoreapp.controller;
 
-import org.junit.jupiter.api.BeforeAll;
+import com.winestoreapp.common.exception.CustomGlobalExceptionHandler;
+import com.winestoreapp.config.ApplicationControllerTestConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
 
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@WebMvcTest(controllers = HealthCheckController.class)
+@ComponentScan(basePackages = "com.winestoreapp.controller")
+@ContextConfiguration(classes = {
+        ApplicationControllerTestConfig.class,
+        CustomGlobalExceptionHandler.class
+})
 class HealthCheckControllerTest {
 
-    protected static MockMvc mockMvc;
-
-    @BeforeAll
-    static void beforeAll(
-            @Autowired WebApplicationContext applicationContext
-    ) {
-        mockMvc = MockMvcBuilders
-                .webAppContextSetup(applicationContext)
-                .apply(springSecurity())
-                .build();
-    }
+    @Autowired
+    private MockMvc mockMvc;
 
     @Test
+    @WithMockUser
     @DisplayName("Start healthCheck end point. Return String")
     void healthCheck_ValidData_Success() throws Exception {
         mockMvc.perform(

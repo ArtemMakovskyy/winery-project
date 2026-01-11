@@ -13,6 +13,8 @@ import com.winestoreapp.user.api.UserService;
 import com.winestoreapp.wine.api.WineService;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
@@ -28,6 +30,26 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Value("${limiter.number.of.recorded.ratings}")
     private int limiter;
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ReviewWithUserDescriptionDto> findAllByWineId(Long wineId, Pageable pageable) {
+        List<Review> reviews = reviewRepository.findAllByWineId(wineId, pageable).getContent();
+
+        Map<Long, UserResponseDto> usersCache = new HashMap<>();
+
+        return reviews.stream()
+                .map(review -> {
+                    ReviewWithUserDescriptionDto dto = reviewMapper.toUserDescriptionDto(review);
+
+                    UserResponseDto userDto = usersCache.computeIfAbsent(review.getUserId(),
+                            userService::loadUserById);
+
+                    dto.setUserFirstName(userDto.getFirstName());
+                    dto.setUserLastName(userDto.getLastName());
+                    return dto;
+                }).toList();
+    }
 
     @Override
     @Transactional
@@ -56,19 +78,6 @@ public class ReviewServiceImpl implements ReviewService {
         return result;
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<ReviewWithUserDescriptionDto> findAllByWineId(Long wineId, Pageable pageable) {
-        return reviewRepository.findAllByWineIdOrderByIdDesc(wineId, pageable).stream()
-                .map(review -> {
-                    ReviewWithUserDescriptionDto dto = reviewMapper.toUserDescriptionDto(review);
-                    UserResponseDto userDto = userService.loadUserById(review.getUserId());
-                    dto.setUserFirstName(userDto.getFirstName());
-                    dto.setUserLastName(userDto.getLastName());
-                    return dto;
-                }).toList();
-    }
-
     private void removeOutdatedReviews(Long wineId, Long userId) {
         reviewRepository.findAllByWineIdAndUserId(wineId, userId)
                 .forEach(r -> reviewRepository.deleteById(r.getId()));
@@ -79,7 +88,6 @@ public class ReviewServiceImpl implements ReviewService {
 
         if (reviews.size() > limiter) {
             reviewRepository.deleteById(reviewRepository.findMinIdByWineId(wineId));
-            reviews = reviewRepository.findAllByWineId(wineId);
         }
 
         Double dbAvg = reviewRepository.findAverageRatingByWineId(wineId);
