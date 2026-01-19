@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import java.net.MalformedURLException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -27,6 +28,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import io.micrometer.observation.annotation.Observed;
+import io.micrometer.tracing.Tracer;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -41,8 +44,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @CrossOrigin(origins = "*", methods = {RequestMethod.GET, RequestMethod.POST,
         RequestMethod.PATCH, RequestMethod.DELETE})
 @RequestMapping("/wines")
+@Slf4j
 public class WineController {
     private final WineService wineService;
+    private final Tracer tracer;
 
     @Operation(summary = "Find wine by id",
             description = "Find existing wine by id. Available for all users.")
@@ -55,7 +60,12 @@ public class WineController {
                             schema = @Schema(implementation = ResponseErrorDto.class)))
     })
     @GetMapping("/{id}")
+    @Observed(name = "wine.controller", contextualName = "get-wine-by-id")
     public ResponseEntity<WineDto> findWineById(@PathVariable("id") Long id) {
+        log.info("REST request to get wine by id: {}", id);
+        if (tracer.currentSpan() != null) {
+            tracer.currentSpan().tag("wine.id", String.valueOf(id));
+        }
         return ResponseEntity.ok(wineService.findById(id));
     }
 
@@ -72,6 +82,7 @@ public class WineController {
                             array = @ArraySchema(schema = @Schema(implementation = WineDto.class))))
     })
     @GetMapping
+    @Observed(name = "wine.controller", contextualName = "find-all-wines")
     public ResponseEntity<List<WineDto>> findAllWines(
             @PageableDefault(
                     page = 0,
@@ -80,6 +91,7 @@ public class WineController {
                     direction = Sort.Direction.DESC)
             Pageable pageable
     ) {
+        log.info("REST request to get all wines: {}", pageable);
         return ResponseEntity.ok(wineService.findAll(pageable));
     }
 
@@ -98,7 +110,9 @@ public class WineController {
     })
     @PreAuthorize("hasRole('MANAGER')")
     @PostMapping
+    @Observed(name = "wine.controller", contextualName = "create-wine")
     public ResponseEntity<WineDto> createWine(@RequestBody @Valid WineCreateRequestDto createDto) {
+        log.info("REST request to create new wine: {}", createDto.getName());
         return ResponseEntity.status(HttpStatus.CREATED).body(wineService.add(createDto));
     }
 
@@ -117,11 +131,19 @@ public class WineController {
     })
     @PreAuthorize("hasRole('MANAGER')")
     @PatchMapping("/{id}/image")
+    @Observed(name = "wine.controller", contextualName = "update-wine-images")
     public ResponseEntity<WineDto> addImageByIdIntoPath(
             @PathVariable("id") Long id,
             @RequestParam("imageA") MultipartFile imageA,
             @RequestParam("imageB") MultipartFile imageB
     ) throws MalformedURLException {
+        log.info("REST request to update images for wine ID: {}", id);
+
+        if (tracer.currentSpan() != null) {
+            tracer.currentSpan().tag("wine.id", String.valueOf(id));
+            tracer.currentSpan().tag("file.a.size", String.valueOf(imageA.getSize()));
+            tracer.currentSpan().tag("file.b.size", String.valueOf(imageB.getSize()));
+        }
         return ResponseEntity.ok(wineService.updateImage(id, imageA, imageB));
     }
 
@@ -138,9 +160,17 @@ public class WineController {
     })
     @PreAuthorize("hasRole('MANAGER')")
     @DeleteMapping("/{id}")
+    @Observed(name = "wine.controller", contextualName = "delete-wine")
     public ResponseEntity<Void> deleteWineById(@PathVariable("id") Long id) {
+        log.info("REST request to delete wine by id: {}", id);
+
+        if (tracer.currentSpan() != null) {
+            tracer.currentSpan().tag("wine.id", String.valueOf(id));
+        }
+
         boolean deleted = wineService.isDeleteById(id);
         if (!deleted) {
+            log.warn("Failed to delete: Wine {} not found", id);
             throw new EntityNotFoundException("Wine not found with id: " + id);
         }
         return ResponseEntity.noContent().build();

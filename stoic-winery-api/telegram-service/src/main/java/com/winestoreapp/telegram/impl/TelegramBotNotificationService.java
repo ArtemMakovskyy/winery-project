@@ -1,16 +1,17 @@
 package com.winestoreapp.telegram.impl;
 
-import com.winestoreapp.order.api.dto.OrderDto;
-import com.winestoreapp.user.api.dto.RoleName;
-import com.winestoreapp.user.api.dto.UserResponseDto;
 import com.winestoreapp.common.exception.EntityNotFoundException;
 import com.winestoreapp.order.api.OrderService;
+import com.winestoreapp.order.api.dto.OrderDto;
 import com.winestoreapp.telegram.TelegramBotCredentialProvider;
 import com.winestoreapp.telegram.api.NotificationService;
 import com.winestoreapp.user.api.UserService;
+import com.winestoreapp.user.api.dto.RoleName;
+import com.winestoreapp.user.api.dto.UserResponseDto;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +25,8 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import io.micrometer.observation.annotation.Observed;
+import io.micrometer.tracing.Tracer;
 
 @Slf4j
 @Component
@@ -65,6 +68,7 @@ public class TelegramBotNotificationService
     private final TelegramBotCredentialProvider telegramBotCredentialProvider;
     private final UserService userService;
     private final OrderService orderService;
+    private final Tracer tracer;
 
     @Override
     public String getBotUsername() {
@@ -77,10 +81,18 @@ public class TelegramBotNotificationService
     }
 
     @Override
+    @Observed(name = "telegram.bot", contextualName = "receive-update")
     public void onUpdateReceived(Update update) {
         if (update.hasMessage() && update.getMessage().hasText()) {
             String textFromUSer = update.getMessage().getText();
             Long userChatId = update.getMessage().getChatId();
+
+            if (tracer.currentSpan() != null) {
+                tracer.currentSpan().tag("telegram.chat.id", String.valueOf(userChatId));
+                tracer.currentSpan().tag("telegram.message", textFromUSer);
+            }
+            log.info("Received command '{}' from chatId: {}", textFromUSer, userChatId);
+
             switch (textFromUSer) {
                 case "/start", "Main menu" -> {
                     sendPicture(userChatId);
@@ -109,6 +121,7 @@ public class TelegramBotNotificationService
     }
 
     @Override
+    @Observed(name = "telegram.bot", contextualName = "send-notification")
     public boolean sendNotification(String message, Long recipientId) {
         if (recipientId != null) {
             sendInnerMessageToChat(recipientId, message, getMainButtons());
@@ -159,8 +172,13 @@ public class TelegramBotNotificationService
         return ". \nLink to user: @" + update.getMessage().getFrom().getUserName();
     }
 
+    @Observed(name = "telegram.bot", contextualName = "register-by-order")
     private void userRegisterByOrderNumber(Long chatId, String orderNumber) {
         log.info("Process telegram user registration via order: {}", orderNumber);
+
+        if (tracer.currentSpan() != null) {
+            Objects.requireNonNull(tracer.currentSpan()).tag("order.number", orderNumber);
+        }
 
         Optional<OrderDto> orderDto = orderService.findByOrderNumber(orderNumber);
 
@@ -291,21 +309,28 @@ public class TelegramBotNotificationService
         sendMessage.setReplyMarkup(replyKeyboardMarkup);
         try {
             execute(sendMessage);
+            log.debug("Message sent to chatId: {}", chatId);
         } catch (TelegramApiException e) {
-            throw new RuntimeException(e);
+            log.error("Failed to send Telegram message to {}: {}", chatId, e.getMessage());
+//            throw new RuntimeException(e);
         }
     }
 
+    @Observed(name = "telegram.bot", contextualName = "send-picture")
     private void sendPicture(Long chatId) {
         try {
-            InputFile avatarImage = new InputFile(
-                    new File(PATH_TO_IMAGE), WINE_AVATAR_FILE_NAME);
+            File file = new File(PATH_TO_IMAGE);
+            if (!file.exists()) {
+                log.warn("Avatar image not found at path: {}", PATH_TO_IMAGE);
+                return;
+            }
+            InputFile avatarImage = new InputFile(file, WINE_AVATAR_FILE_NAME);
             SendPhoto msg = new SendPhoto();
             msg.setChatId(chatId.toString());
             msg.setPhoto(avatarImage);
             execute(msg);
         } catch (Exception e) {
-            log.error("Error sending pictures in Telegram", e);
+            log.error("Error sending picture to Telegram chatId: {}", chatId, e);
         }
     }
 

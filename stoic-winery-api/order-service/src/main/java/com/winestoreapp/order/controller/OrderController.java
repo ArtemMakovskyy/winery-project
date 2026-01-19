@@ -8,6 +8,7 @@ import com.winestoreapp.order.api.dto.OrderDto;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +23,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import io.micrometer.observation.annotation.Observed;
+import io.micrometer.tracing.Tracer;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -36,8 +39,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @CrossOrigin(origins = "*", methods = {RequestMethod.GET, RequestMethod.POST,
         RequestMethod.PATCH, RequestMethod.DELETE})
 @RequestMapping("/orders")
+@Slf4j
 public class OrderController {
     private final OrderService orderService;
+    private final Tracer tracer;
 
     @Operation(summary = "Find all orders",
             description = """
@@ -50,7 +55,9 @@ public class OrderController {
                             array = @ArraySchema(schema = @Schema(implementation = OrderDto.class))))
     })
     @GetMapping
+    @Observed(name = "order.controller", contextualName = "find-all-orders")
     public ResponseEntity<List<OrderDto>> findAllOrders(Pageable pageable) {
+        log.info("REST request to find all orders with pagination: {}", pageable);
         return ResponseEntity.ok(orderService.findAll(pageable));
     }
 
@@ -65,10 +72,15 @@ public class OrderController {
                             array = @ArraySchema(schema = @Schema(implementation = OrderDto.class))))
     })
     @GetMapping("/users/{userId}")
+    @Observed(name = "order.controller", contextualName = "find-orders-by-user")
     public ResponseEntity<List<OrderDto>> findAllOrdersByUserId(
             @PathVariable("userId") Long userId,
             Pageable pageable
     ) {
+        log.info("REST request to find orders for userId: {}", userId);
+        if (tracer.currentSpan() != null) {
+            tracer.currentSpan().tag("user.id", String.valueOf(userId));
+        }
         return ResponseEntity.ok(orderService.findAllByUserId(userId, pageable));
     }
 
@@ -90,7 +102,9 @@ public class OrderController {
                             schema = @Schema(implementation = ResponseErrorDto.class)))
     })
     @PostMapping
+    @Observed(name = "order.controller", contextualName = "add-order")
     public ResponseEntity<OrderDto> addOrder(@RequestBody @Valid CreateOrderDto dto) {
+        log.info("REST request to add new order for customer: {}", dto.getUserFirstAndLastName());
         return ResponseEntity.status(HttpStatus.CREATED).body(orderService.createOrder(dto));
     }
 
@@ -105,7 +119,12 @@ public class OrderController {
                             schema = @Schema(implementation = ResponseErrorDto.class)))
     })
     @GetMapping("/{id}")
+    @Observed(name = "order.controller", contextualName = "get-order-by-id")
     public ResponseEntity<OrderDto> getOrderById(@PathVariable("id") Long id) {
+        log.info("REST request to get order by id: {}", id);
+        if (tracer.currentSpan() != null) {
+            tracer.currentSpan().tag("order.id", String.valueOf(id));
+        }
         return ResponseEntity.ok(orderService.getById(id));
     }
 
@@ -124,9 +143,16 @@ public class OrderController {
     })
     @PreAuthorize("hasRole('MANAGER')")
     @PatchMapping("/{id}/paid")
+    @Observed(name = "order.controller", contextualName = "set-paid-status")
     public ResponseEntity<Boolean> setPaidStatus(@PathVariable("id") Long id) {
+        log.info("REST request to mark order {} as PAID", id);
+        if (tracer.currentSpan() != null) {
+            tracer.currentSpan().tag("order.id", String.valueOf(id));
+        }
+
         boolean updated = orderService.markAsPaid(id);
         if (!updated) {
+            log.warn("Failed to update status: Order {} not found", id);
             throw new EntityNotFoundException("Order not found with id: " + id);
         }
         return ResponseEntity.ok(updated);
@@ -145,9 +171,16 @@ public class OrderController {
     })
     @PreAuthorize("hasRole('MANAGER')")
     @DeleteMapping("/{id}")
+    @Observed(name = "order.controller", contextualName = "delete-order")
     public ResponseEntity<Void> deleteOrderById(@PathVariable("id") Long id) {
+        log.info("REST request to delete order by id: {}", id);
+        if (tracer.currentSpan() != null) {
+            tracer.currentSpan().tag("order.id", String.valueOf(id));
+        }
+
         boolean deleted = orderService.deleteById(id);
         if (!deleted) {
+            log.warn("Failed to delete: Order {} not found", id);
             throw new EntityNotFoundException("Order not found with id: " + id);
         }
         return ResponseEntity.noContent().build();

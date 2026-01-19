@@ -1,9 +1,9 @@
 package com.winestoreapp.review.mapper;
 
+import com.winestoreapp.common.config.MapperConfig;
 import com.winestoreapp.review.api.dto.ReviewDto;
 import com.winestoreapp.review.api.dto.ReviewWithUserDescriptionDto;
 import com.winestoreapp.review.model.Review;
-import com.winestoreapp.common.config.MapperConfig;
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
 

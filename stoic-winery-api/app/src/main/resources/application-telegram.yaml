@@ -1,0 +1,7 @@
+bot:
+  name: ${BOT_NAME:input Wine Store bot name}
+  token: ${BOT_TOKEN:input Wine Store bot token}
+
+telegram:
+  bot:
+    enabled: ${TELEGRAM_BOT_ENABLED:false}

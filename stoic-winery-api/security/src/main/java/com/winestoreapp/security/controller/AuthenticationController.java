@@ -10,6 +10,7 @@ import com.winestoreapp.user.api.dto.UserResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import io.micrometer.observation.annotation.Observed;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -28,6 +30,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Tag(name = "Management authentication", description = "Endpoints to login and register")
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 @CrossOrigin(origins = "*", methods = {RequestMethod.GET, RequestMethod.POST,
         RequestMethod.PATCH, RequestMethod.DELETE})
 @RequestMapping("/auth")
@@ -46,7 +49,9 @@ public class AuthenticationController {
                             schema = @Schema(implementation = ResponseErrorDto.class)))
     })
     @PostMapping("/login")
+    @Observed(name = "auth.controller", contextualName = "login-api")
     public ResponseEntity<UserLoginResponseDto> loginUser(@RequestBody @Valid UserLoginRequestDto requestDto) {
+        log.info("REST request to login user: {}", requestDto.email());
         return ResponseEntity.ok(authenticationService.authenticate(requestDto));
     }
 
@@ -59,10 +64,13 @@ public class AuthenticationController {
                             schema = @Schema(implementation = ResponseErrorDto.class)))
     })
     @PostMapping("/logout")
+    @Observed(name = "auth.controller", contextualName = "logout-api")
     public ResponseEntity<String> logout(HttpServletRequest httpRequest) {
         String bearerToken = httpRequest.getHeader("Authorization");
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            authenticationService.logout(bearerToken.substring(7));
+            String token = bearerToken.substring(7);
+            authenticationService.logout(token);
+            log.info("REST request to logout successful");
         }
         return ResponseEntity.ok("Logout successful");
     }
@@ -78,7 +86,9 @@ public class AuthenticationController {
                             schema = @Schema(implementation = ResponseErrorDto.class)))
     })
     @PostMapping("/register")
+    @Observed(name = "auth.controller", contextualName = "register-api")
     public ResponseEntity<UserResponseDto> registerUser(@RequestBody @Valid UserRegistrationRequestDto requestDto) {
+        log.info("REST request to register new user: {}", requestDto.getEmail());
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.register(requestDto));
     }
 }

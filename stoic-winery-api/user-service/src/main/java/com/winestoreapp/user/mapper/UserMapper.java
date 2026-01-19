@@ -1,7 +1,7 @@
 package com.winestoreapp.user.mapper;
 
-import com.winestoreapp.user.api.dto.UserResponseDto;
 import com.winestoreapp.common.config.MapperConfig;
+import com.winestoreapp.user.api.dto.UserResponseDto;
 import com.winestoreapp.user.model.Role;
 import com.winestoreapp.user.model.User;
 import java.util.Set;

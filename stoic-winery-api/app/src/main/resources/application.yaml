@@ -1,0 +1,42 @@
+server:
+  port: ${BACKEND_PORT:8080}
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: wine-store-service
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
+  jpa:
+    show-sql: true
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 50MB
+      file-size-threshold: 50KB
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${DATASOURCE_URL:jdbc:mysql://localhost:3309/wine_store_db?serverTimezone=UTC&allowPublicKeyRetrieval=true&useSSL=false}
+    username: ${DATASOURCE_USER:userName}
+    password: ${DATASOURCE_PASSWORD:secret}
+  config:
+    import:
+      - optional:classpath:/application-telegram.yaml
+      - optional:classpath:/application-actuator.yaml
+      - optional:classpath:/application-security.yaml
+
+limiter:
+  number:
+    of:
+      recorded:
+        ratings: 100
+
+main:
+  back:
+    end:
+      url: ${BACKEND_URL:http://localhost:8080/api}

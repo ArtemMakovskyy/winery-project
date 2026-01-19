@@ -16,12 +16,17 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import io.micrometer.observation.annotation.Observed;
+import io.micrometer.tracing.Tracer;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
+@Observed(name = "user.service")
 public class UserServiceImpl implements UserService {
     private static final int MINIMUM_ALLOWED_NUMBER_OF_ADMIN_USERS = 1;
 
@@ -29,6 +34,7 @@ public class UserServiceImpl implements UserService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
+    private final Tracer tracer;
 
     @Override
     @Transactional(readOnly = true)
@@ -41,6 +47,9 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public UserResponseDto loadUserById(Long id) {
+        if (tracer.currentSpan() != null) {
+            tracer.currentSpan().tag("user.id", String.valueOf(id));
+        }
         return userRepository.findById(id)
                 .map(userMapper::toDto)
                 .orElseThrow(() -> new EntityNotFoundException("Can't find user by id: " + id));
@@ -51,6 +60,7 @@ public class UserServiceImpl implements UserService {
     public UserResponseDto getOrCreateByFirstAndLastName(String firstName, String lastName) {
         User user = userRepository.findFirstByFirstNameAndLastName(firstName, lastName)
                 .orElseGet(() -> {
+                    log.info("Creating new user for names: {} {}", firstName, lastName);
                     User newUser = new User(firstName, lastName);
                     return userRepository.save(newUser);
                 });
@@ -63,11 +73,13 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findUserByEmail(email)
                 .or(() -> userRepository.findFirstByFirstNameAndLastName(fName, lName))
                 .map(existingUser -> {
+                    log.debug("Updating existing user info for email: {}", email);
                     existingUser.setPhoneNumber(phone);
                     existingUser.setEmail(email);
                     return userRepository.save(existingUser);
                 })
                 .orElseGet(() -> {
+                    log.info("Creating new customer user with email: {}", email);
                     User newUser = new User(email, fName, lName, phone);
                     roleRepository.findByName(RoleName.ROLE_CUSTOMER)
                             .ifPresent(role -> newUser.setRoles(Set.of(role)));
@@ -75,9 +87,13 @@ public class UserServiceImpl implements UserService {
                 });
         return userMapper.toDto(user);
     }
+
     @Override
     @Transactional(readOnly = true)
     public List<UserResponseDto> findUsersByRole(final RoleName role) {
+        if (tracer.currentSpan() != null) {
+            tracer.currentSpan().tag("user.role", role.name());
+        }
         return userRepository.findUsersByRole(role).stream()
                 .map(userMapper::toDto)
                 .toList();
@@ -93,10 +109,14 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void updateTelegramChatId(final Long userId, final Long chatId) {
+        log.info("Updating telegram chatId for userId: {}", userId);
+        if (tracer.currentSpan() != null) {
+            tracer.currentSpan().tag("user.id", String.valueOf(userId));
+        }
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("Can't find user by id: " + userId));
         user.setTelegramChatId(chatId);
-
         userRepository.save(user);
     }
 
@@ -104,8 +124,11 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserResponseDto register(UserRegistrationRequestDto request) throws RegistrationException {
         if (userRepository.findUserByEmail(request.getEmail()).isPresent()) {
+            log.warn("Registration failed: email {} already exists", request.getEmail());
             throw new RegistrationException("Unable to complete registration.");
         }
+
+        log.info("Registering new user with email: {}", request.getEmail());
 
         Role roleCustomer = roleRepository.findByName(RoleName.ROLE_CUSTOMER)
                 .orElseThrow(() -> new EntityNotFoundException("Can't find ROLE_CUSTOMER"));
@@ -125,6 +148,12 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserResponseDto updateRole(Long userId, String roleNameStr) {
+        log.info("Attempting to update role for userId: {} to {}", userId, roleNameStr);
+        if (tracer.currentSpan() != null) {
+            tracer.currentSpan().tag("user.id", String.valueOf(userId));
+            tracer.currentSpan().tag("new.role", roleNameStr);
+        }
+
         User userFromDb = userRepository.findById(userId).orElseThrow(
                 () -> new EntityNotFoundException("Can't find user by id " + userId));
 
@@ -134,11 +163,13 @@ public class UserServiceImpl implements UserService {
         if (userFromDb.hasRole(RoleName.ROLE_ADMIN)) {
             List<User> adminsInDb = userRepository.findUsersByRole(RoleName.ROLE_ADMIN);
             if (adminsInDb.size() <= MINIMUM_ALLOWED_NUMBER_OF_ADMIN_USERS) {
+                log.error("Security violation: attempt to remove last admin role from userId: {}", userId);
                 throw new RegistrationException("You cannot change the last admin role.");
             }
         }
 
         userFromDb.updateRoles(new HashSet<>(Set.of(roleFromDb)));
+        log.info("Role updated successfully for userId: {}", userId);
 
         return userMapper.toDto(userRepository.save(userFromDb));
     }

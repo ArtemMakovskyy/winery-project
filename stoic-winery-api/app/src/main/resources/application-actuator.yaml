@@ -1,0 +1,67 @@
+# file: stoic-winery-api/app/src/main/resources/application-actuator.yaml
+# --- Actuator and Observation Settings ---
+management:
+  observations:
+    key-values:
+      application: wine-store-service
+    http:
+      client:
+        enabled: true
+      server:
+        enabled: true
+    jdbc:
+      enabled: true
+
+  tracing:
+    sampling:
+      probability: 1.0
+    zipkin:
+      endpoint: ${MANAGEMENT_ZIPKIN_TRACING_ENDPOINT:http://localhost:9411/api/v2/spans}
+
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, prometheus
+    metrics:
+      enable:
+        all: true
+      enabled: true
+    health:
+      show-details: always
+
+  metrics:
+    enable:
+      all: true
+
+    distribution:
+      percentiles-histogram:
+        all: true
+        http.server.requests: true
+        jdbc.connections.acquire: true
+        jdbc.connections.usage: true
+        hikaricp.connections.usage: true
+        jdbc.query: true
+        jdbc.connections.acquire.seconds: true
+        jdbc.connections.usage.seconds: true
+
+    data:
+      repository:
+        autotime:
+          enabled: true   # 🔹 тайминги репозиториев Spring Data
+
+jdbc:
+  includes-parameters: true   # 🔹 добавляет параметры SQL в observation
+
+loki:
+  url: ${LOKI_URL:http://localhost:3100/loki/api/v1/push}
+
+logging:
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+
+spring:
+  datasource:
+    hikari:
+      metrics-tracking: true
+    observation:
+      enabled: true

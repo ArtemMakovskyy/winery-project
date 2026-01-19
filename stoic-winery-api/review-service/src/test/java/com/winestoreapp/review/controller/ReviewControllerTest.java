@@ -18,6 +18,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
+import io.micrometer.tracing.Tracer;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -33,6 +34,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         CustomGlobalExceptionHandler.class
 })
 class ReviewControllerTest {
+    @MockBean
+    private Tracer tracer;
 
     @Autowired
     private MockMvc mockMvc;

@@ -2,10 +2,10 @@ package com.winestoreapp.wine.api;
 
 import com.winestoreapp.wine.api.dto.WineCreateRequestDto;
 import com.winestoreapp.wine.api.dto.WineDto;
+import java.net.MalformedURLException;
+import java.util.List;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
-import java.util.List;
-import java.net.MalformedURLException;
 
 public interface WineService {
     WineDto add(WineCreateRequestDto createDto);

@@ -1,9 +1,5 @@
 package com.winestoreapp.security.security;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.time.LocalDateTime;
@@ -11,11 +7,18 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+import io.micrometer.observation.annotation.Observed;
 
 @Component
+@Slf4j
 public class JwtUtil {
     private static final Map<String, LocalDateTime> INVALID_TOKENS = new ConcurrentHashMap<>();
     private static final String EVERY_DAY_AT_MIDNIGHT = "0 0 0 * * *";
@@ -41,8 +44,10 @@ public class JwtUtil {
                 .compact();
     }
 
+    @Observed(name = "auth.jwt", contextualName = "parse-and-validate-token")
     public Claims parseToken(String token) {
         if (INVALID_TOKENS.containsKey(token)) {
+            log.warn("Attempt to use blacklisted token");
             throw new JwtException("Token is blacklisted");
         }
         return Jwts.parserBuilder()
@@ -52,9 +57,20 @@ public class JwtUtil {
                 .getBody();
     }
 
+    public String getUsername(String token) {
+        try {
+            return parseToken(token).getSubject();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     @Scheduled(cron = EVERY_DAY_AT_MIDNIGHT)
-    private void deleteAllExpiredTokensBySchedule() {
+    public void deleteAllExpiredTokensBySchedule() {
+        log.info("Starting scheduled cleanup of invalidated tokens");
+        int initialSize = INVALID_TOKENS.size();
         LocalDateTime threshold = LocalDateTime.now().minus(expiration, ChronoUnit.MILLIS);
         INVALID_TOKENS.entrySet().removeIf(entry -> entry.getValue().isBefore(threshold));
+        log.info("Cleanup finished. Removed {} tokens", initialSize - INVALID_TOKENS.size());
     }
 }

@@ -6,6 +6,7 @@ import com.winestoreapp.user.api.dto.UpdateUserRoleDto;
 import com.winestoreapp.user.api.dto.UserResponseDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -15,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import io.micrometer.observation.annotation.Observed;
+import io.micrometer.tracing.Tracer;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -28,8 +31,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @CrossOrigin(origins = "*", methods = {RequestMethod.GET, RequestMethod.POST,
         RequestMethod.PATCH, RequestMethod.DELETE})
 @RequestMapping("/users")
+@Slf4j
 public class UserController {
     private final UserService userService;
+    private final Tracer tracer;
 
     @Operation(summary = "Update user role by user id",
             description = """
@@ -51,9 +56,18 @@ public class UserController {
     })
     @PutMapping("/{id}/role")
     @PreAuthorize("hasRole('ADMIN')")
+    @Observed(name = "user.controller", contextualName = "update-user-role")
     public ResponseEntity<UserResponseDto> updateUserRole(
             @PathVariable("id") Long id,
             @RequestBody @Valid UpdateUserRoleDto roleDto) {
+
+        log.info("ADMIN request to update role for user ID: {} to {}", id, roleDto.role());
+
+        if (tracer.currentSpan() != null) {
+            tracer.currentSpan().tag("user.id", String.valueOf(id));
+            tracer.currentSpan().tag("user.new_role", roleDto.role());
+        }
+
         return ResponseEntity.ok(userService.updateRole(id, roleDto.role()));
     }
 }

@@ -1,0 +1,8 @@
+### Перевірка стану (Health)
+GET http://localhost:8080/api/actuator/health
+
+### Перевірка метрик Prometheus
+GET http://localhost:8080/api/actuator/prometheus
+
+### Список усіх доступних ендпоїнтів
+GET http://localhost:8080/api/actuator

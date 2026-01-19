@@ -25,7 +25,7 @@ datasources:
     jsonData:
       httpMethod: GET
       tracesToLogs:
-        datasourceUid: 'loki'
+        datasourceUid: loki
       nodeGraph:
         enabled: true
   - name: Loki
@@ -42,6 +42,6 @@ datasources:
     jsonData:
       derivedFields:
         - datasourceUid: tempo
-          matcherRegex: \[.+,(.+?),
+          matcherRegex: '\[.+,(.+?),'
           name: TraceID
-          url: $${__value.raw}
+          url: '$${__value.raw}'

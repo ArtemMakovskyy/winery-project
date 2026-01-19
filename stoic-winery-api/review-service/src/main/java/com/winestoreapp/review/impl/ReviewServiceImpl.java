@@ -1,50 +1,57 @@
 package com.winestoreapp.review.impl;
 
+import com.winestoreapp.common.exception.EntityNotFoundException;
+import com.winestoreapp.common.exception.RegistrationException;
+import com.winestoreapp.review.api.ReviewService;
 import com.winestoreapp.review.api.dto.CreateReviewDto;
 import com.winestoreapp.review.api.dto.ReviewWithUserDescriptionDto;
-import com.winestoreapp.user.api.dto.UserResponseDto;
-import com.winestoreapp.common.exception.RegistrationException;
-import com.winestoreapp.common.exception.EntityNotFoundException;
-import com.winestoreapp.review.api.ReviewService;
 import com.winestoreapp.review.mapper.ReviewMapper;
 import com.winestoreapp.review.model.Review;
 import com.winestoreapp.review.repository.ReviewRepository;
 import com.winestoreapp.user.api.UserService;
+import com.winestoreapp.user.api.dto.UserResponseDto;
 import com.winestoreapp.wine.api.WineService;
-import org.springframework.transaction.annotation.Transactional;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import io.micrometer.observation.annotation.Observed;
+import io.micrometer.tracing.Tracer;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ReviewServiceImpl implements ReviewService {
     private final ReviewRepository reviewRepository;
     private final ReviewMapper reviewMapper;
     private final UserService userService;
     private final WineService wineService;
+    private final Tracer tracer;
 
     @Value("${limiter.number.of.recorded.ratings}")
     private int limiter;
 
     @Override
     @Transactional(readOnly = true)
+    @Observed(name = "review.service", contextualName = "find-all-reviews-by-wine-id")
     public List<ReviewWithUserDescriptionDto> findAllByWineId(Long wineId, Pageable pageable) {
-        List<Review> reviews = reviewRepository.findAllByWineId(wineId, pageable).getContent();
+        if (tracer.currentSpan() != null) {
+            tracer.currentSpan().tag("wine.id", String.valueOf(wineId));
+        }
 
+        List<Review> reviews = reviewRepository.findAllByWineId(wineId, pageable).getContent();
         Map<Long, UserResponseDto> usersCache = new HashMap<>();
 
         return reviews.stream()
                 .map(review -> {
                     ReviewWithUserDescriptionDto dto = reviewMapper.toUserDescriptionDto(review);
-
                     UserResponseDto userDto = usersCache.computeIfAbsent(review.getUserId(),
                             userService::loadUserById);
-
                     dto.setUserFirstName(userDto.getFirstName());
                     dto.setUserLastName(userDto.getLastName());
                     return dto;
@@ -53,13 +60,22 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     @Transactional
+    @Observed(name = "review.service", contextualName = "add-new-review")
     public ReviewWithUserDescriptionDto addReview(CreateReviewDto dto) {
+        log.info("Adding new review for wineId: {}", dto.getWineId());
+
+        if (tracer.currentSpan() != null) {
+            tracer.currentSpan().tag("wine.id", String.valueOf(dto.getWineId()));
+        }
+
         String[] nameParts = dto.getUserFirstAndLastName().strip().split("\\s+");
         if (nameParts.length != 2) {
+            log.warn("Invalid name format for review: {}", dto.getUserFirstAndLastName());
             throw new RegistrationException("Enter first and last name with a space.");
         }
 
         if (!wineService.existsById(dto.getWineId())) {
+            log.error("Failed to add review. Wine with id {} not found", dto.getWineId());
             throw new EntityNotFoundException("Wine not found");
         }
 
@@ -72,6 +88,8 @@ public class ReviewServiceImpl implements ReviewService {
 
         calculateWineAverageRatingScoreThenSave(dto.getWineId());
 
+        log.info("Review added successfully for wineId: {} by userId: {}", dto.getWineId(), userDto.getId());
+
         ReviewWithUserDescriptionDto result = reviewMapper.toUserDescriptionDto(saved);
         result.setUserFirstName(userDto.getFirstName());
         result.setUserLastName(userDto.getLastName());
@@ -80,19 +98,25 @@ public class ReviewServiceImpl implements ReviewService {
 
     private void removeOutdatedReviews(Long wineId, Long userId) {
         reviewRepository.findAllByWineIdAndUserId(wineId, userId)
-                .forEach(r -> reviewRepository.deleteById(r.getId()));
+                .forEach(r -> {
+                    log.debug("Removing outdated review id: {}", r.getId());
+                    reviewRepository.deleteById(r.getId());
+                });
     }
 
     private void calculateWineAverageRatingScoreThenSave(Long wineId) {
         List<Review> reviews = reviewRepository.findAllByWineId(wineId);
 
         if (reviews.size() > limiter) {
-            reviewRepository.deleteById(reviewRepository.findMinIdByWineId(wineId));
+            Long minId = reviewRepository.findMinIdByWineId(wineId);
+            log.info("Review limit exceeded for wine {}. Deleting oldest review id: {}", wineId, minId);
+            reviewRepository.deleteById(minId);
         }
 
         Double dbAvg = reviewRepository.findAverageRatingByWineId(wineId);
         double avg = (dbAvg != null ? dbAvg : 0.0);
 
         wineService.updateAverageRatingScore(wineId, avg);
+        log.debug("Updated average rating for wine {}: {}", wineId, avg);
     }
 }

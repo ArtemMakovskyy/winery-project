@@ -7,6 +7,7 @@ import com.winestoreapp.review.api.dto.ReviewWithUserDescriptionDto;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -20,6 +21,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import io.micrometer.observation.annotation.Observed;
+import io.micrometer.tracing.Tracer;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -34,8 +37,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @CrossOrigin(origins = "*", methods = {RequestMethod.GET, RequestMethod.POST,
         RequestMethod.PATCH, RequestMethod.DELETE})
 @RequiredArgsConstructor
+@Slf4j
 public class ReviewController {
     private final ReviewService reviewService;
+    private final Tracer tracer;
 
     @Operation(summary = "Add review to wine.",
             description = """
@@ -53,9 +58,14 @@ public class ReviewController {
                             schema = @Schema(implementation = ResponseErrorDto.class)))
     })
     @PostMapping
+    @Observed(name = "review.controller", contextualName = "add-review")
     public ResponseEntity<ReviewWithUserDescriptionDto> addReview(
             @RequestBody @Valid CreateReviewDto createDto
     ) {
+        log.info("REST request to add review for wine ID: {}", createDto.getWineId());
+        if (tracer.currentSpan() != null) {
+            tracer.currentSpan().tag("wine.id", String.valueOf(createDto.getWineId()));
+        }
         return ResponseEntity.status(HttpStatus.CREATED).body(reviewService.addReview(createDto));
     }
 
@@ -73,12 +83,17 @@ public class ReviewController {
                             schema = @Schema(implementation = ResponseErrorDto.class)))
     })
     @GetMapping("/wines/{wineId}")
+    @Observed(name = "review.controller", contextualName = "find-reviews-by-wine")
     public ResponseEntity<List<ReviewWithUserDescriptionDto>> findAllReviewsByWineId(
             @PathVariable("wineId") Long wineId,
             @PageableDefault(size = 4, page = 0, sort = {"reviewDate"},
                     direction = Sort.Direction.DESC)
             Pageable pageable
     ) {
+        log.info("REST request to find reviews for wine ID: {}, pageable: {}", wineId, pageable);
+        if (tracer.currentSpan() != null) {
+            tracer.currentSpan().tag("wine.id", String.valueOf(wineId));
+        }
         return ResponseEntity.ok(reviewService.findAllByWineId(wineId, pageable));
     }
 }

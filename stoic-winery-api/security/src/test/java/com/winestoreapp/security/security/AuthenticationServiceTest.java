@@ -1,10 +1,5 @@
 package com.winestoreapp.security.security;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import com.winestoreapp.user.api.dto.UserLoginRequestDto;
 import com.winestoreapp.user.api.dto.UserLoginResponseDto;
 import org.junit.jupiter.api.Test;
@@ -15,9 +10,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import io.micrometer.tracing.Tracer;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class AuthenticationServiceTest {
+    @Mock
+    private Tracer tracer;
     @Mock
     private JwtUtil jwtUtil;
     @Mock

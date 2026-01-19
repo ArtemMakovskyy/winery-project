@@ -1,0 +1,197 @@
+### =========================
+### HEALTH (GET x2)
+### =========================
+GET {{base_url}}/health
+
+###
+GET {{base_url}}/health
+
+
+### =========================
+### REGISTER USER (POST x1)
+### =========================
+POST {{auth_url}}/register
+Content-Type: application/json
+
+{
+  "email": "tester{{$randomInt}}@example.com",
+  "password": "password123",
+  "repeatPassword": "password123",
+  "firstName": "Ivan",
+  "lastName": "Ivanov",
+  "phoneNumber": "+380991112233"
+}
+
+
+### =========================
+### LOGIN ADMIN
+### =========================
+POST {{auth_url}}/login
+Content-Type: application/json
+
+{
+  "email": "{{admin_email}}",
+  "password": "{{password}}"
+}
+
+> {%
+    client.test("Admin login successful", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+    // Исправлено: доступ к полю accessToken (зависит от вашего DTO)
+    client.global.set("admin_token", response.body.accessToken || response.body.token);
+%}
+
+
+### =========================
+### LOGIN MANAGER
+### =========================
+POST {{auth_url}}/login
+Content-Type: application/json
+
+{
+  "email": "{{manager_email}}",
+  "password": "{{password}}"
+}
+
+> {%
+    client.test("Manager login successful", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+    // Исправлено: доступ к полю accessToken
+    client.global.set("manager_token", response.body.accessToken || response.body.token);
+%}
+
+
+### =========================
+### WINES (GET x2)
+### =========================
+GET {{base_url}}/wines?page=0&size=10
+
+###
+GET {{base_url}}/wines?page=0&size=10
+
+
+### =========================
+### GET WINE BY ID (x2)
+### =========================
+GET {{base_url}}/wines/1
+
+###
+GET {{base_url}}/wines/1
+
+
+### =========================
+### CREATE WINE (POST x1)
+### =========================
+POST {{base_url}}/wines
+Authorization: Bearer {{manager_token}}
+Content-Type: application/json
+
+{
+  "vendorCode": "MSD {{$randomInt}}",
+  "qualityLevel": "Premium",
+  "reserveType": "Limited Edition Wine",
+  "name": "Prince Trubetskoi Select Riesling",
+  "shortName": "Prince Trubetskoi",
+  "year": 2017,
+  "tasteWine": "fish",
+  "price": 25.59,
+  "grape": "Riesling",
+  "isDecantation": false,
+  "wineType": "DRY",
+  "strengthFrom": 10.9,
+  "strengthTo": 11.8,
+  "wineColor": "WHITE"
+}
+
+
+### =========================
+### CREATE ORDER (POST x1)
+### =========================
+POST {{base_url}}/orders
+Content-Type: application/json
+
+{
+  "userFirstAndLastName": "Ivan Petrov",
+  "email": "customer@email.com",
+  "phoneNumber": "+380509876543",
+  "createShoppingCardDto": {
+    "purchaseObjects": [
+      { "wineId": 1, "quantity": 1 }
+    ]
+  },
+  "createOrderDeliveryInformationDto": {
+    "zipCode": "00000",
+    "region": "Kyiv region",
+    "city": "Kyiv",
+    "street": "Lobanovskogo str, 13/1, ap. 16",
+    "comment": "string"
+  }
+}
+
+
+### =========================
+### ORDERS (GET x2)
+### =========================
+GET {{base_url}}/orders?page=0&size=20
+Authorization: Bearer {{manager_token}}
+
+###
+GET {{base_url}}/orders?page=0&size=20
+Authorization: Bearer {{manager_token}}
+
+
+### =========================
+### GET ORDER BY ID (x2)
+### =========================
+# Изменен ID на 1, так как 5 может не существовать в новой базе
+GET {{base_url}}/orders/1
+Authorization: Bearer {{manager_token}}
+
+###
+GET {{base_url}}/orders/1
+Authorization: Bearer {{manager_token}}
+
+
+### =========================
+### ADD REVIEW (POST x1)
+### =========================
+POST {{base_url}}/reviews
+Content-Type: application/json
+
+{
+  "wineId": 1,
+  "userFirstAndLastName": "Ivan Ivanov",
+  "message": "Great wine!",
+  "rating": 5
+}
+
+
+### =========================
+### REVIEWS (GET x2)
+### =========================
+GET {{base_url}}/reviews/wines/1?page=0&size=4
+
+###
+GET {{base_url}}/reviews/wines/1?page=0&size=4
+
+
+### =========================
+### UPDATE USER ROLE (PUT x1)
+### =========================
+# Внимание: ID 5 должен существовать в БД
+PUT {{base_url}}/users/1/role
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "role": "ROLE_MANAGER"
+}
+
+
+### =========================
+### LOGOUT
+### =========================
+POST {{auth_url}}/logout
+Authorization: Bearer {{manager_token}}

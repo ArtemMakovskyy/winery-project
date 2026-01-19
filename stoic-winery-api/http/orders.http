@@ -32,7 +32,7 @@ GET {{base_url}}/orders/users/1
 Authorization: Bearer {{auth_token}}
 
 ### Get Order by ID
-GET {{base_url}}/orders/1
+GET {{base_url}}/orders/5
 Authorization: Bearer {{auth_token}}
 
 ### Set Status PAID (MANAGER only)

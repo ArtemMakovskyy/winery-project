@@ -18,17 +18,28 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.web.multipart.MultipartFile;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.tracing.Tracer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class WineServiceImplTest {
+
+    @Mock
+    private Tracer tracer;
+
+    @Mock
+    private MeterRegistry registry;
 
     @Mock
     private WineRepository wineRepository;
@@ -56,6 +67,9 @@ class WineServiceImplTest {
         wineDto.setId(1L);
         wineDto.setName("Test Wine");
         wineDto.setPrice(BigDecimal.TEN);
+
+        Counter mockCounter = mock(Counter.class);
+        lenient().when(registry.counter(anyString(), any(String[].class))).thenReturn(mockCounter);
     }
 
     @Test

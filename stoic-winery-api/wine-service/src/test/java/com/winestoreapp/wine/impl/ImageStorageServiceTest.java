@@ -6,21 +6,25 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.Mockito;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
+import io.micrometer.tracing.Tracer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ImageStorageServiceTest {
 
     private ImageStorageService imageStorageService;
+    private Tracer tracer;
 
     @TempDir
     Path tempDir;
 
     @BeforeEach
     void setUp() {
-        imageStorageService = new ImageStorageService();
+        tracer = Mockito.mock(Tracer.class);
+        imageStorageService = new ImageStorageService(tracer);
         ReflectionTestUtils.setField(imageStorageService, "imageSavePath", tempDir.toString() + "/");
     }
 

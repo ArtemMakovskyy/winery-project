@@ -9,9 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import io.micrometer.observation.annotation.Observed;
 
-@Observed
 public interface OrderRepository extends JpaRepository<Order, Long> {
     @Modifying
     @Query("""

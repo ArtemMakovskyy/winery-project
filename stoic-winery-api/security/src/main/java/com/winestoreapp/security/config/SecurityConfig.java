@@ -1,7 +1,9 @@
 package com.winestoreapp.security.config;
 
 import com.winestoreapp.security.security.JwtAuthenticationFilter;
-import org.springframework.beans.factory.annotation.Value;
+import java.util.List;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -18,9 +20,15 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableMethodSecurity(prePostEnabled = true)
+@Slf4j
+@ConfigurationProperties(prefix = "security")
 public class SecurityConfig {
-    @Value("${security.paths}")
-    private String[] paths;
+
+    private List<String> paths;
+
+    public void setPaths(List<String> paths) {
+        this.paths = paths;
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -33,18 +41,18 @@ public class SecurityConfig {
             UserDetailsService userDetailsService,
             JwtAuthenticationFilter jwtAuthenticationFilter
     ) throws Exception {
+        log.info("Initializing Security Filter Chain with public paths: {}", paths);
+
         return http
                 .cors(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(
-                        auth -> auth
-                                .requestMatchers(paths).permitAll()
-                                .anyRequest().authenticated()
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(paths.toArray(new String[0])).permitAll()
+                        .anyRequest().authenticated()
                 )
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(jwtAuthenticationFilter,
-                        UsernamePasswordAuthenticationFilter.class)
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .userDetailsService(userDetailsService)
                 .build();
     }

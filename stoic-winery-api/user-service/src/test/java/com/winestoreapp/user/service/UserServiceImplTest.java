@@ -15,6 +15,7 @@ import com.winestoreapp.user.repository.UserRepository;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -25,6 +26,8 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
+
+import io.micrometer.tracing.Tracer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -37,6 +40,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 @ContextConfiguration(initializers = UserServiceImplTest.Initializer.class)
 @Transactional
 class UserServiceImplTest {
+    @Mock
+    private Tracer tracer;
 
     @Autowired
     private UserServiceImpl userService;

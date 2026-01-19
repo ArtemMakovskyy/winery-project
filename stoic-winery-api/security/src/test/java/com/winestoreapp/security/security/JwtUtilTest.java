@@ -2,9 +2,11 @@ package com.winestoreapp.security.security;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.springframework.test.util.ReflectionTestUtils;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
+import io.micrometer.tracing.Tracer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -13,6 +15,9 @@ class JwtUtilTest {
     private JwtUtil jwtUtil;
     private final String secret = "super-secret-key-that-is-at-least-32-characters-long";
     private final long expiration = 3600000L;
+
+    @Mock
+    private Tracer tracer;
 
     @BeforeEach
     void setUp() {
