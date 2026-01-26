@@ -7,12 +7,6 @@ import com.winestoreapp.wine.api.dto.WineDto;
 import com.winestoreapp.wine.mapper.WineMapper;
 import com.winestoreapp.wine.model.Wine;
 import com.winestoreapp.wine.repository.WineRepository;
-import io.micrometer.core.annotation.Counted;
-import io.micrometer.core.annotation.Timed;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Tags;
-import io.micrometer.observation.annotation.Observed;
-import io.micrometer.tracing.Tracer;
 import java.math.BigDecimal;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +15,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import io.micrometer.core.annotation.Counted;
+import io.micrometer.core.annotation.Timed;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
+import io.micrometer.observation.annotation.Observed;
+import io.micrometer.tracing.Tracer;
 
 @Service
 @RequiredArgsConstructor
@@ -150,18 +150,22 @@ public class WineServiceImpl implements WineService {
     @Observed(name = "wine.service", contextualName = "delete-wine")
     @Counted(value = "wine.delete.count", description = "Number of times wine deleted")
     @Timed(value = "wine.delete.time", description = "Time taken to delete wine")
-    public boolean isDeleteById(Long id) {
-        log.info("Deleting wine with ID: {}", id);
+    public void deleteById(Long id) {
+        log.info("Deleting wine with id={}", id);
+
         if (!wineRepository.existsById(id)) {
+            log.warn("Attempt to delete non-existing wine with id={}", id);
             registry.counter("wine.errors", "method", "delete", "type", "not_found").increment();
             throw new EntityNotFoundException("Can't find wine by id: " + id);
         }
+
         wineRepository.deleteById(id);
+
         registry.gauge("wine.total.count", Tags.of("operation", "delete"), wineRepository.count());
+
         if (tracer.currentSpan() != null) {
             tracer.currentSpan().tag("wine.id", String.valueOf(id));
         }
-        return true;
     }
 
     private Wine findWineById(Long id) {

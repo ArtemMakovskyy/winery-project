@@ -34,7 +34,7 @@ Content-Type: application/json
 }
 
 ### Delete Wine (MANAGER only)
-DELETE {{base_url}}/wines/15
+DELETE {{base_url}}/wines/33
 Authorization: Bearer {{auth_token}}
 
 ### Update Wine Images (MANAGER only)

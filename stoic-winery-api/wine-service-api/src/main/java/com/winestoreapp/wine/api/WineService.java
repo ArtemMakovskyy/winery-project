@@ -14,7 +14,7 @@ public interface WineService {
 
     WineDto findById(Long id);
 
-    boolean isDeleteById(Long id);
+    void deleteById(Long id);
 
     WineDto updateImage(Long id, MultipartFile imageA, MultipartFile imageB)
             throws MalformedURLException;

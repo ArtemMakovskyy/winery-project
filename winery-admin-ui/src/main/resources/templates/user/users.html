@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Users</title>
+</head>
+<body>
+
+<h2>Users</h2>
+
+<table border="1">
+    <tr>
+        <th>ID</th>
+        <th>Email</th>
+        <th>Roles</th>
+        <th>Change role</th>
+    </tr>
+    <tr th:each="user : ${users}">
+        <td th:text="${user.id}"></td>
+        <td th:text="${user.email}"></td>
+        <td th:text="${user.roles}"></td>
+        <td>
+            <form th:action="@{/ui/users/role}" method="post">
+                <input type="hidden" name="userId" th:value="${user.id}"/>
+                <input name="role" placeholder="ROLE_ADMIN"/>
+                <button>Update</button>
+            </form>
+        </td>
+    </tr>
+</table>
+
+<a href="/ui/dashboard">Back</a>
+
+</body>
+</html>

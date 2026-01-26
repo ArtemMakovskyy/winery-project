@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Update User Role</title>
+    <style>
+        form div {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        label {
+            width: 150px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Update User Role</h2>
+
+<form th:action="@{'/ui/users/role'}" th:object="${form}" method="post">
+    <div>
+        <label>User ID:</label>
+        <input type="number" th:field="*{userId}" required/>
+    </div>
+
+    <div>
+        <label>Role:</label>
+        <select th:field="*{role}">
+            <option value="ROLE_CUSTOMER">ROLE_CUSTOMER</option>
+            <option value="ROLE_MANAGER">ROLE_MANAGER</option>
+            <option value="ROLE_ADMIN">ROLE_ADMIN</option>
+        </select>
+    </div>
+
+    <div>
+        <button type="submit">Update Role</button>
+    </div>
+</form>
+
+
+<div th:if="${success}">
+    <p style="color: green;">Role updated successfully!</p>
+    <p>User: <span th:text="${user.email}"></span></p>
+    <p>Roles: <span th:text="${user.roles}"></span></p>
+</div>
+
+<div th:if="${error}">
+    <p style="color: red;" th:text="${error}"></p>
+</div>
+
+</body>
+</html>

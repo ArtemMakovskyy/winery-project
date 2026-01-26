@@ -29,7 +29,9 @@ public class AuthenticationService {
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.email(), request.password()));
-            String token = jwtUtil.generateToken(authentication.getName());
+
+            String token = jwtUtil.generateToken(authentication.getName(), authentication.getAuthorities());
+
             log.info("User {} successfully authenticated", request.email());
             return new UserLoginResponseDto(token);
         } catch (Exception e) {

@@ -23,6 +23,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import io.micrometer.tracing.Tracer;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -139,11 +141,15 @@ class WineControllerTest {
     @WithMockUser(roles = "MANAGER")
     @DisplayName("DELETE /wines/{id} - Success")
     void deleteWineById_ExistingId_ShouldReturnNoContent() throws Exception {
-        when(wineService.isDeleteById(1L)).thenReturn(true);
+
+        doNothing().when(wineService).deleteById(1L);
 
         mockMvc.perform(delete("/wines/1").with(csrf()))
                 .andExpect(status().isNoContent());
+
+        verify(wineService).deleteById(1L);
     }
+
 
     @Test
     @WithMockUser(roles = "MANAGER")

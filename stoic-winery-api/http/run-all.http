@@ -38,7 +38,6 @@ Content-Type: application/json
     client.test("Admin login successful", function() {
         client.assert(response.status === 200, "Response status is not 200");
     });
-    // Исправлено: доступ к полю accessToken (зависит от вашего DTO)
     client.global.set("admin_token", response.body.accessToken || response.body.token);
 %}
 
@@ -58,7 +57,6 @@ Content-Type: application/json
     client.test("Manager login successful", function() {
         client.assert(response.status === 200, "Response status is not 200");
     });
-    // Исправлено: доступ к полю accessToken
     client.global.set("manager_token", response.body.accessToken || response.body.token);
 %}
 
@@ -180,7 +178,6 @@ GET {{base_url}}/reviews/wines/1?page=0&size=4
 ### =========================
 ### UPDATE USER ROLE (PUT x1)
 ### =========================
-# Внимание: ID 5 должен существовать в БД
 PUT {{base_url}}/users/1/role
 Authorization: Bearer {{admin_token}}
 Content-Type: application/json

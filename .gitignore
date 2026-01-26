@@ -26,3 +26,9 @@ yarn-error.log*
 /docker/tempo/tempo-data/blocks/
 /stoic-winery-api/src/
 /.baserock/mock_preferences.json
+/winery-admin-ui/mvnw.cmd
+/winery-admin-ui/mvnw
+/winery-admin-ui/.gitattributes
+/winery-admin-ui/target/
+/winery-admin-ui/.mvn/
+/winery-admin-ui/.idea/

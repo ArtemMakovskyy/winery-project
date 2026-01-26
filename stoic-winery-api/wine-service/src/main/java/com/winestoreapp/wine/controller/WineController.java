@@ -1,7 +1,6 @@
 package com.winestoreapp.wine.controller;
 
 import com.winestoreapp.common.dto.ResponseErrorDto;
-import com.winestoreapp.common.exception.EntityNotFoundException;
 import com.winestoreapp.wine.api.WineService;
 import com.winestoreapp.wine.api.dto.WineCreateRequestDto;
 import com.winestoreapp.wine.api.dto.WineDto;
@@ -168,11 +167,8 @@ public class WineController {
             tracer.currentSpan().tag("wine.id", String.valueOf(id));
         }
 
-        boolean deleted = wineService.isDeleteById(id);
-        if (!deleted) {
-            log.warn("Failed to delete: Wine {} not found", id);
-            throw new EntityNotFoundException("Wine not found with id: " + id);
-        }
+        wineService.deleteById(id);
+
         return ResponseEntity.noContent().build();
     }
 }

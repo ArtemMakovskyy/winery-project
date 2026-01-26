@@ -26,7 +26,6 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
-
 import io.micrometer.tracing.Tracer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

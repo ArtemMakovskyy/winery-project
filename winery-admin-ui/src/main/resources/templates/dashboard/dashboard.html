@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Admin Dashboard</title>
+</head>
+<body>
+<h1>Admin Dashboard</h1>
+
+<nav>
+  <ul>
+    <li th:if="${session.ROLES != null and session.ROLES.contains('ROLE_MANAGER')}">
+      <a href="/ui/wines">Manage Wines</a>
+    </li>
+
+    <li th:if="${session.ROLES != null and session.ROLES.contains('ROLE_ADMIN')}">
+      <a href="/ui/users/role">Manage Users</a>
+    </li>
+
+    <li th:if="${session.ROLES != null and session.ROLES.contains('ROLE_MANAGER')}">
+      <a href="/ui/orders">Manage Orders</a>
+    </li>
+  </ul>
+</nav>
+
+<div th:if="${session.ROLES != null and !session.ROLES.contains('ROLE_ADMIN') and !session.ROLES.contains('ROLE_MANAGER')}">
+  <p>You do not have permission to manage resources.</p>
+</div>
+
+<form th:action="@{/logout}" method="post">
+  <button type="submit">Logout</button>
+</form>
+</body>
+</html>

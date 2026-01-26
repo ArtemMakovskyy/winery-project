@@ -34,7 +34,7 @@ class AuthenticationServiceTest {
         Authentication auth = new UsernamePasswordAuthenticationToken(request.email(), null);
 
         when(authenticationManager.authenticate(any())).thenReturn(auth);
-        when(jwtUtil.generateToken(any())).thenReturn("mock-token");
+        when(jwtUtil.generateToken(auth.getName(), auth.getAuthorities())).thenReturn("mock-token");
 
         UserLoginResponseDto response = authenticationService.authenticate(request);
 

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Orders</title>
+</head>
+<body>
+
+<h2>Orders</h2>
+
+<table border="1">
+    <tr>
+        <th>ID</th>
+        <th>Status</th>
+        <th>Actions</th>
+    </tr>
+    <tr th:each="order : ${orders}">
+        <td th:text="${order.id}"></td>
+        <td th:text="${order.paymentStatus}"></td>
+        <td>
+            <form th:action="@{'/ui/orders/' + ${order.id} + '/paid'}" method="post">
+                <button>Mark Paid</button>
+            </form>
+            <form th:action="@{'/ui/orders/' + ${order.id} + '/delete'}" method="post">
+                <button>Delete</button>
+            </form>
+        </td>
+    </tr>
+
+</table>
+
+<a href="/ui/dashboard">Back</a>
+
+</body>
+</html>
