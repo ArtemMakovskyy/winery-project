@@ -1,11 +1,14 @@
 package com.winestoreapp.wineryadminui.features.user.dto;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
 public record UserLoginRequestDto(
-//        @Email(regexp = ".{5,20}@(\\S+)$",
-//                message = "length must be from 5 characters to 20 before @")
-//        //todo set it
-////        @Schema(example = "customer@email.com")
+        @NotBlank(message = "Email is required")
+        @Email(regexp = ".{5,20}@(\\S+)$",
+                message = "length must be from 5 characters to 20 before @")
         String email,
-//        @Size(min = 4, max = 20, message = "must be from 4 to 20 characters")
+        @Size(min = 4, max = 20, message = "must be from 4 to 20 characters")
         String password) {
 }

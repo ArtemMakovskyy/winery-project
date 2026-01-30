@@ -11,9 +11,17 @@
 
 <p th:if="${error}" th:text="${error}" style="color:red"></p>
 
-<form th:action="@{/login}" method="post">
-  <input name="email" placeholder="Email"/>
-  <input name="password" type="password"/>
+<form th:action="@{/login}" th:object="${loginDto}" method="post">
+  <div>
+    <input th:field="*{email}" placeholder="Email"/>
+    <p th:if="${#fields.hasErrors('email')}" th:errors="*{email}" style="color:red"></p>
+  </div>
+
+  <div>
+    <input th:field="*{password}" type="password" placeholder="Password"/>
+    <p th:if="${#fields.hasErrors('password')}" th:errors="*{password}" style="color:red"></p>
+  </div>
+
   <button type="submit">Login</button>
 </form>
 

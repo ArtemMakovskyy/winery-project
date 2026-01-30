@@ -21,19 +21,22 @@
 
 <h2>Update User Role</h2>
 
-<form th:action="@{'/ui/users/role'}" th:object="${form}" method="post">
+<form th:action="@{/ui/users/role}" th:object="${form}" method="post">
     <div>
         <label>User ID:</label>
-        <input type="number" th:field="*{userId}" required/>
+        <input type="number" th:field="*{userId}"/>
+        <span th:if="${#fields.hasErrors('userId')}" th:errors="*{userId}" style="color: red;"></span>
     </div>
 
     <div>
         <label>Role:</label>
         <select th:field="*{role}">
+            <option value="">-- Select Role --</option>
             <option value="ROLE_CUSTOMER">ROLE_CUSTOMER</option>
             <option value="ROLE_MANAGER">ROLE_MANAGER</option>
             <option value="ROLE_ADMIN">ROLE_ADMIN</option>
         </select>
+        <span th:if="${#fields.hasErrors('role')}" th:errors="*{role}" style="color: red;"></span>
     </div>
 
     <div>
