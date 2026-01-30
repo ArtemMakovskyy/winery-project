@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:fragment="header(title)">
+    <meta charset="UTF-8">
+    <title th:text="${title}">Winery Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+
+<th:block th:fragment="navbar">
+    <nav>
+        <ul>
+            <li th:if="${session.ROLES != null and session.ROLES.contains('ROLE_MANAGER')}">
+                <a th:href="@{/ui/wines}">Manage Wines</a>
+            </li>
+            <li th:if="${session.ROLES != null and session.ROLES.contains('ROLE_ADMIN')}">
+                <a th:href="@{/ui/users/role}">Manage Users</a>
+            </li>
+            <li th:if="${session.ROLES != null and session.ROLES.contains('ROLE_MANAGER')}">
+                <a th:href="@{/ui/orders}">Manage Orders</a>
+            </li>
+            <li>
+                <form method="post" th:action="@{/logout}">
+                    <button type="submit">Logout</button>
+                </form>
+            </li>
+        </ul>
+    </nav>
+</th:block>
+
+<th:block th:fragment="alerts">
+    <div class="alert alert-danger" th:if="${error}" th:text="${error}"></div>
+    <div class="alert alert-success" th:if="${message}" th:text="${message}"></div>
+</th:block>
+
+</html>

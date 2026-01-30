@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/ui/orders")
@@ -25,8 +26,13 @@ public class OrderUiController {
     }
 
     @PostMapping("/{id}/paid")
-    public String setPaid(@PathVariable Long id) {
-        orderService.setPaidStatus(id);
+    public String setPaid(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            orderService.setPaidStatus(id);
+            redirectAttributes.addFlashAttribute("message", "Order marked as paid");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Failed to update status: " + e.getMessage());
+        }
         return "redirect:/ui/orders";
     }
 

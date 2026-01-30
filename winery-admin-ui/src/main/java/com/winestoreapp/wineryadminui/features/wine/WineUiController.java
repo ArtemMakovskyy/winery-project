@@ -1,10 +1,12 @@
 package com.winestoreapp.wineryadminui.features.wine;
 
 import com.winestoreapp.wineryadminui.features.wine.dto.WineCreateRequestDto;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,9 +23,23 @@ public class WineUiController {
     private final WineService wineService;
 
     @PostMapping
-    public String create(@ModelAttribute WineCreateRequestDto createDto) {
-        wineService.create(createDto);
-        return "redirect:/ui/wines";
+    public String create(@Valid @ModelAttribute("wine") WineCreateRequestDto createDto,
+                         BindingResult bindingResult,
+                         Model model) {
+
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("wines", wineService.getAll());
+            return "wine/wines";
+        }
+
+        try {
+            wineService.create(createDto);
+            return "redirect:/ui/wines";
+        } catch (RuntimeException e) {
+            model.addAttribute("error", e.getMessage());
+            model.addAttribute("wines", wineService.getAll());
+            return "wine/wines";
+        }
     }
 
     @PostMapping("/delete")
@@ -31,8 +47,8 @@ public class WineUiController {
         try {
             wineService.delete(wineId);
             redirectAttributes.addFlashAttribute("message", "Wine successfully deleted");
-        } catch (feign.FeignException.NotFound e) {
-            redirectAttributes.addFlashAttribute("error", "Wine with ID " + wineId + " not found in the database");
+        } catch (RuntimeException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
         } catch (Exception e) {
             log.error("Unexpected UI error during deletion of wine ID {}", wineId, e);
             redirectAttributes.addFlashAttribute("error", "An error occurred during deletion");

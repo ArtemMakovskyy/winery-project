@@ -1,33 +1,24 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head>
-  <title>Admin Dashboard</title>
-</head>
+<head th:replace="~{fragments/layout :: header('Dashboard')}"></head>
+
 <body>
-<h1>Admin Dashboard</h1>
 
-<nav>
-  <ul>
-    <li th:if="${session.ROLES != null and session.ROLES.contains('ROLE_MANAGER')}">
-      <a href="/ui/wines">Manage Wines</a>
-    </li>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
 
-    <li th:if="${session.ROLES != null and session.ROLES.contains('ROLE_ADMIN')}">
-      <a href="/ui/users/role">Manage Users</a>
-    </li>
+<main>
+    <header>
+        <h1>Admin Dashboard</h1>
+    </header>
 
-    <li th:if="${session.ROLES != null and session.ROLES.contains('ROLE_MANAGER')}">
-      <a href="/ui/orders">Manage Orders</a>
-    </li>
-  </ul>
-</nav>
+    <section
+            th:if="${session.ROLES != null
+                and !session.ROLES.contains('ROLE_ADMIN')
+                and !session.ROLES.contains('ROLE_MANAGER')}">
+        <p>You do not have permission to manage resources.</p>
+    </section>
 
-<div th:if="${session.ROLES != null and !session.ROLES.contains('ROLE_ADMIN') and !session.ROLES.contains('ROLE_MANAGER')}">
-  <p>You do not have permission to manage resources.</p>
-</div>
+</main>
 
-<form th:action="@{/logout}" method="post">
-  <button type="submit">Logout</button>
-</form>
 </body>
 </html>

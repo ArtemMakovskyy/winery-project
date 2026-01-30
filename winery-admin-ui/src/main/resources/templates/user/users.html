@@ -1,34 +1,49 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <title>Users</title>
-</head>
+<head th:replace="~{fragments/layout :: header('Users')}"></head>
+
 <body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
 
-<h2>Users</h2>
+<main>
+    <header>
+        <h1>Users</h1>
+    </header>
 
-<table border="1">
-    <tr>
-        <th>ID</th>
-        <th>Email</th>
-        <th>Roles</th>
-        <th>Change role</th>
-    </tr>
-    <tr th:each="user : ${users}">
-        <td th:text="${user.id}"></td>
-        <td th:text="${user.email}"></td>
-        <td th:text="${user.roles}"></td>
-        <td>
-            <form th:action="@{/ui/users/role}" method="post">
-                <input type="hidden" name="userId" th:value="${user.id}"/>
-                <input name="role" placeholder="ROLE_ADMIN"/>
-                <button>Update</button>
-            </form>
-        </td>
-    </tr>
-</table>
+    <section>
+        <div th:replace="~{fragments/layout :: alerts}"></div>
 
-<a href="/ui/dashboard">Back</a>
+        <table border="1">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Email</th>
+                <th>Roles</th>
+                <th>Change Role</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="user : ${users}">
+                <td th:text="${user.id}"></td>
+                <td th:text="${user.email}"></td>
+                <td th:text="${user.roles}"></td>
+                <td>
+                    <form method="post" th:action="@{/ui/users/role}">
+                        <input type="hidden" name="userId" th:value="${user.id}"/>
 
+                        <select name="role" required>
+                            <option value="ROLE_CUSTOMER">CUSTOMER</option>
+                            <option value="ROLE_MANAGER">MANAGER</option>
+                            <option value="ROLE_ADMIN">ADMIN</option>
+                        </select>
+
+                        <button type="submit">Update</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
 </body>
 </html>

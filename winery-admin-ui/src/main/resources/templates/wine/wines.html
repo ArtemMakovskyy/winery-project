@@ -1,144 +1,183 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>Manage Wines</title>
-    <style>
-        .alert { padding: 10px; margin-bottom: 20px; border: 1px solid transparent; border-radius: 4px; }
-        .alert-danger { color: #a94442; background-color: #f2dede; border-color: #ebccd1; }
-        .alert-success { color: #3c763d; background-color: #dff0d8; border-color: #d6e9c6; }
-    </style>
-</head>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: header('Manage Wines')}"></head>
 <body>
 
-<h2>Manage Wines</h2>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
 
-<div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
-<div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+<main>
 
-<h3>Create New Wine</h3>
-<form th:action="@{/ui/wines}" method="post">
-    <table>
-        <tr>
-            <td>Vendor Code:</td>
-            <td><input name="vendorCode" value="MSD 2025"/></td>
-        </tr>
-        <tr>
-            <td>Quality Level:</td>
-            <td><input name="qualityLevel" value="Premium"/></td>
-        </tr>
-        <tr>
-            <td>Reserve Type:</td>
-            <td><input name="reserveType" value="Limited Edition Wine"/></td>
-        </tr>
-        <tr>
-            <td>Name:</td>
-            <td><input name="name" value="Prince Trubetskoi Select Riesling"/></td>
-        </tr>
-        <tr>
-            <td>Short Name:</td>
-            <td><input name="shortName" value="Prince Trubetskoi"/></td>
-        </tr>
-        <tr>
-            <td>Year:</td>
-            <td><input name="year" type="number" value="2017"/></td>
-        </tr>
-        <tr>
-            <td>Taste Wine:</td>
-            <td><input name="tasteWine" value="fish"/></td>
-        </tr>
-        <tr>
-            <td>Price:</td>
-            <td><input name="price" type="number" step="0.01" value="25.59"/></td>
-        </tr>
-        <tr>
-            <td>Grape:</td>
-            <td><input name="grape" value="Riesling"/></td>
-        </tr>
-        <tr>
-            <td>Decantation:</td>
-            <td>
-                <select name="isDecantation">
-                    <option value="false" selected>false</option>
-                    <option value="true">true</option>
+    <header>
+        <h2>Manage Wines</h2>
+    </header>
+
+    <section>
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+    </section>
+
+    <section>
+        <h3>Create New Wine</h3>
+
+        <form method="post" th:action="@{/ui/wines}" th:object="${wine}">
+
+            <div class="form-group">
+                <label for="vendorCode">Vendor Code</label>
+                <input id="vendorCode" name="vendorCode"
+                       th:value="*{vendorCode} ?: 'MSD 2025'"/>
+                <span class="error-message" th:errors="*{vendorCode}"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="qualityLevel">Quality Level</label>
+                <input id="qualityLevel" name="qualityLevel"
+                       th:value="*{qualityLevel} ?: 'Premium'"/>
+            </div>
+
+            <div class="form-group">
+                <label for="reserveType">Reserve Type</label>
+                <input id="reserveType" name="reserveType"
+                       th:value="*{reserveType} ?: 'Limited Edition Wine'"/>
+            </div>
+
+            <div class="form-group">
+                <label for="name">Name</label>
+                <input id="name" name="name"
+                       th:value="*{name} ?: 'Prince Trubetskoi Select Riesling'"/>
+                <span class="error-message" th:errors="*{name}"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="shortName">Short Name</label>
+                <input id="shortName" name="shortName"
+                       th:value="*{shortName} ?: 'Prince Trubetskoi'"/>
+            </div>
+
+            <div class="form-group">
+                <label for="year">Year</label>
+                <input id="year" name="year" type="number"
+                       th:value="*{year} ?: 2017"/>
+            </div>
+
+            <div class="form-group">
+                <label for="tasteWine">Taste Wine</label>
+                <input id="tasteWine" name="tasteWine"
+                       th:value="*{tasteWine} ?: 'fish'"/>
+            </div>
+
+            <div class="form-group">
+                <label for="price">Price</label>
+                <input id="price" name="price" type="number" step="0.01"
+                       th:value="*{price} ?: 25.59"/>
+                <span class="error-message" th:errors="*{price}"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="grape">Grape</label>
+                <input id="grape" name="grape"
+                       th:value="*{grape} ?: 'Riesling'"/>
+            </div>
+
+            <div class="form-group">
+                <label for="isDecantation">Decantation</label>
+                <select id="isDecantation" name="isDecantation">
+                    <option value="false" th:selected="*{isDecantation} == false">false</option>
+                    <option value="true" th:selected="*{isDecantation} == true">true</option>
                 </select>
-            </td>
-        </tr>
-        <tr>
-            <td>Wine Type:</td>
-            <td>
-                <select name="wineType">
-                    <option value="DRY" selected>DRY</option>
-                    <option value="SEMI_DRY">SEMI_DRY</option>
-                    <option value="MEDIUM_SWEET">MEDIUM_SWEET</option>
-                    <option value="SWEET">SWEET</option>
+            </div>
+
+            <div class="form-group">
+                <label for="wineType">Wine Type</label>
+                <select id="wineType" name="wineType">
+                    <option value="DRY" th:selected="*{wineType} == 'DRY'">DRY</option>
+                    <option value="SEMI_DRY" th:selected="*{wineType} == 'SEMI_DRY'">SEMI_DRY</option>
+                    <option value="MEDIUM_SWEET" th:selected="*{wineType} == 'MEDIUM_SWEET'">MEDIUM_SWEET</option>
+                    <option value="SWEET" th:selected="*{wineType} == 'SWEET'">SWEET</option>
                 </select>
-            </td>
-        </tr>
-        <tr>
-            <td>Strength From:</td>
-            <td><input name="strengthFrom" type="number" step="0.1" value="10.9"/></td>
-        </tr>
-        <tr>
-            <td>Strength To:</td>
-            <td><input name="strengthTo" type="number" step="0.1" value="11.8"/></td>
-        </tr>
-        <tr>
-            <td>Wine Color:</td>
-            <td>
-                <select name="wineColor">
-                    <option value="WHITE" selected>WHITE</option>
-                    <option value="RED">RED</option>
-                    <option value="ROSE">ROSE</option>
+            </div>
+
+            <div class="form-group">
+                <label for="strengthFrom">Strength From</label>
+                <input id="strengthFrom" name="strengthFrom" type="number" step="0.1"
+                       th:value="*{strengthFrom} ?: 10.9"/>
+            </div>
+
+            <div class="form-group">
+                <label for="strengthTo">Strength To</label>
+                <input id="strengthTo" name="strengthTo" type="number" step="0.1"
+                       th:value="*{strengthTo} ?: 11.8"/>
+            </div>
+
+            <div class="form-group">
+                <label for="wineColor">Wine Color</label>
+                <select id="wineColor" name="wineColor">
+                    <option value="WHITE" th:selected="*{wineColor} == 'WHITE'">WHITE</option>
+                    <option value="RED" th:selected="*{wineColor} == 'RED'">RED</option>
+                    <option value="ROSE" th:selected="*{wineColor} == 'ROSE'">ROSE</option>
                 </select>
-            </td>
-        </tr>
-        <tr>
-            <td>Color Describing:</td>
-            <td><input name="colorDescribing" value="Deep yellow with greenish hues"/></td>
-        </tr>
-        <tr>
-            <td>Taste:</td>
-            <td><textarea name="taste" rows="2" cols="40">Delicate, balanced, round, with a fruity and honey aftertaste.</textarea></td>
-        </tr>
-        <tr>
-            <td>Aroma:</td>
-            <td><textarea name="aroma" rows="2" cols="40">Soft, generous, multifaceted, with hints of tropical fruits.</textarea></td>
-        </tr>
-        <tr>
-            <td>Gastronomy:</td>
-            <td><textarea name="gastronomy" rows="2" cols="40">Goes well with fish dishes, mature cheeses and stews.</textarea></td>
-        </tr>
-        <tr>
-            <td>Description:</td>
-            <td><textarea name="description" rows="3" cols="40">Elegant Riesling from Prince Trubetskoi winery, showcasing refined balance and aromatic complexity.</textarea></td>
-        </tr>
-        <tr>
-            <td>Picture Link:</td>
-            <td><input name="pictureLink" value="api/images/wine/default.jpg"/></td>
-        </tr>
-        <tr>
-            <td>Picture Link 2:</td>
-            <td><input name="pictureLink2" value="api/images/wine/default_back.jpg"/></td>
-        </tr>
-        <tr>
-            <td></td>
-            <td><button type="submit">Create Wine</button></td>
-        </tr>
-    </table>
-</form>
+            </div>
 
-<hr>
+            <div class="form-group">
+                <label for="colorDescribing">Color Describing</label>
+                <input id="colorDescribing" name="colorDescribing"
+                       th:value="*{colorDescribing} ?: 'Deep yellow with greenish hues'"/>
+            </div>
 
-<h3>Delete Wine</h3>
-<form th:action="@{/ui/wines/delete}" method="post">
-    Wine ID:
-    <input name="wineId" type="number" required/>
-    <button type="submit">Delete</button>
-</form>
+            <div class="form-group">
+                <label for="taste">Taste</label>
+                <textarea id="taste" name="taste" rows="2"
+                          th:text="*{taste} ?: 'Delicate...'"></textarea>
+            </div>
 
-<br>
-<a th:href="@{/ui/dashboard}">Back to Dashboard</a>
+            <div class="form-group">
+                <label for="aroma">Aroma</label>
+                <textarea id="aroma" name="aroma" rows="2"
+                          th:text="*{aroma} ?: 'Soft...'"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="gastronomy">Gastronomy</label>
+                <textarea id="gastronomy" name="gastronomy" rows="2"
+                          th:text="*{gastronomy} ?: 'Goes well...'"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea id="description" name="description" rows="3"
+                          th:text="*{description} ?: 'Elegant...'"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="pictureLink">Picture Link</label>
+                <input id="pictureLink" name="pictureLink"
+                       th:value="*{pictureLink} ?: 'api/images/wine/default.jpg'"/>
+            </div>
+
+            <div class="form-group">
+                <label for="pictureLink2">Picture Link 2</label>
+                <input id="pictureLink2" name="pictureLink2"
+                       th:value="*{pictureLink2} ?: 'api/images/wine/default_back.jpg'"/>
+            </div>
+
+            <button type="submit">Create Wine</button>
+
+        </form>
+    </section>
+
+    <hr/>
+
+    <section>
+        <h3>Delete Wine</h3>
+
+        <form method="post" th:action="@{/ui/wines/delete}">
+            <div class="form-group">
+                <label for="wineId">Wine ID</label>
+                <input id="wineId" name="wineId" type="number"/>
+            </div>
+            <button type="submit">Delete</button>
+        </form>
+    </section>
+
+</main>
 
 </body>
 </html>

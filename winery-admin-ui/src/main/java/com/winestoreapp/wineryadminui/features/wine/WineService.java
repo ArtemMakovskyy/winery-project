@@ -1,5 +1,6 @@
 package com.winestoreapp.wineryadminui.features.wine;
 
+import com.winestoreapp.wineryadminui.core.util.FeignErrorParser;
 import com.winestoreapp.wineryadminui.features.wine.dto.WineCreateRequestDto;
 import com.winestoreapp.wineryadminui.features.wine.dto.WineDto;
 import java.util.List;
@@ -14,10 +15,15 @@ import feign.FeignException;
 public class WineService {
 
     private final WineFeignClient wineFeignClient;
+    private final FeignErrorParser errorParser;
 
     public WineDto create(WineCreateRequestDto createDto) {
         log.info("Creating wine");
-        return wineFeignClient.createWine(createDto);
+        try {
+            return wineFeignClient.createWine(createDto);
+        } catch (FeignException e) {
+            throw new RuntimeException(errorParser.extractMessage(e));
+        }
     }
 
     public List<WineDto> getAll() {
@@ -29,12 +35,10 @@ public class WineService {
         try {
             wineFeignClient.deleteWine(wineId);
             log.info("Successfully deleted wine with ID: {}", wineId);
-        } catch (FeignException.NotFound e) {
-            log.warn("Action ignored: Wine ID {} not found on backend. Response: {}", wineId, e.contentUTF8());
-            throw e;
         } catch (FeignException e) {
-            log.error("Backend communication failed for wine ID {}: Status {}", wineId, e.status());
-            throw e;
+            String cleanMessage = errorParser.extractMessage(e);
+            log.warn("Action failed for wine ID {}: {}", wineId, cleanMessage);
+            throw new RuntimeException(cleanMessage);
         }
     }
 }
