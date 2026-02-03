@@ -15,15 +15,16 @@ public class SessionTokenStorage {
 
     public void save(HttpSession session, String token) {
         session.setAttribute(TOKEN, token);
+        log.info("Session started for ID: {}. Token saved.", session.getId());
         try {
             DecodedJWT decodedJWT = JWT.decode(token);
             List<String> roles = decodedJWT.getClaim("roles").asList(String.class);
             if (roles != null) {
                 session.setAttribute(ROLES, roles);
-                log.info("Extracted roles from JWT: {}", roles);
+                log.debug("Extracted roles from JWT: {}", roles);
             }
         } catch (Exception e) {
-            log.error("Failed to decode roles from token: {}", e.getMessage());
+            log.error("CRITICAL: Failed to decode roles from token for session {}: {}", session.getId(), e.getMessage());
         }
     }
 
@@ -37,6 +38,7 @@ public class SessionTokenStorage {
     }
 
     public void clear(HttpSession session) {
+        log.info("Invalidating session: {}", session.getId());
         session.invalidate();
     }
 }

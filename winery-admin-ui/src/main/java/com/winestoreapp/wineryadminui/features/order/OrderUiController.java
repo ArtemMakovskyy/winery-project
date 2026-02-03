@@ -3,6 +3,7 @@ package com.winestoreapp.wineryadminui.features.order;
 import com.winestoreapp.wineryadminui.features.order.dto.OrderDto;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +15,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 @RequestMapping("/ui/orders")
 @RequiredArgsConstructor
+@Slf4j
 public class OrderUiController {
 
     private final OrderService orderService;
@@ -31,14 +33,21 @@ public class OrderUiController {
             orderService.setPaidStatus(id);
             redirectAttributes.addFlashAttribute("message", "Order marked as paid");
         } catch (Exception e) {
+            log.warn("UI Order Update Failure: ID={}, Error={}", id, e.getMessage());
             redirectAttributes.addFlashAttribute("error", "Failed to update status: " + e.getMessage());
         }
         return "redirect:/ui/orders";
     }
 
     @PostMapping("/{id}/delete")
-    public String delete(@PathVariable Long id) {
-        orderService.deleteOrder(id);
+    public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            orderService.deleteOrder(id);
+            redirectAttributes.addFlashAttribute("message", "Order deleted");
+        } catch (Exception e) {
+            log.error("UI Order Deletion Failure: ID={}", id, e);
+            redirectAttributes.addFlashAttribute("error", "Failed to delete order");
+        }
         return "redirect:/ui/orders";
     }
 }

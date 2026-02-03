@@ -1,7 +1,6 @@
 package com.winestoreapp.wineryadminui.features.user;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.winestoreapp.wineryadminui.features.user.dto.BackendErrorResponse;
+import com.winestoreapp.wineryadminui.core.util.FeignErrorParser;
 import com.winestoreapp.wineryadminui.features.user.dto.UpdateUserRoleDto;
 import com.winestoreapp.wineryadminui.features.user.dto.UserResponseDto;
 import lombok.RequiredArgsConstructor;
@@ -15,28 +14,18 @@ import feign.FeignException;
 public class UserService {
 
     private final UserFeignClient userFeignClient;
-    private final ObjectMapper objectMapper;
+    private final FeignErrorParser errorParser;
 
     public UserResponseDto updateUserRole(Long userId, String role) {
-        log.info("Updating role for user {} to {}", userId, role);
+        log.info("Action: Updating role for UserID: {} to {}", userId, role);
         try {
-            return userFeignClient.updateUserRole(userId, new UpdateUserRoleDto(role));
+            UserResponseDto response = userFeignClient.updateUserRole(userId, new UpdateUserRoleDto(role));
+            log.info("Successfully updated role for UserID: {}", userId);
+            return response;
         } catch (FeignException e) {
-            String extractedMessage = extractErrorMessage(e);
-            log.warn("Backend returned error: {}", extractedMessage);
+            String extractedMessage = errorParser.extractMessage(e);
+            log.warn("Role update failed for UserID {}: {}", userId, extractedMessage);
             throw new RuntimeException(extractedMessage);
         }
-    }
-
-    private String extractErrorMessage(FeignException e) {
-        try {
-            if (e.contentUTF8() != null && !e.contentUTF8().isBlank()) {
-                BackendErrorResponse error = objectMapper.readValue(e.contentUTF8(), BackendErrorResponse.class);
-                return error.message();
-            }
-        } catch (Exception ex) {
-            log.error("Failed to parse backend error", ex);
-        }
-        return "Internal server error";
     }
 }

@@ -4,32 +4,44 @@ import com.winestoreapp.wineryadminui.core.util.FeignErrorParser;
 import com.winestoreapp.wineryadminui.features.order.dto.OrderDto;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import feign.FeignException;
 
 @Service
 @RequiredArgsConstructor
-@Log4j2
+@Slf4j
 public class OrderService {
 
     private final OrderFeignClient orderClient;
     private final FeignErrorParser errorParser;
 
     public List<OrderDto> getAll() {
-        log.info("Fetching all orders");
+        log.debug("Fetching all orders from backend");
         return orderClient.getAll();
     }
 
     public Boolean setPaidStatus(Long id) {
+        log.info("Requesting 'PAID' status update for order ID: {}", id);
         try {
-            return orderClient.setPaidStatus(id);
+            Boolean result = orderClient.setPaidStatus(id);
+            log.info("Order ID: {} status update result: {}", id, result);
+            return result;
         } catch (FeignException e) {
-            throw new RuntimeException(errorParser.extractMessage(e));
+            String errorMsg = errorParser.extractMessage(e);
+            log.error("Failed to set PAID status for order {}: {}", id, errorMsg);
+            throw new RuntimeException(errorMsg);
         }
     }
 
     public void deleteOrder(Long id) {
-        orderClient.deleteOrder(id);
+        log.info("Requesting deletion of order ID: {}", id);
+        try {
+            orderClient.deleteOrder(id);
+            log.info("Order ID: {} successfully deleted", id);
+        } catch (FeignException e) {
+            log.error("Failed to delete order ID {}: {}", id, e.getMessage());
+            throw new RuntimeException(errorParser.extractMessage(e));
+        }
     }
 }

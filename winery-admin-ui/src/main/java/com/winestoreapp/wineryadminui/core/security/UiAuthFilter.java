@@ -33,14 +33,16 @@ public class UiAuthFilter extends OncePerRequestFilter {
             HttpSession session = request.getSession(false);
 
             if (session == null || storage.get(session) == null) {
+                log.info("Unauthorized access attempt to {}. Redirecting to /login", path);
                 response.sendRedirect("/login");
                 return;
             }
 
             List<String> roles = storage.getRoles(session);
+            log.trace("Processing UI request: {} with roles: {}", path, roles);
 
             if (path.startsWith("/ui/users") && (roles == null || !roles.contains("ROLE_ADMIN"))) {
-                log.warn("Access denied to /ui/users for roles: {}", roles);
+                log.error("SECURITY ALERT: Access denied to /ui/users. User roles: {}", roles);
                 response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied: Admins only");
                 return;
             }

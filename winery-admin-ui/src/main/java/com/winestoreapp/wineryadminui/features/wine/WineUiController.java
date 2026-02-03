@@ -28,6 +28,7 @@ public class WineUiController {
                          Model model) {
 
         if (bindingResult.hasErrors()) {
+            log.warn("Wine creation validation failed: {} errors found", bindingResult.getErrorCount());
             model.addAttribute("wines", wineService.getAll());
             return "wine/wines";
         }
@@ -36,6 +37,7 @@ public class WineUiController {
             wineService.create(createDto);
             return "redirect:/ui/wines";
         } catch (RuntimeException e) {
+            log.error("Business error during wine creation: {}", e.getMessage());
             model.addAttribute("error", e.getMessage());
             model.addAttribute("wines", wineService.getAll());
             return "wine/wines";
@@ -47,11 +49,9 @@ public class WineUiController {
         try {
             wineService.delete(wineId);
             redirectAttributes.addFlashAttribute("message", "Wine successfully deleted");
-        } catch (RuntimeException e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
         } catch (Exception e) {
-            log.error("Unexpected UI error during deletion of wine ID {}", wineId, e);
-            redirectAttributes.addFlashAttribute("error", "An error occurred during deletion");
+            log.error("UI Error: Could not delete wine ID {}", wineId, e);
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
         return "redirect:/ui/wines";
     }
@@ -62,5 +62,4 @@ public class WineUiController {
         model.addAttribute("wine", new WineCreateRequestDto());
         return "wine/wines";
     }
-
 }
