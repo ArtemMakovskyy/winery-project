@@ -1,4 +1,3 @@
-# file: stoic-winery-api/app/src/main/resources/application-actuator.yaml
 # --- Actuator and Observation Settings ---
 management:
   observations:
@@ -47,10 +46,10 @@ management:
     data:
       repository:
         autotime:
-          enabled: true   # 🔹 тайминги репозиториев Spring Data
+          enabled: true
 
 jdbc:
-  includes-parameters: true   # 🔹 добавляет параметры SQL в observation
+  includes-parameters: true
 
 loki:
   url: ${LOKI_URL:http://localhost:3100/loki/api/v1/push}

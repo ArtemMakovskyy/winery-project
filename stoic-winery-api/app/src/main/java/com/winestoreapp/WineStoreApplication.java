@@ -10,13 +10,13 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @Slf4j
 @SpringBootApplication
 @EnableScheduling
-public class Application {
+public class WineStoreApplication {
 
     @Value("${main.back.end.url}")
     private String mainFrontEndUrl;
 
     public static void main(String[] args) {
-        SpringApplication.run(Application.class, args);
+        SpringApplication.run(WineStoreApplication.class, args);
     }
 
     @PostConstruct

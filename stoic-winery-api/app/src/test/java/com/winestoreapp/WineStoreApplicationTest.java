@@ -9,8 +9,8 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 
 @SpringBootTest
-@ContextConfiguration(initializers = ApplicationTest.Initializer.class)
-public class ApplicationTest {
+@ContextConfiguration(initializers = WineStoreApplicationTest.Initializer.class)
+public class WineStoreApplicationTest {
 
     @Test
     void contextLoads() {

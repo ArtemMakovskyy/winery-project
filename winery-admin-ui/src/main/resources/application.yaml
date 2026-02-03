@@ -2,8 +2,15 @@ spring:
   application:
     name: winery-admin-ui
 
+  config:
+    import:
+      - optional:classpath:/application-actuator.yaml
+
 server:
   port: 8081
+
+api:
+  backend-url: ${BACKEND_URL:http://localhost:8080/api}
 
 feign:
   client:
@@ -11,5 +18,9 @@ feign:
       default:
         loggerLevel: full
 
-api:
-  backend-url: http://localhost:8080/api
+loki:
+  url: ${LOKI_URL:http://localhost:3100/loki/api/v1/push}
+
+logging:
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"

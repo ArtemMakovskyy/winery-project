@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   db-sql:
     env_file: .env
@@ -51,6 +49,22 @@ services:
       - wine_images:/app/upload/images/wine
     networks:
       - backend
+
+  winery-admin-ui:
+    container_name: winery-admin-ui-container
+    build: ./winery-admin-ui
+    ports:
+      - "${ADMIN_UI_PORT:-8081}:8081"
+    environment:
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://tempo:9411/api/v2/spans
+      - LOKI_URL=http://loki:3100/loki/api/v1/push
+      - BACKEND_URL=http://api-backend:8080/api
+    networks:
+      - backend
+    depends_on:
+      - loki
+      - tempo
+      - api-backend
 
   prometheus:
     image: prom/prometheus:v2.46.0

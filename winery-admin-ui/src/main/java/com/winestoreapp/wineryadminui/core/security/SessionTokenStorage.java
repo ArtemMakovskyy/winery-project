@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpSession;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import io.micrometer.observation.annotation.Observed;
 
 @Slf4j
 @Component
@@ -13,6 +14,7 @@ public class SessionTokenStorage {
     private static final String TOKEN = "TOKEN";
     private static final String ROLES = "ROLES";
 
+    @Observed(name = "session.storage.save")
     public void save(HttpSession session, String token) {
         session.setAttribute(TOKEN, token);
         log.info("Session started for ID: {}. Token saved.", session.getId());

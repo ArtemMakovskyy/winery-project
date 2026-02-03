@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import feign.RequestInterceptor;
+import io.micrometer.tracing.Tracer;
 
 @Configuration
 @RequiredArgsConstructor
@@ -16,6 +17,7 @@ import feign.RequestInterceptor;
 public class FeignAuthInterceptor {
 
     private final SessionTokenStorage storage;
+    private final Tracer tracer;
 
     @Bean
     public RequestInterceptor authRequestInterceptor() {
@@ -28,10 +30,10 @@ public class FeignAuthInterceptor {
                 if (session != null) {
                     String token = storage.get(session);
                     if (token != null && !template.url().contains("/health")) {
-                        log.debug("Injecting Bearer token for request to: {}", template.url());
+                        if (tracer.currentSpan() != null) {
+                            tracer.currentSpan().tag("session.id", session.getId());
+                        }
                         template.header("Authorization", "Bearer " + token);
-                    } else if (token == null) {
-                        log.warn("Attempted Feign request to {} but no token found in session", template.url());
                     }
                 }
             }

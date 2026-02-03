@@ -1,0 +1,35 @@
+management:
+  server:
+    port: 8081
+
+  observations:
+    key-values:
+      application: winery-admin-ui
+
+  tracing:
+    sampling:
+      probability: 1.0
+    zipkin:
+      endpoint: ${MANAGEMENT_ZIPKIN_TRACING_ENDPOINT:http://localhost:9411/api/v2/spans}
+
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include:
+          - health
+          - info
+          - metrics
+          - prometheus
+
+  endpoint:
+    health:
+      show-details: always
+
+  metrics:
+    enable:
+      all: true
+    distribution:
+      percentiles-histogram:
+        all: true
+        http.server.requests: true

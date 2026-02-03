@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import feign.FeignException;
+import io.micrometer.observation.annotation.Observed;
+import io.micrometer.tracing.Tracer;
 
 @Service
 @RequiredArgsConstructor
@@ -15,9 +17,17 @@ public class UserService {
 
     private final UserFeignClient userFeignClient;
     private final FeignErrorParser errorParser;
+    private final Tracer tracer;
 
+    @Observed(name = "user.service.update_role")
     public UserResponseDto updateUserRole(Long userId, String role) {
         log.info("Action: Updating role for UserID: {} to {}", userId, role);
+
+        if (tracer.currentSpan() != null) {
+            tracer.currentSpan().tag("target.user.id", String.valueOf(userId));
+            tracer.currentSpan().tag("target.role", role);
+        }
+
         try {
             UserResponseDto response = userFeignClient.updateUserRole(userId, new UpdateUserRoleDto(role));
             log.info("Successfully updated role for UserID: {}", userId);

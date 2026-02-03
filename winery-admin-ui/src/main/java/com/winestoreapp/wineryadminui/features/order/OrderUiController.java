@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import io.micrometer.observation.annotation.Observed;
+import io.micrometer.tracing.Tracer;
 
 @Controller
 @RequestMapping("/ui/orders")
@@ -19,8 +21,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class OrderUiController {
 
     private final OrderService orderService;
+    private final Tracer tracer;
 
     @GetMapping
+    @Observed(name = "ui.order.list")
     public String list(Model model) {
         List<OrderDto> orders = orderService.getAll();
         model.addAttribute("orders", orders);
@@ -28,7 +32,9 @@ public class OrderUiController {
     }
 
     @PostMapping("/{id}/paid")
+    @Observed(name = "ui.order.set_paid")
     public String setPaid(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        if (tracer.currentSpan() != null) tracer.currentSpan().tag("order.id", String.valueOf(id));
         try {
             orderService.setPaidStatus(id);
             redirectAttributes.addFlashAttribute("message", "Order marked as paid");
@@ -40,7 +46,9 @@ public class OrderUiController {
     }
 
     @PostMapping("/{id}/delete")
+    @Observed(name = "ui.order.delete")
     public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        if (tracer.currentSpan() != null) tracer.currentSpan().tag("order.id", String.valueOf(id));
         try {
             orderService.deleteOrder(id);
             redirectAttributes.addFlashAttribute("message", "Order deleted");

@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import feign.FeignException;
+import io.micrometer.observation.annotation.Observed;
+import io.micrometer.tracing.Tracer;
 
 @Component
 @RequiredArgsConstructor
@@ -13,9 +15,16 @@ import feign.FeignException;
 public class FeignErrorParser {
 
     private final ObjectMapper objectMapper;
+    private final Tracer tracer;
 
+    @Observed(name = "feign.error.parser")
     public String extractMessage(FeignException e) {
         log.debug("Attempting to extract error message from FeignException. Status: {}", e.status());
+
+        if (tracer.currentSpan() != null) {
+            tracer.currentSpan().tag("feign.status", String.valueOf(e.status()));
+        }
+
         try {
             if (e.contentUTF8() != null && !e.contentUTF8().isBlank()) {
                 BackendErrorResponse error = objectMapper.readValue(e.contentUTF8(), BackendErrorResponse.class);
@@ -24,6 +33,7 @@ public class FeignErrorParser {
             }
         } catch (Exception ex) {
             log.error("Failed to parse backend error JSON. Raw content: {}", e.contentUTF8(), ex);
+            if (tracer.currentSpan() != null) tracer.currentSpan().event("error.parsing.failed");
         }
         return "Service error: " + e.status();
     }

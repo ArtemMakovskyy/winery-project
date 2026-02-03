@@ -29,32 +29,85 @@ public class UiAuthFilter extends OncePerRequestFilter {
 
         String path = request.getRequestURI();
 
-        if (path.startsWith("/ui")) {
-            HttpSession session = request.getSession(false);
+        if (isPublicPath(path)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
-            if (session == null || storage.get(session) == null) {
-                log.info("Unauthorized access attempt to {}. Redirecting to /login", path);
-                response.sendRedirect("/login");
-                return;
-            }
+        if (!isUiPath(path)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
-            List<String> roles = storage.getRoles(session);
-            log.trace("Processing UI request: {} with roles: {}", path, roles);
+        HttpSession session = request.getSession(false);
 
-            if (path.startsWith("/ui/users") && (roles == null || !roles.contains("ROLE_ADMIN"))) {
-                log.error("SECURITY ALERT: Access denied to /ui/users. User roles: {}", roles);
-                response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied: Admins only");
-                return;
-            }
+        if (isNotAuthenticated(session)) {
+            handleUnauthorized(response, path);
+            return;
+        }
 
-            if ((path.startsWith("/ui/wines") || path.startsWith("/ui/orders"))
-                    && (roles == null || !roles.contains("ROLE_MANAGER"))) {
-                log.warn("Access denied to {} for roles: {}", path, roles);
-                response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied: Managers only");
-                return;
-            }
+        List<String> roles = storage.getRoles(session);
+        log.trace("Processing UI request: {} with roles: {}", path, roles);
+
+        if (isUsersPath(path) && !hasAdminRole(roles)) {
+            handleForbidden(response, path, roles, "Admins only");
+            return;
+        }
+
+        if (isManagerOnlyPath(path) && !hasManagerRole(roles)) {
+            handleForbidden(response, path, roles, "Managers only");
+            return;
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private boolean isPublicPath(String path) {
+        return path.startsWith("/actuator")
+                || path.startsWith("/login")
+                || path.startsWith("/static")
+                || path.startsWith("/css")
+                || path.startsWith("/js")
+                || path.startsWith("/images")
+                || path.equals("/favicon.ico");
+    }
+
+    private boolean isUiPath(String path) {
+        return path.startsWith("/ui");
+    }
+
+    private boolean isUsersPath(String path) {
+        return path.startsWith("/ui/users");
+    }
+
+    private boolean isManagerOnlyPath(String path) {
+        return path.startsWith("/ui/wines") || path.startsWith("/ui/orders");
+    }
+
+    private boolean isNotAuthenticated(HttpSession session) {
+        return session == null || storage.get(session) == null;
+    }
+
+    private boolean hasAdminRole(List<String> roles) {
+        return roles != null && roles.contains("ROLE_ADMIN");
+    }
+
+    private boolean hasManagerRole(List<String> roles) {
+        return roles != null && roles.contains("ROLE_MANAGER");
+    }
+
+    private void handleUnauthorized(HttpServletResponse response, String path) throws IOException {
+        log.info("Unauthorized access attempt to {}. Redirecting to /login", path);
+        response.sendRedirect("/login");
+    }
+
+    private void handleForbidden(HttpServletResponse response,
+                                 String path,
+                                 List<String> roles,
+                                 String message) throws IOException {
+
+        log.warn("Access denied to {}. User roles: {}", path, roles);
+        response.sendError(HttpServletResponse.SC_FORBIDDEN,
+                "Access Denied: " + message);
     }
 }

@@ -121,7 +121,7 @@
                     <artifactId>spring-boot-maven-plugin</artifactId>
                     <version>${spring.boot.version}</version>
                     <configuration>
-                        <mainClass>com.winestoreapp.Application</mainClass>
+                        <mainClass>com.winestoreapp.WineStoreApplication</mainClass>
                     </configuration>
                 </plugin>
             </plugins>

@@ -12,3 +12,10 @@ scrape_configs:
       - targets: ['host.docker.internal:8080']
         labels:
           application: 'wine-store (intellij)'
+
+  - job_name: 'winery-admin-ui'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['winery-admin-ui:8081']
+        labels:
+          application: 'admin-ui'

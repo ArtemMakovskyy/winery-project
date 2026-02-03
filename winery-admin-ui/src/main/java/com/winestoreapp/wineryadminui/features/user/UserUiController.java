@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import io.micrometer.observation.annotation.Observed;
+import io.micrometer.tracing.Tracer;
 
 @Controller
 @RequestMapping("/ui/users")
@@ -20,18 +22,22 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class UserUiController {
 
     private final UserService userService;
+    private final Tracer tracer;
 
     @GetMapping("/role")
+    @Observed(name = "ui.user.role_form")
     public String roleForm(Model model) {
         model.addAttribute("form", new UpdateRoleForm());
         return "user/user-role";
     }
 
     @PostMapping("/role")
+    @Observed(name = "ui.user.update_role_submit")
     public String updateRole(@Valid @ModelAttribute("form") UpdateRoleForm form,
                              BindingResult bindingResult,
                              Model model) {
         if (bindingResult.hasErrors()) {
+            if (tracer.currentSpan() != null) tracer.currentSpan().tag("validation.status", "failed");
             return "user/user-role";
         }
 
@@ -42,9 +48,11 @@ public class UserUiController {
             model.addAttribute("success", true);
             model.addAttribute("user", updated);
         } catch (RuntimeException e) {
+            if (tracer.currentSpan() != null) tracer.currentSpan().tag("error.type", "business_logic");
             model.addAttribute("error", e.getMessage());
         } catch (Exception e) {
             log.error("Unexpected error updating user role", e);
+            if (tracer.currentSpan() != null) tracer.currentSpan().error(e);
             model.addAttribute("error", "An unexpected error occurred");
         }
         return "user/user-role";

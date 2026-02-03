@@ -3,11 +3,14 @@ package com.winestoreapp.wineryadminui.features.wine;
 import com.winestoreapp.wineryadminui.core.util.FeignErrorParser;
 import com.winestoreapp.wineryadminui.features.wine.dto.WineCreateRequestDto;
 import com.winestoreapp.wineryadminui.features.wine.dto.WineDto;
-import java.util.List;
+import feign.FeignException;
+import io.micrometer.observation.annotation.Observed;
+import io.micrometer.tracing.Tracer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import feign.FeignException;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -16,33 +19,75 @@ public class WineService {
 
     private final WineFeignClient wineFeignClient;
     private final FeignErrorParser errorParser;
+    private final Tracer tracer;
 
+    @Observed(name = "wine.service.create")
     public WineDto create(WineCreateRequestDto createDto) {
-        log.info("Action: Creating new wine. Name: {}, VendorCode: {}", createDto.getName(), createDto.getVendorCode());
+        var span = tracer.currentSpan();
+        log.info("Creating new wine. Name: {}, VendorCode: {}", createDto.getName(), createDto.getVendorCode());
+
+        if (span != null) {
+            span.tag("wine.vendor_code", createDto.getVendorCode());
+            span.tag("wine.name", createDto.getName());
+        }
+
         try {
             WineDto created = wineFeignClient.createWine(createDto);
+
+            if (span != null) {
+                span.tag("status", "success");
+                span.tag("wine.id", String.valueOf(created.getId()));
+            }
+
             log.info("Wine created successfully with ID: {}", created.getId());
             return created;
         } catch (FeignException e) {
             String error = errorParser.extractMessage(e);
             log.error("Failed to create wine '{}': {}", createDto.getName(), error);
-            throw new RuntimeException(error);
+            if (span != null) {
+                span.tag("status", "error");
+                span.error(e);
+            }
+            throw new RuntimeException(error, e);
         }
     }
 
+    @Observed(name = "wine.service.get_all")
     public List<WineDto> getAll() {
         return wineFeignClient.getAll();
     }
 
+    @Observed(name = "wine.service.delete")
     public void delete(Long wineId) {
-        log.info("Action: Deleting wine ID: {}", wineId);
+        var span = tracer.currentSpan();
+        log.info("Deleting wine ID: {}", wineId);
+
+        if (span != null) {
+            span.tag("wine.id", String.valueOf(wineId));
+        }
+
         try {
             wineFeignClient.deleteWine(wineId);
             log.info("Wine ID: {} deleted successfully", wineId);
+
+            if (span != null) {
+                span.tag("status", "success");
+            }
         } catch (FeignException e) {
-            String cleanMessage = errorParser.extractMessage(e);
-            log.warn("Deletion failed for wine ID {}: {}", wineId, cleanMessage);
-            throw new RuntimeException(cleanMessage);
+            if (e.status() == 404) {
+                log.warn("Wine ID {} not found, nothing to delete.", wineId);
+                if (span != null) {
+                    span.tag("status", "not_found");
+                }
+            } else {
+                String cleanMessage = errorParser.extractMessage(e);
+                log.error("Deletion failed for wine ID {}: {}", wineId, cleanMessage, e);
+                if (span != null) {
+                    span.tag("status", "error");
+                    span.error(e);
+                }
+                throw new RuntimeException(cleanMessage, e);
+            }
         }
     }
 }
