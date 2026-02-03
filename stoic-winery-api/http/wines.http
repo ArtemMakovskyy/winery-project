@@ -38,18 +38,18 @@ DELETE {{base_url}}/wines/33
 Authorization: Bearer {{auth_token}}
 
 ### Update Wine Images (MANAGER only)
-PATCH {{base_url}}/wines/1/image
+PATCH http://localhost:8080/api/wines/37/image
 Authorization: Bearer {{auth_token}}
 Content-Type: multipart/form-data; boundary=boundary
 
 --boundary
-Content-Disposition: form-data; name="imageA"; filename="wine_front.jpg"
-Content-Type: image/jpeg
+Content-Disposition: form-data; name="imageA"; filename="Pinot-Noir-Red-Dry2big.png"
+Content-Type: image/png
 
-< ./wine_front.jpg
+< C:/Users/artem/Downloads/Pinot-Noir-Red-Dry2big.png
 --boundary
-Content-Disposition: form-data; name="imageB"; filename="wine_label.jpg"
-Content-Type: image/jpeg
+Content-Disposition: form-data; name="imageB"; filename="Pinot-Noir-Red-Dry3small.png"
+Content-Type: image/png
 
-< ./wine_label.jpg
+< C:/Users/artem/Downloads/Pinot-Noir-Red-Dry3small.png
 --boundary--

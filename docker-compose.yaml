@@ -23,7 +23,7 @@ services:
 
   api-backend:
     env_file: .env
-    container_name: winery-api-container
+    container_name: backend-winery-api-container
     depends_on:
       db-sql:
         condition: service_healthy
@@ -43,15 +43,17 @@ services:
       SPRING_JPA_HIBERNATE_DDL_AUTO: validate
       MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://tempo:9411/api/v2/spans
       LOKI_URL: http://loki:3100/loki/api/v1/push
+      IMAGE_SAVE_PATH: /app/uploads/images/wine/
+      UPLOAD_BASE_PATH: /app/uploads/
       JAVA_TOOL_OPTIONS: >
         -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
     volumes:
-      - wine_images:/app/upload/images/wine
+      - wine_images:/app/uploads/images/wine
     networks:
       - backend
 
   winery-admin-ui:
-    container_name: winery-admin-ui-container
+    container_name: frontend-admin-ui-container
     build: ./winery-admin-ui
     ports:
       - "${ADMIN_UI_PORT:-8081}:8081"
@@ -119,6 +121,7 @@ services:
       - backend
 
   frontend-wine-site:
+    container_name: frontend-wine-site-ui-container
     env_file: .env
     build: ./wine_site_project
     ports:

@@ -1,6 +1,10 @@
 spring:
   application:
     name: winery-admin-ui
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 10MB
 
   config:
     import:
@@ -17,10 +21,3 @@ feign:
     config:
       default:
         loggerLevel: full
-
-loki:
-  url: ${LOKI_URL:http://localhost:3100/loki/api/v1/push}
-
-logging:
-  pattern:
-    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"

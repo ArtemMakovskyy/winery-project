@@ -33,3 +33,10 @@ management:
       percentiles-histogram:
         all: true
         http.server.requests: true
+
+loki:
+  url: ${LOKI_URL:http://localhost:3100/loki/api/v1/push}
+
+logging:
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"

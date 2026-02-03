@@ -166,6 +166,30 @@
     <hr/>
 
     <section>
+        <h3>Upload Images for Existing Wine</h3>
+        <form method="post" enctype="multipart/form-data"
+              th:action="@{/ui/wines/upload-images-proxy}">
+
+            <div class="form-group">
+                <label for="uploadWineId">Wine ID</label>
+                <input id="uploadWineId" name="wineId" type="number" required/>
+            </div>
+
+            <div class="form-group">
+                <label for="imageA">Main Image (Image A)</label>
+                <input type="file" id="imageA" name="imageA" accept="image/*" required/>
+            </div>
+
+            <div class="form-group">
+                <label for="imageB">Secondary Image (Image B)</label>
+                <input type="file" id="imageB" name="imageB" accept="image/*" required/>
+            </div>
+
+            <button type="submit">Upload Images</button>
+        </form>
+    </section>
+
+    <section>
         <h3>Delete Wine</h3>
 
         <form method="post" th:action="@{/ui/wines/delete}">
@@ -176,6 +200,8 @@
             <button type="submit">Delete</button>
         </form>
     </section>
+
+
 
 </main>
 

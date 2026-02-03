@@ -19,7 +19,7 @@ import io.micrometer.tracing.Tracer;
 @RequiredArgsConstructor
 public class ImageStorageService {
 
-    @Value("${image.save.path:src/main/resources/static/images/wine/}")
+    @Value("${image.save.path}")
     private String imageSavePath;
 
     private final Tracer tracer;

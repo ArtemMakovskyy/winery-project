@@ -17,6 +17,7 @@ COPY --from=extractor /opt/app/dependencies/ ./
 COPY --from=extractor /opt/app/spring-boot-loader/ ./
 COPY --from=extractor /opt/app/snapshot-dependencies/ ./
 COPY --from=extractor /opt/app/application/ ./
+COPY uploads/images/wine/ /app/uploads/images/wine/
 
 EXPOSE 8080
 ENTRYPOINT ["java", "org.springframework.boot.loader.launch.JarLauncher"]

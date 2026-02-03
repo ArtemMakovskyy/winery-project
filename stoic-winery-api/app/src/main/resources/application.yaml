@@ -29,6 +29,15 @@ spring:
       - optional:classpath:/application-telegram.yaml
       - optional:classpath:/application-actuator.yaml
       - optional:classpath:/application-security.yaml
+  web:
+    resources:
+      static-locations: file:/app/uploads/
+
+image:
+  save:
+    path: ${IMAGE_SAVE_PATH:stoic-winery-api/uploads/images/wine/}
+  config:
+    path: ${UPLOAD_CONFIG_BASE_PATH:file:stoic-winery-api/uploads/images/}
 
 limiter:
   number:

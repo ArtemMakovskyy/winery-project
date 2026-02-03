@@ -9,6 +9,7 @@ import io.micrometer.tracing.Tracer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -90,4 +91,16 @@ public class WineService {
             }
         }
     }
+
+    @Observed(name = "wine.service.update_images")
+    public void updateImages(Long id, MultipartFile imageA, MultipartFile imageB) {
+        try {
+            wineFeignClient.updateWineImages(id, imageA, imageB);
+        } catch (FeignException e) {
+            String error = errorParser.extractMessage(e);
+            log.error("Failed to update images for wine ID {}: {}", id, error);
+            throw new RuntimeException(error, e);
+        }
+    }
+
 }

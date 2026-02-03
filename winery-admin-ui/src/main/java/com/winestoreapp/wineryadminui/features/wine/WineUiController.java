@@ -10,6 +10,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
@@ -71,6 +72,25 @@ public class WineUiController {
             log.error("Failed to delete wine ID {}: {}", wineId, e.getMessage(), e);
             redirectAttributes.addFlashAttribute("error", e.getMessage());
             if (span != null) { span.tag("status", "error").error(e); }
+        }
+
+        return "redirect:/ui/wines";
+    }
+
+    @PostMapping("/upload-images-proxy")
+    @Observed(name = "ui.wine.upload_images")
+    public String handleImageUpload(
+            @RequestParam("wineId") Long id,
+            @RequestParam("imageA") MultipartFile imageA,
+            @RequestParam("imageB") MultipartFile imageB,
+            RedirectAttributes redirectAttributes) {
+
+        try {
+            wineService.updateImages(id, imageA, imageB);
+            redirectAttributes.addFlashAttribute("message", "Images updated successfully!");
+        } catch (RuntimeException e) {
+            log.error("Upload failed: {}", e.getMessage());
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
 
         return "redirect:/ui/wines";
