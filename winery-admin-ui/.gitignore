@@ -31,3 +31,5 @@ build/
 
 ### VS Code ###
 .vscode/
+/.baserock/extractedAgent/jacocoagent.jar
+/.baserock/mock_preferences.json
