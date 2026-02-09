@@ -40,9 +40,7 @@ public class ReviewServiceImpl implements ReviewService {
     @Transactional(readOnly = true)
     @Observed(name = "review.service", contextualName = "find-all-reviews-by-wine-id")
     public List<ReviewWithUserDescriptionDto> findAllByWineId(Long wineId, Pageable pageable) {
-        if (tracer.currentSpan() != null) {
-            tracer.currentSpan().tag("wine.id", String.valueOf(wineId));
-        }
+        tagSpan("wine.id", wineId);
 
         List<Review> reviews = reviewRepository.findAllByWineId(wineId, pageable).getContent();
         Map<Long, UserResponseDto> usersCache = new HashMap<>();
@@ -63,10 +61,7 @@ public class ReviewServiceImpl implements ReviewService {
     @Observed(name = "review.service", contextualName = "add-new-review")
     public ReviewWithUserDescriptionDto addReview(CreateReviewDto dto) {
         log.info("Adding new review for wineId: {}", dto.getWineId());
-
-        if (tracer.currentSpan() != null) {
-            tracer.currentSpan().tag("wine.id", String.valueOf(dto.getWineId()));
-        }
+        tagSpan("wine.id", dto.getWineId());
 
         String[] nameParts = dto.getUserFirstAndLastName().strip().split("\\s+");
         if (nameParts.length != 2) {
@@ -80,6 +75,7 @@ public class ReviewServiceImpl implements ReviewService {
         }
 
         UserResponseDto userDto = userService.getOrCreateByFirstAndLastName(nameParts[0], nameParts[1]);
+        tagSpan("user.id", userDto.getId());
 
         removeOutdatedReviews(dto.getWineId(), userDto.getId());
 
@@ -118,5 +114,11 @@ public class ReviewServiceImpl implements ReviewService {
 
         wineService.updateAverageRatingScore(wineId, avg);
         log.debug("Updated average rating for wine {}: {}", wineId, avg);
+    }
+
+    private void tagSpan(String key, Object value) {
+        if (tracer.currentSpan() != null) {
+            tracer.currentSpan().tag(key, String.valueOf(value));
+        }
     }
 }

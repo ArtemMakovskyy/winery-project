@@ -23,19 +23,37 @@ public class UserService {
     public UserResponseDto updateUserRole(Long userId, String role) {
         log.info("Action: Updating role for UserID: {} to {}", userId, role);
 
-        if (tracer.currentSpan() != null) {
-            tracer.currentSpan().tag("target.user.id", String.valueOf(userId));
-            tracer.currentSpan().tag("target.role", role);
-        }
+        tagSpan("target.user.id", userId);
+        tagSpan("target.role", role);
 
         try {
             UserResponseDto response = userFeignClient.updateUserRole(userId, new UpdateUserRoleDto(role));
             log.info("Successfully updated role for UserID: {}", userId);
+
+            tagSpan("status", "success");
             return response;
         } catch (FeignException e) {
             String extractedMessage = errorParser.extractMessage(e);
             log.warn("Role update failed for UserID {}: {}", userId, extractedMessage);
+
+            tagSpan("status", "error");
+            recordError(e);
+
             throw new RuntimeException(extractedMessage);
+        }
+    }
+
+    private void tagSpan(String key, Object value) {
+        var span = tracer.currentSpan();
+        if (span != null) {
+            span.tag(key, String.valueOf(value));
+        }
+    }
+
+    private void recordError(Throwable e) {
+        var span = tracer.currentSpan();
+        if (span != null) {
+            span.error(e);
         }
     }
 }

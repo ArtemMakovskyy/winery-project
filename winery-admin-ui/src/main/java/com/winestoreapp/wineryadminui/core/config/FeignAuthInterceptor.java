@@ -29,14 +29,20 @@ public class FeignAuthInterceptor {
                 HttpSession session = attrs.getRequest().getSession(false);
                 if (session != null) {
                     String token = storage.get(session);
+
                     if (token != null && !template.url().contains("/health")) {
-                        if (tracer.currentSpan() != null) {
-                            tracer.currentSpan().tag("session.id", session.getId());
-                        }
+                        tagSpan("session.id", session.getId());
                         template.header("Authorization", "Bearer " + token);
+                        log.debug("Feign interceptor: Authorization header added for URL: {}", template.url());
                     }
                 }
             }
         };
+    }
+
+    private void tagSpan(String key, String value) {
+        if (tracer.currentSpan() != null) {
+            tracer.currentSpan().tag(key, value);
+        }
     }
 }

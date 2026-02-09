@@ -63,11 +63,15 @@ public class UserController {
 
         log.info("ADMIN request to update role for user ID: {} to {}", id, roleDto.role());
 
-        if (tracer.currentSpan() != null) {
-            tracer.currentSpan().tag("user.id", String.valueOf(id));
-            tracer.currentSpan().tag("user.new_role", roleDto.role());
-        }
+        tagSpan("user.id", id);
+        tagSpan("user.new_role", roleDto.role());
 
         return ResponseEntity.ok(userService.updateRole(id, roleDto.role()));
+    }
+
+    private void tagSpan(String key, Object value) {
+        if (tracer.currentSpan() != null) {
+            tracer.currentSpan().tag(key, String.valueOf(value));
+        }
     }
 }

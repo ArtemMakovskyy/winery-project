@@ -78,9 +78,7 @@ public class OrderController {
             Pageable pageable
     ) {
         log.info("REST request to find orders for userId: {}", userId);
-        if (tracer.currentSpan() != null) {
-            tracer.currentSpan().tag("user.id", String.valueOf(userId));
-        }
+        tagSpan("user.id", userId);
         return ResponseEntity.ok(orderService.findAllByUserId(userId, pageable));
     }
 
@@ -105,7 +103,9 @@ public class OrderController {
     @Observed(name = "order.controller", contextualName = "add-order")
     public ResponseEntity<OrderDto> addOrder(@RequestBody @Valid CreateOrderDto dto) {
         log.info("REST request to add new order for customer: {}", dto.getUserFirstAndLastName());
-        return ResponseEntity.status(HttpStatus.CREATED).body(orderService.createOrder(dto));
+        OrderDto responseDto = orderService.createOrder(dto);
+        tagSpan("order.id", responseDto.getId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 
     @Operation(summary = "Find order by id",
@@ -122,9 +122,7 @@ public class OrderController {
     @Observed(name = "order.controller", contextualName = "get-order-by-id")
     public ResponseEntity<OrderDto> getOrderById(@PathVariable("id") Long id) {
         log.info("REST request to get order by id: {}", id);
-        if (tracer.currentSpan() != null) {
-            tracer.currentSpan().tag("order.id", String.valueOf(id));
-        }
+        tagSpan("order.id", id);
         return ResponseEntity.ok(orderService.getById(id));
     }
 
@@ -146,9 +144,7 @@ public class OrderController {
     @Observed(name = "order.controller", contextualName = "set-paid-status")
     public ResponseEntity<Boolean> setPaidStatus(@PathVariable("id") Long id) {
         log.info("REST request to mark order {} as PAID", id);
-        if (tracer.currentSpan() != null) {
-            tracer.currentSpan().tag("order.id", String.valueOf(id));
-        }
+        tagSpan("order.id", id);
 
         boolean updated = orderService.markAsPaid(id);
         if (!updated) {
@@ -174,9 +170,7 @@ public class OrderController {
     @Observed(name = "order.controller", contextualName = "delete-order")
     public ResponseEntity<Void> deleteOrderById(@PathVariable("id") Long id) {
         log.info("REST request to delete order by id: {}", id);
-        if (tracer.currentSpan() != null) {
-            tracer.currentSpan().tag("order.id", String.valueOf(id));
-        }
+        tagSpan("order.id", id);
 
         boolean deleted = orderService.deleteById(id);
         if (!deleted) {
@@ -184,5 +178,11 @@ public class OrderController {
             throw new EntityNotFoundException("Order not found with id: " + id);
         }
         return ResponseEntity.noContent().build();
+    }
+
+    private void tagSpan(String key, Object value) {
+        if (tracer.currentSpan() != null) {
+            tracer.currentSpan().tag(key, String.valueOf(value));
+        }
     }
 }

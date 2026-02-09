@@ -19,6 +19,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(FeignException.NotFound.class)
     public String handleNotFound(FeignException.NotFound e, RedirectAttributes redirectAttributes) {
         log.warn("Resource not found on backend: URL={}", e.request().url());
+        tagSpan("exception.type", "not_found");
+        tagSpan("exception.url", e.request().url());
+
         redirectAttributes.addFlashAttribute("error", "The requested object was not found on the server.");
         return "redirect:/ui/wines";
     }
@@ -26,9 +29,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(FeignException.class)
     @Observed(name = "exception.feign")
     public String handleFeignException(FeignException e, RedirectAttributes redirectAttributes) {
-        if (tracer.currentSpan() != null) {
-            tracer.currentSpan().tag("exception.url", e.request().url());
-        }
+        tagSpan("exception.url", e.request().url());
+        tagSpan("exception.status", e.status());
+
         log.error("Backend communication failed: Status={}, Method={}, URL={}, Body={}",
                 e.status(), e.request().httpMethod(), e.request().url(), e.contentUTF8());
 
@@ -39,7 +42,19 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public String handleGeneralException(Exception e, RedirectAttributes redirectAttributes) {
         log.error("Unexpected UI Error: ", e);
-        redirectAttributes.addFlashAttribute("error", "An unexpected error occurred: " + e.getMessage());
+        tagSpan("exception.message", e.getMessage());
+
+        redirectAttributes.addFlashAttribute("error", "An unexpected error occurred. Support ID: " + getTraceId());
         return "redirect:/ui/wines";
+    }
+
+    private void tagSpan(String key, Object value) {
+        if (tracer.currentSpan() != null) {
+            tracer.currentSpan().tag(key, String.valueOf(value));
+        }
+    }
+
+    private String getTraceId() {
+        return tracer.currentSpan() != null ? tracer.currentSpan().context().traceId() : "N/A";
     }
 }

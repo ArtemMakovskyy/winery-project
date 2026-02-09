@@ -37,9 +37,12 @@ public class UserUiController {
                              BindingResult bindingResult,
                              Model model) {
         if (bindingResult.hasErrors()) {
-            if (tracer.currentSpan() != null) tracer.currentSpan().tag("validation.status", "failed");
+            tagSpan("validation.status", "failed");
             return "user/user-role";
         }
+
+        tagSpan("target.user.id", form.getUserId());
+        tagSpan("target.role", form.getRole());
 
         try {
             UserResponseDto updated = userService.updateUserRole(
@@ -47,14 +50,29 @@ public class UserUiController {
             );
             model.addAttribute("success", true);
             model.addAttribute("user", updated);
+            tagSpan("status", "success");
         } catch (RuntimeException e) {
-            if (tracer.currentSpan() != null) tracer.currentSpan().tag("error.type", "business_logic");
+            tagSpan("error.type", "business_logic");
             model.addAttribute("error", e.getMessage());
         } catch (Exception e) {
             log.error("Unexpected error updating user role", e);
-            if (tracer.currentSpan() != null) tracer.currentSpan().error(e);
+            recordError(e);
             model.addAttribute("error", "An unexpected error occurred");
         }
         return "user/user-role";
+    }
+
+    private void tagSpan(String key, Object value) {
+        var span = tracer.currentSpan();
+        if (span != null) {
+            span.tag(key, String.valueOf(value));
+        }
+    }
+
+    private void recordError(Throwable e) {
+        var span = tracer.currentSpan();
+        if (span != null) {
+            span.error(e);
+        }
     }
 }

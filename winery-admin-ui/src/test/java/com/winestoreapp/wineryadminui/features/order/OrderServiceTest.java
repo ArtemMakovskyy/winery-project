@@ -2,22 +2,25 @@ package com.winestoreapp.wineryadminui.features.order;
 
 import com.winestoreapp.wineryadminui.core.util.FeignErrorParser;
 import com.winestoreapp.wineryadminui.features.order.dto.OrderDto;
-import feign.FeignException;
-import feign.Request;
-import io.micrometer.tracing.Span;
-import io.micrometer.tracing.Tracer;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
-import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.List;
+import feign.FeignException;
+import feign.Request;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.Tracer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class OrderServiceTest {
 

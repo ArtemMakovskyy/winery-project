@@ -21,20 +21,33 @@ public class FeignErrorParser {
     public String extractMessage(FeignException e) {
         log.debug("Attempting to extract error message from FeignException. Status: {}", e.status());
 
-        if (tracer.currentSpan() != null) {
-            tracer.currentSpan().tag("feign.status", String.valueOf(e.status()));
-        }
+        tagSpan("feign.status", e.status());
 
         try {
             if (e.contentUTF8() != null && !e.contentUTF8().isBlank()) {
                 BackendErrorResponse error = objectMapper.readValue(e.contentUTF8(), BackendErrorResponse.class);
                 log.info("Successfully parsed backend error: {}", error.message());
+
+                tagSpan("backend.error.message", error.message());
+
                 return error.message();
             }
         } catch (Exception ex) {
             log.error("Failed to parse backend error JSON. Raw content: {}", e.contentUTF8(), ex);
-            if (tracer.currentSpan() != null) tracer.currentSpan().event("error.parsing.failed");
+            addEvent("error.parsing.failed");
         }
         return "Service error: " + e.status();
+    }
+
+    private void tagSpan(String key, Object value) {
+        if (tracer.currentSpan() != null) {
+            tracer.currentSpan().tag(key, String.valueOf(value));
+        }
+    }
+
+    private void addEvent(String eventName) {
+        if (tracer.currentSpan() != null) {
+            tracer.currentSpan().event(eventName);
+        }
     }
 }

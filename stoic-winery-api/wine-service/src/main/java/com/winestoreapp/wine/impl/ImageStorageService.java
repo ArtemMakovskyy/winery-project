@@ -35,17 +35,14 @@ public class ImageStorageService {
             String fileName = generateUniqueFileName(suffix, Objects.requireNonNull(originalName));
             Path filePath = uploadPath.resolve(fileName);
 
-            if (tracer.currentSpan() != null) {
-                tracer.currentSpan().tag("file.name", fileName);
-                tracer.currentSpan().tag("file.size", String.valueOf(file.getSize()));
-            }
+            tagSpan("file.name", fileName);
+            tagSpan("file.size", file.getSize());
 
             Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
             log.info("Image successfully saved: {}", filePath);
             return fileName;
         } catch (IOException e) {
-            log.error("Failed to save image: {}", originalName, e);
             throw new RuntimeException("Error saving image: " + e.getMessage(), e);
         }
     }
@@ -58,28 +55,27 @@ public class ImageStorageService {
             String fileName = pictureLink.substring(pictureLink.lastIndexOf("/") + 1);
             Path filePath = Paths.get(imageSavePath + fileName);
 
-            if (tracer.currentSpan() != null) {
-                tracer.currentSpan().tag("file.path", filePath.toString());
-            }
+            tagSpan("file.path", filePath.toString());
 
-            boolean deleted = Files.deleteIfExists(filePath);
-            if (deleted) {
+            if (Files.deleteIfExists(filePath)) {
                 log.info("Old image deleted: {}", filePath);
-            } else {
-                log.debug("Image not found for deletion: {}", filePath);
             }
         } catch (IOException e) {
             log.error("Failed to delete file: {}", pictureLink, e);
+            throw new RuntimeException("Error deleting image", e);
         }
     }
 
     private String generateUniqueFileName(String suffix, String fileName) {
-        if (fileName == null) {
-            fileName = "image.jpg";
-        }
         int dotIndex = fileName.lastIndexOf(".");
         String baseName = (dotIndex == -1) ? fileName : fileName.substring(0, dotIndex);
         String extension = (dotIndex == -1) ? "" : fileName.substring(dotIndex);
         return baseName + "_" + suffix + "_" + System.currentTimeMillis() + extension;
+    }
+
+    private void tagSpan(String key, Object value) {
+        if (tracer.currentSpan() != null) {
+            tracer.currentSpan().tag(key, String.valueOf(value));
+        }
     }
 }

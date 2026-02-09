@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import io.micrometer.observation.annotation.Observed;
+import io.micrometer.tracing.Tracer;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -37,6 +38,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class AuthenticationController {
     private final AuthenticationService authenticationService;
     private final UserService userService;
+    private final Tracer tracer;
 
     @Operation(summary = "Registered user login.",
             description = "Input email address and password to login.")
@@ -52,6 +54,7 @@ public class AuthenticationController {
     @Observed(name = "auth.controller", contextualName = "login-api")
     public ResponseEntity<UserLoginResponseDto> loginUser(@RequestBody @Valid UserLoginRequestDto requestDto) {
         log.info("REST request to login user: {}", requestDto.email());
+        tagSpan("user.email", requestDto.email());
         return ResponseEntity.ok(authenticationService.authenticate(requestDto));
     }
 
@@ -89,6 +92,15 @@ public class AuthenticationController {
     @Observed(name = "auth.controller", contextualName = "register-api")
     public ResponseEntity<UserResponseDto> registerUser(@RequestBody @Valid UserRegistrationRequestDto requestDto) {
         log.info("REST request to register new user: {}", requestDto.getEmail());
-        return ResponseEntity.status(HttpStatus.CREATED).body(userService.register(requestDto));
+        tagSpan("user.email", requestDto.getEmail());
+        UserResponseDto response = userService.register(requestDto);
+        tagSpan("user.id", response.getId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    private void tagSpan(String key, Object value) {
+        if (tracer.currentSpan() != null) {
+            tracer.currentSpan().tag(key, String.valueOf(value));
+        }
     }
 }

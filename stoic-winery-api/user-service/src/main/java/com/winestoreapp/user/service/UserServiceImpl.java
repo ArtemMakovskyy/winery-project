@@ -26,7 +26,6 @@ import io.micrometer.tracing.Tracer;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@Observed(name = "user.service")
 public class UserServiceImpl implements UserService {
     private static final int MINIMUM_ALLOWED_NUMBER_OF_ADMIN_USERS = 1;
 
@@ -38,6 +37,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
+    @Observed(name = "user.service", contextualName = "load-user-by-email")
     public UserResponseDto loadUserByEmail(String email) {
         return userRepository.findUserByEmail(email)
                 .map(userMapper::toDto)
@@ -46,10 +46,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
+    @Observed(name = "user.service", contextualName = "load-user-by-id")
     public UserResponseDto loadUserById(Long id) {
-        if (tracer.currentSpan() != null) {
-            tracer.currentSpan().tag("user.id", String.valueOf(id));
-        }
+        tagSpan("user.id", id);
         return userRepository.findById(id)
                 .map(userMapper::toDto)
                 .orElseThrow(() -> new EntityNotFoundException("Can't find user by id: " + id));
@@ -57,6 +56,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @Observed(name = "user.service", contextualName = "get-or-create-user-by-name")
     public UserResponseDto getOrCreateByFirstAndLastName(String firstName, String lastName) {
         User user = userRepository.findFirstByFirstNameAndLastName(firstName, lastName)
                 .orElseGet(() -> {
@@ -64,11 +64,13 @@ public class UserServiceImpl implements UserService {
                     User newUser = new User(firstName, lastName);
                     return userRepository.save(newUser);
                 });
+        tagSpan("user.id", user.getId());
         return userMapper.toDto(user);
     }
 
     @Override
     @Transactional
+    @Observed(name = "user.service", contextualName = "sync-user-data")
     public UserResponseDto getOrUpdateOrCreateUser(String email, String fName, String lName, String phone) {
         User user = userRepository.findUserByEmail(email)
                 .or(() -> userRepository.findFirstByFirstNameAndLastName(fName, lName))
@@ -85,15 +87,15 @@ public class UserServiceImpl implements UserService {
                             .ifPresent(role -> newUser.setRoles(Set.of(role)));
                     return userRepository.save(newUser);
                 });
+        tagSpan("user.id", user.getId());
         return userMapper.toDto(user);
     }
 
     @Override
     @Transactional(readOnly = true)
+    @Observed(name = "user.service", contextualName = "find-users-by-role")
     public List<UserResponseDto> findUsersByRole(final RoleName role) {
-        if (tracer.currentSpan() != null) {
-            tracer.currentSpan().tag("user.role", role.name());
-        }
+        tagSpan("user.role", role.name());
         return userRepository.findUsersByRole(role).stream()
                 .map(userMapper::toDto)
                 .toList();
@@ -101,6 +103,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
+    @Observed(name = "user.service", contextualName = "find-user-by-tg-id")
     public Optional<UserResponseDto> findUserByTelegramChatId(final Long chatId) {
         return userRepository.findUserByTelegramChatId(chatId)
                 .map(userMapper::toDto);
@@ -108,11 +111,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @Observed(name = "user.service", contextualName = "update-user-tg-id")
     public void updateTelegramChatId(final Long userId, final Long chatId) {
         log.info("Updating telegram chatId for userId: {}", userId);
-        if (tracer.currentSpan() != null) {
-            tracer.currentSpan().tag("user.id", String.valueOf(userId));
-        }
+        tagSpan("user.id", userId);
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("Can't find user by id: " + userId));
@@ -122,6 +124,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @Observed(name = "user.service", contextualName = "register-user")
     public UserResponseDto register(UserRegistrationRequestDto request) throws RegistrationException {
         if (userRepository.findUserByEmail(request.getEmail()).isPresent()) {
             log.warn("Registration failed: email {} already exists", request.getEmail());
@@ -142,17 +145,18 @@ public class UserServiceImpl implements UserService {
                 new HashSet<>(Set.of(roleCustomer))
         );
 
-        return userMapper.toDto(userRepository.save(user));
+        User savedUser = userRepository.save(user);
+        tagSpan("user.id", savedUser.getId());
+        return userMapper.toDto(savedUser);
     }
 
     @Override
     @Transactional
+    @Observed(name = "user.service", contextualName = "update-user-role")
     public UserResponseDto updateRole(Long userId, String roleNameStr) {
         log.info("Attempting to update role for userId: {} to {}", userId, roleNameStr);
-        if (tracer.currentSpan() != null) {
-            tracer.currentSpan().tag("user.id", String.valueOf(userId));
-            tracer.currentSpan().tag("new.role", roleNameStr);
-        }
+        tagSpan("user.id", userId);
+        tagSpan("new.role", roleNameStr);
 
         User userFromDb = userRepository.findById(userId).orElseThrow(
                 () -> new EntityNotFoundException("Can't find user by id " + userId));
@@ -172,5 +176,11 @@ public class UserServiceImpl implements UserService {
         log.info("Role updated successfully for userId: {}", userId);
 
         return userMapper.toDto(userRepository.save(userFromDb));
+    }
+
+    private void tagSpan(String key, Object value) {
+        if (tracer.currentSpan() != null) {
+            tracer.currentSpan().tag(key, String.valueOf(value));
+        }
     }
 }

@@ -62,9 +62,7 @@ public class WineController {
     @Observed(name = "wine.controller", contextualName = "get-wine-by-id")
     public ResponseEntity<WineDto> findWineById(@PathVariable("id") Long id) {
         log.info("REST request to get wine by id: {}", id);
-        if (tracer.currentSpan() != null) {
-            tracer.currentSpan().tag("wine.id", String.valueOf(id));
-        }
+        tagSpan("wine.id", id);
         return ResponseEntity.ok(wineService.findById(id));
     }
 
@@ -112,7 +110,9 @@ public class WineController {
     @Observed(name = "wine.controller", contextualName = "create-wine")
     public ResponseEntity<WineDto> createWine(@RequestBody @Valid WineCreateRequestDto createDto) {
         log.info("REST request to create new wine: {}", createDto.getName());
-        return ResponseEntity.status(HttpStatus.CREATED).body(wineService.add(createDto));
+        WineDto savedWine = wineService.add(createDto);
+        tagSpan("wine.id", savedWine.getId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedWine);
     }
 
     @Operation(summary = "Add an image into path.",
@@ -138,11 +138,10 @@ public class WineController {
     ) throws MalformedURLException {
         log.info("REST request to update images for wine ID: {}", id);
 
-        if (tracer.currentSpan() != null) {
-            tracer.currentSpan().tag("wine.id", String.valueOf(id));
-            tracer.currentSpan().tag("file.a.size", String.valueOf(imageA.getSize()));
-            tracer.currentSpan().tag("file.b.size", String.valueOf(imageB.getSize()));
-        }
+        tagSpan("wine.id", id);
+        tagSpan("file.a.size", imageA.getSize());
+        tagSpan("file.b.size", imageB.getSize());
+
         return ResponseEntity.ok(wineService.updateImage(id, imageA, imageB));
     }
 
@@ -162,13 +161,14 @@ public class WineController {
     @Observed(name = "wine.controller", contextualName = "delete-wine")
     public ResponseEntity<Void> deleteWineById(@PathVariable("id") Long id) {
         log.info("REST request to delete wine by id: {}", id);
-
-        if (tracer.currentSpan() != null) {
-            tracer.currentSpan().tag("wine.id", String.valueOf(id));
-        }
-
+        tagSpan("wine.id", id);
         wineService.deleteById(id);
-
         return ResponseEntity.noContent().build();
+    }
+
+    private void tagSpan(String key, Object value) {
+        if (tracer.currentSpan() != null) {
+            tracer.currentSpan().tag(key, String.valueOf(value));
+        }
     }
 }

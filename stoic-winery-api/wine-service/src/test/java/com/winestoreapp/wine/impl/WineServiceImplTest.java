@@ -24,7 +24,6 @@ import io.micrometer.tracing.Tracer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -128,21 +127,20 @@ class WineServiceImplTest {
 
     @Test
     void deleteById_ExistingId_ShouldDeleteWine() {
-        when(wineRepository.existsById(1L)).thenReturn(true);
+        when(wineRepository.findById(1L)).thenReturn(Optional.of(wine));
 
-        assertThatCode(() -> wineService.deleteById(1L))
-                .doesNotThrowAnyException();
+        wineService.deleteById(1L);
 
-        verify(wineRepository).deleteById(1L);
+        verify(wineRepository).delete(wine);
     }
 
     @Test
     void deleteById_NotExistingId_ShouldThrowException() {
-        when(wineRepository.existsById(1L)).thenReturn(false);
+        when(wineRepository.findById(1L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> wineService.deleteById(1L))
                 .isInstanceOf(EntityNotFoundException.class)
-                .hasMessageContaining("Wine not found");
+                .hasMessageContaining("Can't find wine by id: 1");
     }
 
     @Test

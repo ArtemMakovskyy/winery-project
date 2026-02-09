@@ -1,7 +1,6 @@
 package com.winestoreapp.wineryadminui.features.auth;
 
 import com.winestoreapp.wineryadminui.features.user.dto.UserLoginRequestDto;
-import io.micrometer.observation.annotation.Observed;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import io.micrometer.observation.annotation.Observed;
 
 @Controller
 @RequiredArgsConstructor

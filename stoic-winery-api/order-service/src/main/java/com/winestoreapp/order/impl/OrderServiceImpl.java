@@ -77,6 +77,9 @@ public class OrderServiceImpl implements OrderService {
         order = orderRepository.save(order);
         order.generateAndSetOrderNumber();
 
+        tagSpan("order.number", order.getOrderNumber());
+        tagSpan("user.id", userDto.getId());
+
         OrderDeliveryInformation delivery = createOrderDeliveryInformation(
                 dto.getCreateOrderDeliveryInformationDto(), order);
         ShoppingCard card = createShoppingCard(dto.getCreateShoppingCardDto(), order);
@@ -96,6 +99,8 @@ public class OrderServiceImpl implements OrderService {
     @Observed(name = "order.service", contextualName = "mark-as-paid")
     public boolean markAsPaid(Long orderId) {
         log.info("Marking order as paid, id: {}", orderId);
+        tagSpan("order.id", orderId);
+
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new EntityNotFoundException("Can't find order by id: " + orderId));
 
@@ -112,6 +117,8 @@ public class OrderServiceImpl implements OrderService {
     @Observed(name = "order.service", contextualName = "delete-order")
     public boolean deleteById(Long id) {
         log.info("Deleting order with id: {}", id);
+        tagSpan("order.id", id);
+
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Can't find Order by id: " + id));
 
@@ -126,6 +133,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     @Observed(name = "order.service", contextualName = "get-order-by-id")
     public OrderDto getById(Long id) {
+        tagSpan("order.id", id);
         OrderDto orderDto = orderRepository.findById(id)
                 .map(orderMapper::toDto)
                 .orElseThrow(() -> new EntityNotFoundException("Can't find Order by id: " + id));
@@ -154,10 +162,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     @Observed(name = "order.service", contextualName = "find-all-by-user-id")
     public List<OrderDto> findAllByUserId(Long userId, Pageable pageable) {
-        if (tracer.currentSpan() != null) {
-            tracer.currentSpan().tag("user.id", String.valueOf(userId));
-        }
-
+        tagSpan("user.id", userId);
         userService.loadUserById(userId);
         return orderRepository.findAllByUserId(userId, pageable)
                 .map(orderMapper::toDto)
@@ -168,10 +173,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     @Observed(name = "order.service", contextualName = "find-by-order-number")
     public Optional<OrderDto> findByOrderNumber(String orderNumber) {
-        if (tracer.currentSpan() != null) {
-            tracer.currentSpan().tag("order.number", orderNumber);
-        }
-
+        tagSpan("order.number", orderNumber);
         return orderRepository.findOrderByOrderNumber(orderNumber)
                 .map(orderMapper::toDto);
     }
@@ -224,6 +226,12 @@ public class OrderServiceImpl implements OrderService {
                     "Your order: " + order.getOrderNumber() + actionMessage,
                     userDto.getTelegramChatId()
             ));
+        }
+    }
+
+    private void tagSpan(String key, Object value) {
+        if (tracer.currentSpan() != null) {
+            tracer.currentSpan().tag(key, String.valueOf(value));
         }
     }
 }

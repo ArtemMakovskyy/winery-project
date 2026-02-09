@@ -3,12 +3,12 @@ package com.winestoreapp.wineryadminui.features.auth;
 import com.winestoreapp.wineryadminui.core.security.SessionTokenStorage;
 import com.winestoreapp.wineryadminui.features.user.dto.UserLoginRequestDto;
 import com.winestoreapp.wineryadminui.features.user.dto.UserLoginResponseDto;
-import io.micrometer.observation.annotation.Observed;
-import io.micrometer.tracing.Tracer;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import io.micrometer.observation.annotation.Observed;
+import io.micrometer.tracing.Tracer;
 
 @Service
 @RequiredArgsConstructor
@@ -24,24 +24,21 @@ public class AuthService {
             lowCardinalityKeyValues = {"operation", "login"}
     )
     public void login(UserLoginRequestDto dto, HttpSession session) {
-        var span = tracer.currentSpan();
+        log.info("Attempting login for email: {}", dto.email());
+        tagSpan("user.email", dto.email());
+
         try {
-            log.info("Attempting login for email: {}", dto.email());
             UserLoginResponseDto response = authFeignClient.login(dto);
             storage.save(session, response.token());
             log.info("Authentication successful. Session ID: {}", session.getId());
 
-            if (span != null) {
-                span.tag("status", "success");
-                span.tag("user.email", dto.email());
-            }
+            tagSpan("status", "success");
         } catch (Exception e) {
             log.error("Authentication failed for email: {}", dto.email(), e);
-            if (span != null) {
-                span.tag("status", "error");
-                span.error(e);
-                span.tag("user.email", dto.email());
-            }
+
+            tagSpan("status", "error");
+            recordError(e);
+
             throw new RuntimeException("Login failed: " + e.getMessage(), e);
         }
     }
@@ -51,18 +48,32 @@ public class AuthService {
             lowCardinalityKeyValues = {"operation", "logout"}
     )
     public void logout(HttpSession session) {
-        var span = tracer.currentSpan();
+        log.info("Logging out session: {}", session.getId());
+
         try {
-            log.info("Logging out session: {}", session.getId());
             storage.clear(session);
-            if (span != null) span.tag("status", "success");
+            tagSpan("status", "success");
         } catch (Exception e) {
             log.error("Logout failed for session: {}", session.getId(), e);
-            if (span != null) {
-                span.tag("status", "error");
-                span.error(e);
-            }
+
+            tagSpan("status", "error");
+            recordError(e);
+
             throw new RuntimeException("Logout failed: " + e.getMessage(), e);
+        }
+    }
+
+    private void tagSpan(String key, Object value) {
+        var span = tracer.currentSpan();
+        if (span != null) {
+            span.tag(key, String.valueOf(value));
+        }
+    }
+
+    private void recordError(Throwable e) {
+        var span = tracer.currentSpan();
+        if (span != null) {
+            span.error(e);
         }
     }
 }

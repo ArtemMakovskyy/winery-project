@@ -63,9 +63,9 @@ public class ReviewController {
             @RequestBody @Valid CreateReviewDto createDto
     ) {
         log.info("REST request to add review for wine ID: {}", createDto.getWineId());
-        if (tracer.currentSpan() != null) {
-            tracer.currentSpan().tag("wine.id", String.valueOf(createDto.getWineId()));
-        }
+
+        tagSpan("wine.id", createDto.getWineId());
+
         return ResponseEntity.status(HttpStatus.CREATED).body(reviewService.addReview(createDto));
     }
 
@@ -91,9 +91,15 @@ public class ReviewController {
             Pageable pageable
     ) {
         log.info("REST request to find reviews for wine ID: {}, pageable: {}", wineId, pageable);
-        if (tracer.currentSpan() != null) {
-            tracer.currentSpan().tag("wine.id", String.valueOf(wineId));
-        }
+
+        tagSpan("wine.id", wineId);
+
         return ResponseEntity.ok(reviewService.findAllByWineId(wineId, pageable));
+    }
+
+    private void tagSpan(String key, Object value) {
+        if (tracer.currentSpan() != null) {
+            tracer.currentSpan().tag(key, String.valueOf(value));
+        }
     }
 }

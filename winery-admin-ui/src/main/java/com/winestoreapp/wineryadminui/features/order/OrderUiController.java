@@ -34,7 +34,7 @@ public class OrderUiController {
     @PostMapping("/{id}/paid")
     @Observed(name = "ui.order.set_paid")
     public String setPaid(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        if (tracer.currentSpan() != null) tracer.currentSpan().tag("order.id", String.valueOf(id));
+        tagSpan("order.id", id);
         try {
             orderService.setPaidStatus(id);
             redirectAttributes.addFlashAttribute("message", "Order marked as paid");
@@ -48,7 +48,7 @@ public class OrderUiController {
     @PostMapping("/{id}/delete")
     @Observed(name = "ui.order.delete")
     public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        if (tracer.currentSpan() != null) tracer.currentSpan().tag("order.id", String.valueOf(id));
+        tagSpan("order.id", id);
         try {
             orderService.deleteOrder(id);
             redirectAttributes.addFlashAttribute("message", "Order deleted");
@@ -57,5 +57,11 @@ public class OrderUiController {
             redirectAttributes.addFlashAttribute("error", "Failed to delete order");
         }
         return "redirect:/ui/orders";
+    }
+
+    private void tagSpan(String key, Object value) {
+        if (tracer.currentSpan() != null) {
+            tracer.currentSpan().tag(key, String.valueOf(value));
+        }
     }
 }
