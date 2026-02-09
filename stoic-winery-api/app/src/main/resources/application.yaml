@@ -8,9 +8,12 @@ spring:
     name: wine-store-service
   jackson:
     deserialization:
-      fail-on-unknown-properties: true
+      fail-on-unknown-properties: false
   jpa:
-    show-sql: true
+    properties:
+      hibernate:
+        default_batch_fetch_size: 20
+    show-sql: false
     open-in-view: false
     hibernate:
       ddl-auto: none
