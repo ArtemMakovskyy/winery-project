@@ -1,6 +1,8 @@
 package com.winestoreapp.telegram.impl;
 
 import com.winestoreapp.common.exception.EntityNotFoundException;
+import com.winestoreapp.common.observability.ObservationContextualNames;
+import com.winestoreapp.common.observability.ObservationNames;
 import com.winestoreapp.order.api.OrderService;
 import com.winestoreapp.order.api.dto.OrderDto;
 import com.winestoreapp.telegram.TelegramBotCredentialProvider;
@@ -81,7 +83,7 @@ public class TelegramBotNotificationService
     }
 
     @Override
-    @Observed(name = "telegram.bot", contextualName = "receive-update")
+    @Observed(name = ObservationNames.TELEGRAM_BOT, contextualName = ObservationContextualNames.RECEIVE_UPDATE)
     public void onUpdateReceived(Update update) {
         if (update.hasMessage() && update.getMessage().hasText()) {
             String textFromUSer = update.getMessage().getText();
@@ -121,7 +123,7 @@ public class TelegramBotNotificationService
     }
 
     @Override
-    @Observed(name = "telegram.bot", contextualName = "send-notification")
+    @Observed(name = ObservationNames.TELEGRAM_BOT, contextualName = ObservationContextualNames.SEND_NOTIFICATION)
     public boolean sendNotification(String message, Long recipientId) {
         if (recipientId != null) {
             sendInnerMessageToChat(recipientId, message, getMainButtons());
@@ -172,7 +174,7 @@ public class TelegramBotNotificationService
         return ". \nLink to user: @" + update.getMessage().getFrom().getUserName();
     }
 
-    @Observed(name = "telegram.bot", contextualName = "register-by-order")
+    @Observed(name = ObservationNames.TELEGRAM_BOT, contextualName = ObservationContextualNames.REGISTER_BY_ORDER)
     private void userRegisterByOrderNumber(Long chatId, String orderNumber) {
         log.info("Process telegram user registration via order: {}", orderNumber);
 
@@ -316,7 +318,7 @@ public class TelegramBotNotificationService
         }
     }
 
-    @Observed(name = "telegram.bot", contextualName = "send-picture")
+    @Observed(name = ObservationNames.TELEGRAM_BOT, contextualName = ObservationContextualNames.SEND_PICTURE)
     private void sendPicture(Long chatId) {
         try {
             File file = new File(PATH_TO_IMAGE);

@@ -29,7 +29,7 @@
                 <td th:text="${user.roles}"></td>
                 <td>
                     <form method="post" th:action="@{/ui/users/role}">
-                        <input type="hidden" name="userId" th:value="${user.id}"/>
+                        <input name="userId" th:value="${user.id}" type="hidden"/>
 
                         <select name="role" required>
                             <option value="ROLE_CUSTOMER">CUSTOMER</option>

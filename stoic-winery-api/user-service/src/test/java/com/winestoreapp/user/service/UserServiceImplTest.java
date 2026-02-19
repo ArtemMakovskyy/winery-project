@@ -3,6 +3,7 @@ package com.winestoreapp.user.service;
 import com.winestoreapp.common.config.CustomMySqlContainer;
 import com.winestoreapp.common.exception.EntityNotFoundException;
 import com.winestoreapp.common.exception.RegistrationException;
+import com.winestoreapp.common.observability.SpanTagger;
 import com.winestoreapp.user.api.dto.RoleName;
 import com.winestoreapp.user.api.dto.UserRegistrationRequestDto;
 import com.winestoreapp.user.api.dto.UserResponseDto;
@@ -15,7 +16,6 @@ import com.winestoreapp.user.repository.UserRepository;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -26,7 +26,6 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
-import io.micrometer.tracing.Tracer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -39,8 +38,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 @ContextConfiguration(initializers = UserServiceImplTest.Initializer.class)
 @Transactional
 class UserServiceImplTest {
-    @Mock
-    private Tracer tracer;
+    @MockBean
+    private SpanTagger spanTagger;
 
     @Autowired
     private UserServiceImpl userService;
@@ -56,22 +55,6 @@ class UserServiceImplTest {
 
     @MockBean
     private UserMapper userMapper;
-
-    static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
-        @Override
-        public void initialize(ConfigurableApplicationContext context) {
-            CustomMySqlContainer container = CustomMySqlContainer.getInstance();
-            container.start();
-
-            TestPropertyValues.of(
-                    "spring.datasource.url=" + container.getJdbcUrl(),
-                    "spring.datasource.username=" + container.getUsername(),
-                    "spring.datasource.password=" + container.getPassword(),
-                    "spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver",
-                    "spring.jpa.hibernate.ddl-auto=update"
-            ).applyTo(context.getEnvironment());
-        }
-    }
 
     @Test
     @DisplayName("Register - should save user and return DTO when request is valid")
@@ -158,7 +141,7 @@ class UserServiceImplTest {
     @DisplayName("Load by email - should throw EntityNotFoundException when user missing")
     void loadUserByEmail_NotFound_ShouldThrowEntityNotFoundException() {
         assertThrows(EntityNotFoundException.class,
-                () -> userService.loadUserByEmail("missing@test.com"));
+                () -> userService.findUserByEmail("missing@test.com"));
     }
 
     private UserRegistrationRequestDto createRegistrationRequest() {
@@ -170,5 +153,21 @@ class UserServiceImplTest {
         dto.setLastName("Petrov");
         dto.setPhoneNumber("+380991234567");
         return dto;
+    }
+
+    static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+        @Override
+        public void initialize(ConfigurableApplicationContext context) {
+            CustomMySqlContainer container = CustomMySqlContainer.getInstance();
+            container.start();
+
+            TestPropertyValues.of(
+                    "spring.datasource.url=" + container.getJdbcUrl(),
+                    "spring.datasource.username=" + container.getUsername(),
+                    "spring.datasource.password=" + container.getPassword(),
+                    "spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver",
+                    "spring.jpa.hibernate.ddl-auto=update"
+            ).applyTo(context.getEnvironment());
+        }
     }
 }

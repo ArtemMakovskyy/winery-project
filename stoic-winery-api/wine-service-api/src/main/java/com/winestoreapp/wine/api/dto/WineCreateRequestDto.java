@@ -26,7 +26,8 @@ public class WineCreateRequestDto {
     @Schema(example = "Prince Trubetskoi")
     private String shortName;
     @Schema(example = "2017")
-    @Min(1900) @Max(2100)
+    @Min(1900)
+    @Max(2100)
     private Integer year;
     @Schema(example = "fish")
     private String tasteWine;

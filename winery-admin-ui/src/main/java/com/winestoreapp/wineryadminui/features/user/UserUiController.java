@@ -1,7 +1,12 @@
 package com.winestoreapp.wineryadminui.features.user;
 
+import com.winestoreapp.wineryadminui.core.observability.ObservationContextualNames;
+import com.winestoreapp.wineryadminui.core.observability.ObservationNames;
+import com.winestoreapp.wineryadminui.core.observability.ObservationTags;
+import com.winestoreapp.wineryadminui.core.observability.SpanTagger;
 import com.winestoreapp.wineryadminui.features.user.dto.UpdateRoleForm;
 import com.winestoreapp.wineryadminui.features.user.dto.UserResponseDto;
+import io.micrometer.observation.annotation.Observed;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,8 +17,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import io.micrometer.observation.annotation.Observed;
-import io.micrometer.tracing.Tracer;
 
 @Controller
 @RequestMapping("/ui/users")
@@ -22,57 +25,53 @@ import io.micrometer.tracing.Tracer;
 public class UserUiController {
 
     private final UserService userService;
-    private final Tracer tracer;
+    private final SpanTagger spanTagger;
 
     @GetMapping("/role")
-    @Observed(name = "ui.user.role_form")
+    @Observed(name = ObservationNames.USER_CONTROLLER,
+            contextualName = ObservationContextualNames.ROLE_FORM,
+            lowCardinalityKeyValues = {ObservationTags.FORM, ObservationTags.USER_ROLE}
+    )
     public String roleForm(Model model) {
         model.addAttribute("form", new UpdateRoleForm());
         return "user/user-role";
     }
 
     @PostMapping("/role")
-    @Observed(name = "ui.user.update_role_submit")
-    public String updateRole(@Valid @ModelAttribute("form") UpdateRoleForm form,
-                             BindingResult bindingResult,
-                             Model model) {
+    @Observed(name = ObservationNames.USER_CONTROLLER,
+            contextualName = ObservationContextualNames.UPDATE_ROLE,
+            lowCardinalityKeyValues = {
+                    ObservationTags.FORM, ObservationTags.USER_ROLE,
+                    ObservationTags.OPERATION, ObservationTags.WRITE}
+    )
+    public String updateRole(
+            @Valid @ModelAttribute("form") UpdateRoleForm form,
+            BindingResult bindingResult,
+            Model model
+    ) {
         if (bindingResult.hasErrors()) {
-            tagSpan("validation.status", "failed");
+            spanTagger.tag(ObservationTags.VALIDATION, "failed");
             return "user/user-role";
         }
 
-        tagSpan("target.user.id", form.getUserId());
-        tagSpan("target.role", form.getRole());
+        spanTagger.tag(ObservationTags.USER_ID, form.getUserId());
+        spanTagger.tag(ObservationTags.USER_ROLE, form.getRole());
 
         try {
-            UserResponseDto updated = userService.updateUserRole(
-                    form.getUserId(), form.getRole()
-            );
-            model.addAttribute("success", true);
-            model.addAttribute("user", updated);
-            tagSpan("status", "success");
+            UserResponseDto updated = userService.updateUserRole(form.getUserId(), form.getRole());
+            model.addAttribute(ObservationTags.SUCCESS, true);
+            model.addAttribute(ObservationTags.USER_ID, updated.getId());
+            spanTagger.tag(ObservationTags.STATUS, ObservationTags.SUCCESS);
         } catch (RuntimeException e) {
-            tagSpan("error.type", "business_logic");
+            spanTagger.tag(ObservationTags.ERROR_MESSAGE, ObservationTags.BUSINESS_LOGIC);
+            spanTagger.error(e);
             model.addAttribute("error", e.getMessage());
         } catch (Exception e) {
             log.error("Unexpected error updating user role", e);
-            recordError(e);
+            spanTagger.error(e);
             model.addAttribute("error", "An unexpected error occurred");
         }
+
         return "user/user-role";
-    }
-
-    private void tagSpan(String key, Object value) {
-        var span = tracer.currentSpan();
-        if (span != null) {
-            span.tag(key, String.valueOf(value));
-        }
-    }
-
-    private void recordError(Throwable e) {
-        var span = tracer.currentSpan();
-        if (span != null) {
-            span.error(e);
-        }
     }
 }

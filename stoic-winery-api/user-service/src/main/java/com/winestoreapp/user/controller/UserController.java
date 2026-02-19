@@ -1,6 +1,10 @@
 package com.winestoreapp.user.controller;
 
 import com.winestoreapp.common.dto.ResponseErrorDto;
+import com.winestoreapp.common.observability.ObservationContextualNames;
+import com.winestoreapp.common.observability.ObservationNames;
+import com.winestoreapp.common.observability.ObservationTags;
+import com.winestoreapp.common.observability.SpanTagger;
 import com.winestoreapp.user.api.UserService;
 import com.winestoreapp.user.api.dto.UpdateUserRoleDto;
 import com.winestoreapp.user.api.dto.UserResponseDto;
@@ -17,7 +21,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import io.micrometer.observation.annotation.Observed;
-import io.micrometer.tracing.Tracer;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -34,7 +37,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Slf4j
 public class UserController {
     private final UserService userService;
-    private final Tracer tracer;
+    private final SpanTagger spanTagger;
 
     @Operation(summary = "Update user role by user id",
             description = """
@@ -56,22 +59,21 @@ public class UserController {
     })
     @PutMapping("/{id}/role")
     @PreAuthorize("hasRole('ADMIN')")
-    @Observed(name = "user.controller", contextualName = "update-user-role")
+    @Observed(name = ObservationNames.USER_CONTROLLER,
+            contextualName = ObservationContextualNames.UPDATE_ROLE,
+            lowCardinalityKeyValues = {ObservationTags.OPERATION, ObservationTags.WRITE}
+    )
     public ResponseEntity<UserResponseDto> updateUserRole(
             @PathVariable("id") Long id,
-            @RequestBody @Valid UpdateUserRoleDto roleDto) {
+            @RequestBody @Valid UpdateUserRoleDto roleDto
+    ) {
 
         log.info("ADMIN request to update role for user ID: {} to {}", id, roleDto.role());
 
-        tagSpan("user.id", id);
-        tagSpan("user.new_role", roleDto.role());
+        spanTagger.tag(ObservationTags.USER_ID, id);
+        spanTagger.tag(ObservationTags.USER_ROLE, roleDto.role());
 
         return ResponseEntity.ok(userService.updateRole(id, roleDto.role()));
     }
 
-    private void tagSpan(String key, Object value) {
-        if (tracer.currentSpan() != null) {
-            tracer.currentSpan().tag(key, String.valueOf(value));
-        }
-    }
 }

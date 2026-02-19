@@ -1,5 +1,7 @@
 package com.winestoreapp.security.security;
 
+import com.winestoreapp.common.observability.ObservationTags;
+import com.winestoreapp.common.observability.SpanTagger;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,7 +19,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
-import io.micrometer.tracing.Tracer;
 
 @RequiredArgsConstructor
 @Component
@@ -26,7 +27,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final String BEARER_PREFIX = "Bearer ";
     private final JwtUtil jwtUtil;
     private final UserDetailsService userDetailsService;
-    private final Tracer tracer;
+    private final SpanTagger spanTagger;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -38,9 +39,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 Claims claims = jwtUtil.parseToken(token);
                 String username = claims.getSubject();
 
-                if (tracer.currentSpan() != null) {
-                    tracer.currentSpan().tag("auth.user", username);
-                }
+                spanTagger.tag(ObservationTags.AUTH_USER, username);
 
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
                 Authentication authentication = new UsernamePasswordAuthenticationToken(

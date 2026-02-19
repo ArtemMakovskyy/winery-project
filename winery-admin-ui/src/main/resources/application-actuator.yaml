@@ -1,6 +1,11 @@
 management:
-  server:
-    port: 8081
+  info:
+    env:
+      enabled: true
+
+    git:
+      enabled: true
+      mode: full
 
   observations:
     key-values:
@@ -21,6 +26,7 @@ management:
           - info
           - metrics
           - prometheus
+          - loggers
 
   endpoint:
     health:
@@ -40,3 +46,12 @@ loki:
 logging:
   pattern:
     level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+  level:
+    root: info
+
+info:
+  app:
+    name: "winery-admin-ui"
+    version: "0.0.1-SNAPSHOT"
+    description: "BFF (Backend-for-Frontend) application for wine store administration. Provides a thin-client UI for managers and administrators using Spring MVC, Thymeleaf, and OpenFeign."
+

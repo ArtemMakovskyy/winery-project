@@ -8,12 +8,14 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
+    private static final String IMAGES_PATTERN = "/images/**";
+
     @Value("${image.config.path}")
     private String imageConfigPath;
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/images/**")
+        registry.addResourceHandler(IMAGES_PATTERN)
                 .addResourceLocations(imageConfigPath);
     }
 }

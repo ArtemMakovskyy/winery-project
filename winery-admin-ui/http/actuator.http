@@ -1,0 +1,42 @@
+### --- Actuator Discovery and Status ---
+
+### Get the list of all available Actuator endpoints (Discovery)
+GET http://localhost:8081/actuator
+
+### Check the general health status of the application
+GET http://localhost:8081/actuator/health
+
+### Get application information (Name, Version, Description)
+GET http://localhost:8081/actuator/info
+
+### Get the list of all available metric names
+GET http://localhost:8081/actuator/metrics
+
+### Get metrics in Prometheus format for monitoring
+GET http://localhost:8081/actuator/prometheus
+
+
+### --- Logging ---
+
+### Get log details
+GET http://localhost:8081/actuator/loggers
+
+### Get log details for WineService
+GET http://localhost:8081/actuator/loggers/winestoreapp.wineryadminui.features.wine.WineService
+
+### Post log details for WineService
+POST http://localhost:8081/actuator/loggers/winestoreapp.wineryadminui.features.wine.WineService
+Content-Type: application/json
+
+{
+  "configuredLevel": "DEBUG"
+}
+
+
+### --- Metrics: JVM and HTTP ---
+
+### Get details for a specific metric: JVM memory usage
+GET http://localhost:8081/actuator/metrics/jvm.memory.used
+
+### Get details for a specific metric: HTTP server requests
+GET http://localhost:8081/actuator/metrics/http.server.requests

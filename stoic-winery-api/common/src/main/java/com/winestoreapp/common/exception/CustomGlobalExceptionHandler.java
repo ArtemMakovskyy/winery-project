@@ -23,7 +23,8 @@ public class CustomGlobalExceptionHandler extends ResponseEntityExceptionHandler
             MethodArgumentNotValidException ex,
             HttpHeaders headers,
             HttpStatusCode status,
-            WebRequest request) {
+            WebRequest request
+    ) {
 
         List<String> errors = ex.getBindingResult()
                 .getAllErrors()

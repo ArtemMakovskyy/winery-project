@@ -5,4 +5,5 @@ public record BackendErrorResponse(
         int status,
         String error,
         String message
-) {}
+) {
+}

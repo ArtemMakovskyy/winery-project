@@ -1,6 +1,10 @@
 package com.winestoreapp.wine.controller;
 
 import com.winestoreapp.common.dto.ResponseErrorDto;
+import com.winestoreapp.common.observability.ObservationContextualNames;
+import com.winestoreapp.common.observability.ObservationNames;
+import com.winestoreapp.common.observability.ObservationTags;
+import com.winestoreapp.common.observability.SpanTagger;
 import com.winestoreapp.wine.api.WineService;
 import com.winestoreapp.wine.api.dto.WineCreateRequestDto;
 import com.winestoreapp.wine.api.dto.WineDto;
@@ -28,7 +32,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import io.micrometer.observation.annotation.Observed;
-import io.micrometer.tracing.Tracer;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -46,7 +49,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Slf4j
 public class WineController {
     private final WineService wineService;
-    private final Tracer tracer;
+    private final SpanTagger spanTagger;
 
     @Operation(summary = "Find wine by id",
             description = "Find existing wine by id. Available for all users.")
@@ -59,10 +62,14 @@ public class WineController {
                             schema = @Schema(implementation = ResponseErrorDto.class)))
     })
     @GetMapping("/{id}")
-    @Observed(name = "wine.controller", contextualName = "get-wine-by-id")
+    @Observed(
+            name = ObservationNames.WINE_CONTROLLER,
+            contextualName = ObservationContextualNames.FIND_BY_ID,
+            lowCardinalityKeyValues = {ObservationTags.OPERATION, ObservationTags.READ}
+    )
     public ResponseEntity<WineDto> findWineById(@PathVariable("id") Long id) {
         log.info("REST request to get wine by id: {}", id);
-        tagSpan("wine.id", id);
+        spanTagger.tag(ObservationTags.WINE_ID, id);
         return ResponseEntity.ok(wineService.findById(id));
     }
 
@@ -79,7 +86,10 @@ public class WineController {
                             array = @ArraySchema(schema = @Schema(implementation = WineDto.class))))
     })
     @GetMapping
-    @Observed(name = "wine.controller", contextualName = "find-all-wines")
+    @Observed(name = ObservationNames.WINE_CONTROLLER,
+            contextualName = ObservationContextualNames.FIND_ALL,
+            lowCardinalityKeyValues = {ObservationTags.OPERATION, ObservationTags.READ}
+    )
     public ResponseEntity<List<WineDto>> findAllWines(
             @PageableDefault(
                     page = 0,
@@ -107,11 +117,14 @@ public class WineController {
     })
     @PreAuthorize("hasRole('MANAGER')")
     @PostMapping
-    @Observed(name = "wine.controller", contextualName = "create-wine")
+    @Observed(name = ObservationNames.WINE_CONTROLLER,
+            contextualName = ObservationContextualNames.CREATE,
+            lowCardinalityKeyValues = {ObservationTags.OPERATION, ObservationTags.WRITE}
+    )
     public ResponseEntity<WineDto> createWine(@RequestBody @Valid WineCreateRequestDto createDto) {
         log.info("REST request to create new wine: {}", createDto.getName());
         WineDto savedWine = wineService.add(createDto);
-        tagSpan("wine.id", savedWine.getId());
+        spanTagger.tag(ObservationTags.WINE_ID, savedWine.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(savedWine);
     }
 
@@ -130,7 +143,10 @@ public class WineController {
     })
     @PreAuthorize("hasRole('MANAGER')")
     @PatchMapping("/{id}/image")
-    @Observed(name = "wine.controller", contextualName = "update-wine-images")
+    @Observed(name = ObservationNames.WINE_CONTROLLER,
+            contextualName = ObservationContextualNames.UPDATE_IMAGE,
+            lowCardinalityKeyValues = {ObservationTags.OPERATION, ObservationTags.WRITE}
+    )
     public ResponseEntity<WineDto> addImageByIdIntoPath(
             @PathVariable("id") Long id,
             @RequestParam("imageA") MultipartFile imageA,
@@ -138,9 +154,9 @@ public class WineController {
     ) throws MalformedURLException {
         log.info("REST request to update images for wine ID: {}", id);
 
-        tagSpan("wine.id", id);
-        tagSpan("file.a.size", imageA.getSize());
-        tagSpan("file.b.size", imageB.getSize());
+        spanTagger.tag(ObservationTags.WINE_ID, id);
+        spanTagger.tag(ObservationTags.FILE_A_SIZE, imageA.getSize());
+        spanTagger.tag(ObservationTags.FILE_B_SIZE, imageB.getSize());
 
         return ResponseEntity.ok(wineService.updateImage(id, imageA, imageB));
     }
@@ -158,17 +174,17 @@ public class WineController {
     })
     @PreAuthorize("hasRole('MANAGER')")
     @DeleteMapping("/{id}")
-    @Observed(name = "wine.controller", contextualName = "delete-wine")
+    @Observed(name = ObservationNames.WINE_CONTROLLER,
+            contextualName = ObservationContextualNames.DELETE_BY_ID,
+            lowCardinalityKeyValues = {ObservationTags.OPERATION, ObservationTags.WRITE}
+    )
     public ResponseEntity<Void> deleteWineById(@PathVariable("id") Long id) {
         log.info("REST request to delete wine by id: {}", id);
-        tagSpan("wine.id", id);
+
+        spanTagger.tag(ObservationTags.WINE_ID, id);
+
         wineService.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 
-    private void tagSpan(String key, Object value) {
-        if (tracer.currentSpan() != null) {
-            tracer.currentSpan().tag(key, String.valueOf(value));
-        }
-    }
 }

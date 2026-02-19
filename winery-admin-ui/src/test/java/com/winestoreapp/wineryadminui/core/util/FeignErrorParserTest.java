@@ -1,34 +1,37 @@
 package com.winestoreapp.wineryadminui.core.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.winestoreapp.wineryadminui.core.observability.SpanTagger;
 import com.winestoreapp.wineryadminui.features.user.dto.BackendErrorResponse;
-import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import feign.FeignException;
 import feign.Request;
 import feign.Response;
-import io.micrometer.tracing.Span;
-import io.micrometer.tracing.Tracer;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 class FeignErrorParserTest {
 
     private ObjectMapper objectMapper;
-    private Tracer tracer;
+
+    @Mock
+    private SpanTagger spanTagger;
+
     private FeignErrorParser parser;
 
     @BeforeEach
     void setUp() {
+        MockitoAnnotations.openMocks(this);
         objectMapper = new ObjectMapper();
-        tracer = mock(Tracer.class);
-        parser = new FeignErrorParser(objectMapper, tracer);
+        parser = new FeignErrorParser(objectMapper, spanTagger);
     }
 
     private FeignException createFeignException(int status, String body) {
@@ -52,7 +55,6 @@ class FeignErrorParserTest {
 
     @Test
     void shouldExtractMessageFromValidBackendErrorJson() throws Exception {
-        // given
         BackendErrorResponse backendError = new BackendErrorResponse(
                 "2026-02-06T12:00:00",
                 404,
@@ -63,66 +65,33 @@ class FeignErrorParserTest {
         String json = objectMapper.writeValueAsString(backendError);
         FeignException exception = createFeignException(404, json);
 
-        Span span = mock(Span.class);
-        when(tracer.currentSpan()).thenReturn(span);
-
-        // when
         String result = parser.extractMessage(exception);
 
-        // then
         assertThat(result).isEqualTo("Wine not found");
-        verify(span).tag("feign.status", "404");
-        verify(span, never()).event("error.parsing.failed");
+        verify(spanTagger).tag("feign.status", 404);
+        verify(spanTagger).tag("backend.error.message", "Wine not found");
+        verify(spanTagger, never()).event("error.parsing.failed");
     }
 
     @Test
     void shouldReturnFallbackMessageWhenBodyIsEmpty() {
-        // given
         FeignException exception = createFeignException(500, "");
 
-        // when
         String result = parser.extractMessage(exception);
 
-        // then
         assertThat(result).isEqualTo("Service error: 500");
+        verify(spanTagger).tag("feign.status", 500);
     }
 
     @Test
     void shouldReturnFallbackMessageWhenBodyIsInvalidJson() {
-        // given
         String invalidJson = "{ this is not valid json }";
         FeignException exception = createFeignException(400, invalidJson);
 
-        Span span = mock(Span.class);
-        when(tracer.currentSpan()).thenReturn(span);
-
-        // when
         String result = parser.extractMessage(exception);
 
-        // then
         assertThat(result).isEqualTo("Service error: 400");
-        verify(span).event("error.parsing.failed");
-    }
-
-    @Test
-    void shouldWorkWhenTracerHasNoCurrentSpan() throws Exception {
-        // given
-        BackendErrorResponse backendError = new BackendErrorResponse(
-                "2026-02-06T12:00:00",
-                401,
-                "Unauthorized",
-                "Unauthorized access"
-        );
-
-        String json = objectMapper.writeValueAsString(backendError);
-        FeignException exception = createFeignException(401, json);
-
-        when(tracer.currentSpan()).thenReturn(null);
-
-        // when
-        String result = parser.extractMessage(exception);
-
-        // then
-        assertThat(result).isEqualTo("Unauthorized access");
+        verify(spanTagger).tag("feign.status", 400);
+        verify(spanTagger).event("error.parsing.failed");
     }
 }

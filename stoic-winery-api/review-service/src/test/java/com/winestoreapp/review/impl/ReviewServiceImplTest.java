@@ -3,6 +3,7 @@ package com.winestoreapp.review.impl;
 import com.winestoreapp.common.config.CustomMySqlContainer;
 import com.winestoreapp.common.exception.EntityNotFoundException;
 import com.winestoreapp.common.exception.RegistrationException;
+import com.winestoreapp.common.observability.SpanTagger;
 import com.winestoreapp.review.api.dto.CreateReviewDto;
 import com.winestoreapp.review.api.dto.ReviewWithUserDescriptionDto;
 import com.winestoreapp.review.config.TestReviewConfig;
@@ -55,21 +56,8 @@ class ReviewServiceImplTest {
     @MockBean
     private ReviewMapper reviewMapper;
 
-    static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
-        @Override
-        public void initialize(ConfigurableApplicationContext context) {
-            CustomMySqlContainer container = CustomMySqlContainer.getInstance();
-            container.start();
-
-            TestPropertyValues.of(
-                    "spring.datasource.url=" + container.getJdbcUrl(),
-                    "spring.datasource.username=" + container.getUsername(),
-                    "spring.datasource.password=" + container.getPassword(),
-                    "spring.jpa.hibernate.ddl-auto=update",
-                    "limiter.number.of.recorded.ratings=5"
-            ).applyTo(context.getEnvironment());
-        }
-    }
+    @MockBean
+    private SpanTagger spanTagger;
 
     @Test
     @DisplayName("Add review - should return DTO when data is valid")
@@ -153,5 +141,21 @@ class ReviewServiceImplTest {
         dto.setMessage("This is a great wine!");
         dto.setRating(5);
         return dto;
+    }
+
+    static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+        @Override
+        public void initialize(ConfigurableApplicationContext context) {
+            CustomMySqlContainer container = CustomMySqlContainer.getInstance();
+            container.start();
+
+            TestPropertyValues.of(
+                    "spring.datasource.url=" + container.getJdbcUrl(),
+                    "spring.datasource.username=" + container.getUsername(),
+                    "spring.datasource.password=" + container.getPassword(),
+                    "spring.jpa.hibernate.ddl-auto=update",
+                    "limiter.number.of.recorded.ratings=5"
+            ).applyTo(context.getEnvironment());
+        }
     }
 }

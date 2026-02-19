@@ -1,8 +1,13 @@
 package com.winestoreapp.wineryadminui.core.exception;
 
+import com.winestoreapp.wineryadminui.core.observability.SpanTagger;
 import com.winestoreapp.wineryadminui.core.security.UiAuthFilter;
-import java.nio.charset.StandardCharsets;
-import java.util.Collections;
+import com.winestoreapp.wineryadminui.core.util.FeignErrorParser;
+import feign.FeignException;
+import feign.Request;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.TraceContext;
+import io.micrometer.tracing.Tracer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,20 +19,20 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-import io.micrometer.tracing.Span;
-import io.micrometer.tracing.TraceContext;
-import io.micrometer.tracing.Tracer;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(controllers = GlobalExceptionHandlerTest.TestController.class,
-        excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = UiAuthFilter.class))
-@Import({GlobalExceptionHandlerTest.TestController.class, GlobalExceptionHandler.class}) // Импортируем сам Handler
+@WebMvcTest(
+        controllers = GlobalExceptionHandlerTest.TestController.class,
+        excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = UiAuthFilter.class)
+)
+@Import({GlobalExceptionHandlerTest.TestController.class, GlobalExceptionHandler.class})
 class GlobalExceptionHandlerTest {
 
     @Autowired
@@ -35,6 +40,12 @@ class GlobalExceptionHandlerTest {
 
     @MockBean
     private Tracer tracer;
+
+    @MockBean
+    private SpanTagger spanTagger;
+
+    @MockBean
+    private FeignErrorParser feignErrorParser;
 
     @BeforeEach
     void setUp() {
@@ -44,28 +55,8 @@ class GlobalExceptionHandlerTest {
         when(tracer.currentSpan()).thenReturn(mockSpan);
         when(mockSpan.context()).thenReturn(mockContext);
         when(mockContext.traceId()).thenReturn("test-trace-id");
-    }
 
-    @RestController
-    static class TestController {
-        private final feign.Request dummyRequest = feign.Request.create(
-                feign.Request.HttpMethod.GET, "/url", Collections.emptyMap(),
-                null, StandardCharsets.UTF_8, null);
-
-        @GetMapping("/feign-notfound")
-        public void throwFeignNotFound() {
-            throw new feign.FeignException.NotFound("Not Found", dummyRequest, null, null);
-        }
-
-        @GetMapping("/feign-other")
-        public void throwFeignOther() {
-            throw new feign.FeignException.InternalServerError("Error", dummyRequest, null, null);
-        }
-
-        @GetMapping("/general")
-        public void throwGeneral() {
-            throw new RuntimeException("Something went wrong");
-        }
+        when(spanTagger.traceId()).thenReturn("test-trace-id");
     }
 
     @Test
@@ -73,15 +64,18 @@ class GlobalExceptionHandlerTest {
         mockMvc.perform(get("/general"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/ui/wines"))
-                .andExpect(flash().attribute("error", "An unexpected error occurred. Support ID: test-trace-id"));
+                .andExpect(flash().attribute("error", "An unexpected error occurred. Trace ID: test-trace-id"));
     }
 
     @Test
     void handleFeignException_shouldRedirectWithFlash() throws Exception {
+        when(feignErrorParser.extractMessage(org.mockito.ArgumentMatchers.any(FeignException.class)))
+                .thenReturn("Server communication error: 500");
+
         mockMvc.perform(get("/feign-other"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/ui/wines"))
-                .andExpect(flash().attribute("error", "Server communication error: 500"));
+                .andExpect(flash().attribute("error", "Server communication error: 500. Support ID: test-trace-id"));
     }
 
     @Test
@@ -89,6 +83,29 @@ class GlobalExceptionHandlerTest {
         mockMvc.perform(get("/feign-notfound"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/ui/wines"))
-                .andExpect(flash().attribute("error", "The requested object was not found on the server."));
+                .andExpect(flash().attribute("error", "The requested object was not found."));
+    }
+
+    @RestController
+    static class TestController {
+        private final Request dummyRequest = Request.create(
+                Request.HttpMethod.GET, "/url", Collections.emptyMap(),
+                null, StandardCharsets.UTF_8, null
+        );
+
+        @GetMapping("/feign-notfound")
+        public void throwFeignNotFound() {
+            throw new FeignException.NotFound("Not Found", dummyRequest, null, null);
+        }
+
+        @GetMapping("/feign-other")
+        public void throwFeignOther() {
+            throw new FeignException.InternalServerError("Error", dummyRequest, null, null);
+        }
+
+        @GetMapping("/general")
+        public void throwGeneral() {
+            throw new RuntimeException("Something went wrong");
+        }
     }
 }

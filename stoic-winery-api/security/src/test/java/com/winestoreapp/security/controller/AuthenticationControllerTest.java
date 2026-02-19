@@ -2,6 +2,7 @@ package com.winestoreapp.security.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.winestoreapp.common.exception.CustomGlobalExceptionHandler;
+import com.winestoreapp.common.observability.SpanTagger;
 import com.winestoreapp.security.config.AuthenticationControllerTestConfig;
 import com.winestoreapp.security.security.AuthenticationService;
 import com.winestoreapp.security.security.JwtUtil;
@@ -21,7 +22,6 @@ import org.springframework.http.MediaType;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
-import io.micrometer.tracing.Tracer;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -38,7 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 })
 class AuthenticationControllerTest {
     @MockBean
-    private Tracer tracer;
+    private SpanTagger spanTagger;
 
     @Autowired
     private MockMvc mockMvc;

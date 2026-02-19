@@ -1,6 +1,10 @@
 package com.winestoreapp.security.controller;
 
 import com.winestoreapp.common.dto.ResponseErrorDto;
+import com.winestoreapp.common.observability.ObservationContextualNames;
+import com.winestoreapp.common.observability.ObservationNames;
+import com.winestoreapp.common.observability.ObservationTags;
+import com.winestoreapp.common.observability.SpanTagger;
 import com.winestoreapp.security.security.AuthenticationService;
 import com.winestoreapp.user.api.UserService;
 import com.winestoreapp.user.api.dto.UserLoginRequestDto;
@@ -20,13 +24,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import io.micrometer.observation.annotation.Observed;
-import io.micrometer.tracing.Tracer;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+
 
 @Tag(name = "Management authentication", description = "Endpoints to login and register")
 @RestController
@@ -38,7 +42,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class AuthenticationController {
     private final AuthenticationService authenticationService;
     private final UserService userService;
-    private final Tracer tracer;
+    private final SpanTagger spanTagger;
 
     @Operation(summary = "Registered user login.",
             description = "Input email address and password to login.")
@@ -51,10 +55,17 @@ public class AuthenticationController {
                             schema = @Schema(implementation = ResponseErrorDto.class)))
     })
     @PostMapping("/login")
-    @Observed(name = "auth.controller", contextualName = "login-api")
+    @Observed(
+            name = ObservationNames.AUTH_CONTROLLER,
+            contextualName = ObservationContextualNames.LOGIN,
+            lowCardinalityKeyValues = {
+                    ObservationTags.OPERATION, ObservationTags.READ}
+    )
     public ResponseEntity<UserLoginResponseDto> loginUser(@RequestBody @Valid UserLoginRequestDto requestDto) {
         log.info("REST request to login user: {}", requestDto.email());
-        tagSpan("user.email", requestDto.email());
+
+        spanTagger.tag(ObservationTags.USER_EMAIL, requestDto.email());
+
         return ResponseEntity.ok(authenticationService.authenticate(requestDto));
     }
 
@@ -67,7 +78,11 @@ public class AuthenticationController {
                             schema = @Schema(implementation = ResponseErrorDto.class)))
     })
     @PostMapping("/logout")
-    @Observed(name = "auth.controller", contextualName = "logout-api")
+    @Observed(name = ObservationNames.AUTH_CONTROLLER,
+            contextualName = ObservationContextualNames.LOGOUT,
+            lowCardinalityKeyValues = {
+                    ObservationTags.OPERATION, ObservationTags.READ}
+    )
     public ResponseEntity<String> logout(HttpServletRequest httpRequest) {
         String bearerToken = httpRequest.getHeader("Authorization");
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
@@ -89,18 +104,21 @@ public class AuthenticationController {
                             schema = @Schema(implementation = ResponseErrorDto.class)))
     })
     @PostMapping("/register")
-    @Observed(name = "auth.controller", contextualName = "register-api")
+    @Observed(name = ObservationNames.AUTH_CONTROLLER,
+            contextualName = ObservationContextualNames.REGISTER,
+            lowCardinalityKeyValues = {
+                    ObservationTags.OPERATION, ObservationTags.READ}
+    )
     public ResponseEntity<UserResponseDto> registerUser(@RequestBody @Valid UserRegistrationRequestDto requestDto) {
         log.info("REST request to register new user: {}", requestDto.getEmail());
-        tagSpan("user.email", requestDto.getEmail());
+
+        spanTagger.tag(ObservationTags.USER_EMAIL, requestDto.getEmail());
+
         UserResponseDto response = userService.register(requestDto);
-        tagSpan("user.id", response.getId());
+
+        spanTagger.tag(ObservationTags.USER_ID, response.getId());
+
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    private void tagSpan(String key, Object value) {
-        if (tracer.currentSpan() != null) {
-            tracer.currentSpan().tag(key, String.valueOf(value));
-        }
-    }
 }

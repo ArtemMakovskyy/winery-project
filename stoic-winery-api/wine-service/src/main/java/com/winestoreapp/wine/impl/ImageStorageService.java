@@ -1,5 +1,9 @@
 package com.winestoreapp.wine.impl;
 
+import com.winestoreapp.common.observability.ObservationContextualNames;
+import com.winestoreapp.common.observability.ObservationNames;
+import com.winestoreapp.common.observability.ObservationTags;
+import com.winestoreapp.common.observability.SpanTagger;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -12,19 +16,17 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import io.micrometer.observation.annotation.Observed;
-import io.micrometer.tracing.Tracer;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class ImageStorageService {
 
+    private final SpanTagger spanTagger;
     @Value("${image.save.path}")
     private String imageSavePath;
 
-    private final Tracer tracer;
-
-    @Observed(name = "image.storage", contextualName = "save-image")
+    @Observed(name = ObservationNames.IMAGE_STORAGE, contextualName = ObservationContextualNames.UPDATE_BY_NAME)
     public String saveImage(String originalName, String suffix, MultipartFile file) {
         try {
             Path uploadPath = Path.of(imageSavePath);
@@ -35,8 +37,8 @@ public class ImageStorageService {
             String fileName = generateUniqueFileName(suffix, Objects.requireNonNull(originalName));
             Path filePath = uploadPath.resolve(fileName);
 
-            tagSpan("file.name", fileName);
-            tagSpan("file.size", file.getSize());
+            spanTagger.tag(ObservationTags.FILE_NAME, fileName);
+            spanTagger.tag(ObservationTags.FILE_SIZE, file.getSize());
 
             Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
@@ -47,7 +49,7 @@ public class ImageStorageService {
         }
     }
 
-    @Observed(name = "image.storage", contextualName = "delete-image")
+    @Observed(name = ObservationNames.IMAGE_STORAGE, contextualName = ObservationContextualNames.DELETE_BY_ID)
     public void deleteImage(String pictureLink) {
         if (pictureLink == null || pictureLink.isEmpty()) return;
 
@@ -55,7 +57,7 @@ public class ImageStorageService {
             String fileName = pictureLink.substring(pictureLink.lastIndexOf("/") + 1);
             Path filePath = Paths.get(imageSavePath + fileName);
 
-            tagSpan("file.path", filePath.toString());
+            spanTagger.tag(ObservationTags.FILE_PATH, filePath.toString());
 
             if (Files.deleteIfExists(filePath)) {
                 log.info("Old image deleted: {}", filePath);
@@ -73,9 +75,4 @@ public class ImageStorageService {
         return baseName + "_" + suffix + "_" + System.currentTimeMillis() + extension;
     }
 
-    private void tagSpan(String key, Object value) {
-        if (tracer.currentSpan() != null) {
-            tracer.currentSpan().tag(key, String.valueOf(value));
-        }
-    }
 }

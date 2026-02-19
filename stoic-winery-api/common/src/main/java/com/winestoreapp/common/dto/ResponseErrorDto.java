@@ -9,4 +9,5 @@ public record ResponseErrorDto(
         int status,
         String error,
         String message
-) {}
+) {
+}

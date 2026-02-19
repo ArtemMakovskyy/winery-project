@@ -1,26 +1,21 @@
 package com.winestoreapp.wineryadminui.features.wine;
 
-import com.winestoreapp.wineryadminui.core.util.FeignErrorParser;
+import com.winestoreapp.wineryadminui.core.observability.ObservationTags;
+import com.winestoreapp.wineryadminui.core.observability.SpanTagger;
 import com.winestoreapp.wineryadminui.features.wine.dto.WineCreateRequestDto;
 import com.winestoreapp.wineryadminui.features.wine.dto.WineDto;
-import java.util.List;
+import feign.FeignException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.web.multipart.MultipartFile;
-import feign.FeignException;
-import io.micrometer.tracing.Span;
-import io.micrometer.tracing.Tracer;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class WineServiceTest {
 
@@ -28,21 +23,14 @@ class WineServiceTest {
     private WineFeignClient wineFeignClient;
 
     @Mock
-    private FeignErrorParser errorParser;
-
-    @Mock
-    private Tracer tracer;
-
-    @Mock
-    private Span span;
+    private SpanTagger spanTagger;
 
     private WineService service;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        when(tracer.currentSpan()).thenReturn(span);
-        service = new WineService(wineFeignClient, errorParser, tracer);
+        service = new WineService(wineFeignClient, spanTagger);
     }
 
     @Test
@@ -59,31 +47,18 @@ class WineServiceTest {
         WineDto result = service.create(dto);
 
         assertThat(result.getId()).isEqualTo(10L);
-        verify(span).tag("status", "success");
-        verify(span).tag("wine.id", "10");
+
+        verify(spanTagger).tag(ObservationTags.VENDOR_CODE, "VC-123");
+        verify(spanTagger).tag(ObservationTags.WINE_NAME, "Test Wine");
+
+        verify(wineFeignClient).createWine(dto);
     }
 
-    @Test
-    void create_feignError_shouldThrowRuntimeException() {
-        WineCreateRequestDto dto = new WineCreateRequestDto();
-        dto.setName("Test Wine");
-
-        FeignException ex = mock(FeignException.class);
-        when(wineFeignClient.createWine(dto)).thenThrow(ex);
-        when(errorParser.extractMessage(ex)).thenReturn("Create failed");
-
-        assertThatThrownBy(() -> service.create(dto))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("Create failed");
-
-        verify(errorParser).extractMessage(ex);
-        verify(span).tag("status", "error");
-        verify(span).error(ex);
-    }
 
     @Test
     void getAll_success() {
-        when(wineFeignClient.getAll()).thenReturn(List.of(new WineDto(), new WineDto()));
+        when(wineFeignClient.getAll())
+                .thenReturn(List.of(new WineDto(), new WineDto()));
 
         List<WineDto> result = service.getAll();
 
@@ -93,38 +68,22 @@ class WineServiceTest {
 
     @Test
     void delete_success() {
-        doNothing().when(wineFeignClient).deleteWine(5L);
-
         service.delete(5L);
 
+        verify(spanTagger).tag("wine.id", 5L);
         verify(wineFeignClient).deleteWine(5L);
-        verify(span).tag("status", "success");
     }
 
     @Test
-    void delete_notFound_shouldNotThrow() {
-        FeignException ex = mock(FeignException.class);
-        when(ex.status()).thenReturn(404);
+    void delete_notFound_shouldThrow() {
+        FeignException.NotFound ex = mock(FeignException.NotFound.class);
         doThrow(ex).when(wineFeignClient).deleteWine(5L);
 
-        assertThatCode(() -> service.delete(5L)).doesNotThrowAnyException();
-        verify(span).tag("status", "not_found");
-    }
+        assertThatCode(() -> service.delete(5L))
+                .isInstanceOf(FeignException.NotFound.class);
 
-    @Test
-    void delete_otherFeignError_shouldThrowRuntimeException() {
-        FeignException ex = mock(FeignException.class);
-        when(ex.status()).thenReturn(500);
-        doThrow(ex).when(wineFeignClient).deleteWine(5L);
-        when(errorParser.extractMessage(ex)).thenReturn("Delete failed");
-
-        assertThatThrownBy(() -> service.delete(5L))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("Delete failed");
-
-        verify(errorParser).extractMessage(ex);
-        verify(span).tag("status", "error");
-        verify(span).error(ex);
+        verify(spanTagger).tag("wine.id", 5L);
+        verify(wineFeignClient).deleteWine(5L);
     }
 
     @Test
@@ -132,24 +91,11 @@ class WineServiceTest {
         MultipartFile fileA = mock(MultipartFile.class);
         MultipartFile fileB = mock(MultipartFile.class);
 
-        when(wineFeignClient.updateWineImages(1L, fileA, fileB)).thenReturn(new WineDto());
+        when(wineFeignClient.updateWineImages(1L, fileA, fileB)).thenReturn(null);
 
         service.updateImages(1L, fileA, fileB);
 
+        verify(spanTagger).tag("wine.id", 1L);
         verify(wineFeignClient).updateWineImages(1L, fileA, fileB);
-    }
-
-    @Test
-    void updateImages_feignError_shouldThrowRuntimeException() {
-        MultipartFile fileA = mock(MultipartFile.class);
-        MultipartFile fileB = mock(MultipartFile.class);
-        FeignException ex = mock(FeignException.class);
-
-        doThrow(ex).when(wineFeignClient).updateWineImages(1L, fileA, fileB);
-        when(errorParser.extractMessage(ex)).thenReturn("Upload failed");
-
-        assertThatThrownBy(() -> service.updateImages(1L, fileA, fileB))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("Upload failed");
     }
 }

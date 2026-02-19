@@ -12,8 +12,8 @@ import static org.mockito.Mockito.when;
 
 class FieldMatchValidatorTest {
 
-    private FieldMatchValidator validator;
     private final ConstraintValidatorContext context = mock(ConstraintValidatorContext.class);
+    private FieldMatchValidator validator;
 
     @BeforeEach
     void setUp() {
@@ -61,6 +61,9 @@ class FieldMatchValidatorTest {
         assertThat(validator.isValid(obj, context)).isTrue();
     }
 
-    private record TestObject(String field, String fieldMatch) {}
-    private record NumericObject(Integer num1, Integer num2) {}
+    private record TestObject(String field, String fieldMatch) {
+    }
+
+    private record NumericObject(Integer num1, Integer num2) {
+    }
 }

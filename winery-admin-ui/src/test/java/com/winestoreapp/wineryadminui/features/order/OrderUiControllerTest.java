@@ -1,8 +1,7 @@
 package com.winestoreapp.wineryadminui.features.order;
 
+import com.winestoreapp.wineryadminui.core.observability.SpanTagger;
 import com.winestoreapp.wineryadminui.features.order.dto.OrderDto;
-import java.util.List;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -10,18 +9,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ui.Model;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import io.micrometer.tracing.Span;
-import io.micrometer.tracing.Tracer;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class OrderUiControllerTest {
@@ -30,7 +23,7 @@ class OrderUiControllerTest {
     private OrderService orderService;
 
     @Mock
-    private Tracer tracer;
+    private SpanTagger spanTagger;
 
     @Mock
     private Model model;
@@ -38,16 +31,8 @@ class OrderUiControllerTest {
     @Mock
     private RedirectAttributes redirectAttributes;
 
-    @Mock
-    private Span span;
-
     @InjectMocks
     private OrderUiController orderUiController;
-
-    @BeforeEach
-    void setup() {
-        lenient().when(tracer.currentSpan()).thenReturn(span);
-    }
 
     @Test
     void list_ShouldReturnOrdersViewAndPopulateModel() {
@@ -68,19 +53,20 @@ class OrderUiControllerTest {
         String view = orderUiController.setPaid(orderId, redirectAttributes);
 
         assertThat(view).isEqualTo("redirect:/ui/orders");
-        verify(span).tag("order.id", String.valueOf(orderId));
+        verify(spanTagger).tag("order.id", orderId);
         verify(redirectAttributes).addFlashAttribute("message", "Order marked as paid");
     }
 
     @Test
-    void setPaid_OnException_ShouldAddErrorToFlashAttributes() {
+    void setPaid_OnException_ShouldPropagateException() {
         Long orderId = 1L;
-        when(orderService.setPaidStatus(orderId)).thenThrow(new RuntimeException("Payment error"));
+        RuntimeException exception = new RuntimeException("Payment error");
+        when(orderService.setPaidStatus(orderId)).thenThrow(exception);
 
-        orderUiController.setPaid(orderId, redirectAttributes);
+        assertThatThrownBy(() -> orderUiController.setPaid(orderId, redirectAttributes))
+                .isEqualTo(exception);
 
-        verify(redirectAttributes).addFlashAttribute("error", "Failed to update status: Payment error");
-        verify(redirectAttributes, never()).addFlashAttribute(eq("message"), any());
+        verify(spanTagger).tag("order.id", orderId);
     }
 
     @Test
@@ -91,18 +77,19 @@ class OrderUiControllerTest {
         String view = orderUiController.delete(orderId, redirectAttributes);
 
         assertThat(view).isEqualTo("redirect:/ui/orders");
-        verify(span).tag("order.id", String.valueOf(orderId));
+        verify(spanTagger).tag("order.id", orderId);
         verify(redirectAttributes).addFlashAttribute("message", "Order deleted");
     }
 
     @Test
-    void delete_OnException_ShouldAddErrorToFlashAttributes() {
+    void delete_OnException_ShouldPropagateException() {
         Long orderId = 7L;
-        doThrow(new RuntimeException("Delete failed")).when(orderService).deleteOrder(orderId);
+        RuntimeException exception = new RuntimeException("Delete failed");
+        doThrow(exception).when(orderService).deleteOrder(orderId);
 
-        orderUiController.delete(orderId, redirectAttributes);
+        assertThatThrownBy(() -> orderUiController.delete(orderId, redirectAttributes))
+                .isEqualTo(exception);
 
-        verify(redirectAttributes).addFlashAttribute("error", "Failed to delete order");
-        verify(redirectAttributes, never()).addFlashAttribute(eq("message"), any());
+        verify(spanTagger).tag("order.id", orderId);
     }
 }

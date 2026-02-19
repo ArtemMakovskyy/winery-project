@@ -1,6 +1,10 @@
 package com.winestoreapp.review.controller;
 
 import com.winestoreapp.common.dto.ResponseErrorDto;
+import com.winestoreapp.common.observability.ObservationContextualNames;
+import com.winestoreapp.common.observability.ObservationNames;
+import com.winestoreapp.common.observability.ObservationTags;
+import com.winestoreapp.common.observability.SpanTagger;
 import com.winestoreapp.review.api.ReviewService;
 import com.winestoreapp.review.api.dto.CreateReviewDto;
 import com.winestoreapp.review.api.dto.ReviewWithUserDescriptionDto;
@@ -22,7 +26,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import io.micrometer.observation.annotation.Observed;
-import io.micrometer.tracing.Tracer;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -40,7 +43,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Slf4j
 public class ReviewController {
     private final ReviewService reviewService;
-    private final Tracer tracer;
+    private final SpanTagger spanTagger;
 
     @Operation(summary = "Add review to wine.",
             description = """
@@ -58,13 +61,17 @@ public class ReviewController {
                             schema = @Schema(implementation = ResponseErrorDto.class)))
     })
     @PostMapping
-    @Observed(name = "review.controller", contextualName = "add-review")
+    @Observed(
+            name = ObservationNames.REVIEW_CONTROLLER,
+            contextualName = ObservationContextualNames.CREATE,
+            lowCardinalityKeyValues = {ObservationTags.OPERATION, ObservationTags.WRITE}
+    )
     public ResponseEntity<ReviewWithUserDescriptionDto> addReview(
             @RequestBody @Valid CreateReviewDto createDto
     ) {
         log.info("REST request to add review for wine ID: {}", createDto.getWineId());
 
-        tagSpan("wine.id", createDto.getWineId());
+        spanTagger.tag(ObservationTags.WINE_ID, createDto.getWineId());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(reviewService.addReview(createDto));
     }
@@ -83,7 +90,11 @@ public class ReviewController {
                             schema = @Schema(implementation = ResponseErrorDto.class)))
     })
     @GetMapping("/wines/{wineId}")
-    @Observed(name = "review.controller", contextualName = "find-reviews-by-wine")
+    @Observed(
+            name = ObservationNames.REVIEW_CONTROLLER,
+            contextualName = ObservationContextualNames.FIND_ALL_BY_WINE_ID,
+            lowCardinalityKeyValues = {ObservationTags.OPERATION, ObservationTags.READ}
+    )
     public ResponseEntity<List<ReviewWithUserDescriptionDto>> findAllReviewsByWineId(
             @PathVariable("wineId") Long wineId,
             @PageableDefault(size = 4, page = 0, sort = {"reviewDate"},
@@ -92,14 +103,9 @@ public class ReviewController {
     ) {
         log.info("REST request to find reviews for wine ID: {}, pageable: {}", wineId, pageable);
 
-        tagSpan("wine.id", wineId);
+        spanTagger.tag(ObservationTags.WINE_ID, wineId);
 
         return ResponseEntity.ok(reviewService.findAllByWineId(wineId, pageable));
     }
 
-    private void tagSpan(String key, Object value) {
-        if (tracer.currentSpan() != null) {
-            tracer.currentSpan().tag(key, String.valueOf(value));
-        }
-    }
 }

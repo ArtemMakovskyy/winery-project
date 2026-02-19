@@ -1,5 +1,13 @@
 # --- Actuator and Observation Settings ---
 management:
+  info:
+    env:
+      enabled: true
+
+    git:
+      enabled: true
+      mode: full
+
   observations:
     key-values:
       application: wine-store-service
@@ -19,9 +27,22 @@ management:
 
   endpoints:
     web:
+      base-path: /actuator
       exposure:
-        include: health, info, metrics, prometheus
+        include:
+          - health
+          - info
+          - metrics
+          - prometheus
+          - loggers
+
     metrics:
+      distribution:
+        percentiles-histogram:
+          all: true
+        slo:
+          "[http.server.requests]": 50ms, 100ms, 500ms, 1s, 2s
+          "[jdbc.connections.usage]": 100ms, 500ms, 1s
       enable:
         all: true
       enabled: true
@@ -57,6 +78,9 @@ loki:
 logging:
   pattern:
     level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+  level:
+    org.hibernate.sql: info
+    root: info
 
 spring:
   datasource:
@@ -64,3 +88,9 @@ spring:
       metrics-tracking: true
     observation:
       enabled: true
+
+info:
+  app:
+    name: "stoic-winery-api"
+    version: "0.0.1-SNAPSHOT"
+    description: "Core Modular Monolith backend for the Stoic Winery project. Handles business logic, JWT security, MySQL persistence with Liquibase, and Telegram notifications."

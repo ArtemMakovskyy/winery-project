@@ -1,5 +1,6 @@
 package com.winestoreapp.wine.impl;
 
+import com.winestoreapp.common.observability.SpanTagger;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -7,24 +8,24 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mockito;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
-import io.micrometer.tracing.Tracer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ImageStorageServiceTest {
 
-    private ImageStorageService imageStorageService;
-    private Tracer tracer;
-
     @TempDir
     Path tempDir;
+    private ImageStorageService imageStorageService;
+    @MockBean
+    private SpanTagger spanTagger;
 
     @BeforeEach
     void setUp() {
-        tracer = Mockito.mock(Tracer.class);
-        imageStorageService = new ImageStorageService(tracer);
+        spanTagger = Mockito.mock(SpanTagger.class);
+        imageStorageService = new ImageStorageService(spanTagger);
         ReflectionTestUtils.setField(imageStorageService, "imageSavePath", tempDir.toString() + "/");
     }
 

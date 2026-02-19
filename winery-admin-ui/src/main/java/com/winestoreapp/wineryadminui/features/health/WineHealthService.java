@@ -1,11 +1,14 @@
 package com.winestoreapp.wineryadminui.features.health;
 
+import com.winestoreapp.wineryadminui.core.observability.ObservationContextualNames;
+import com.winestoreapp.wineryadminui.core.observability.ObservationNames;
+import com.winestoreapp.wineryadminui.core.observability.ObservationTags;
+import com.winestoreapp.wineryadminui.core.observability.SpanTagger;
+import io.micrometer.observation.annotation.Observed;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import io.micrometer.observation.annotation.Observed;
-import io.micrometer.tracing.Tracer;
 
 @Service
 @RequiredArgsConstructor
@@ -13,40 +16,25 @@ import io.micrometer.tracing.Tracer;
 public class WineHealthService {
 
     private final WineHealthCheckFeignClient wineHealthCheckFeignClient;
-    private final Tracer tracer;
+    private final SpanTagger spanTagger;
 
     @PostConstruct
-    @Observed(name = "health.service.init")
+    @Observed(name = ObservationNames.HEALTH_SERVICE,
+            contextualName = ObservationContextualNames.INIT)
     public void init() {
-        log.info("Initializing WineHealthService health check...");
         check();
     }
 
-    @Observed(name = "health.service.check")
+    @Observed(name = ObservationNames.HEALTH_SERVICE,
+            contextualName = ObservationContextualNames.CHECK)
     public void check() {
         try {
-            String healthCheck = wineHealthCheckFeignClient.healthCheck();
-            tagSpan("health.status", "UP");
-            tagSpan("status", "success");
-            log.info("Connection to WINE-STORE-SERVICE successful. Response: {}", healthCheck);
+            wineHealthCheckFeignClient.healthCheck();
+            spanTagger.tag(ObservationTags.STATUS, "UP");
         } catch (Exception e) {
-            tagSpan("status", "error");
-            recordError(e);
-            log.error("CRITICAL: Failed to connect to WINE-STORE-SERVICE. Error: {}", e.getMessage());
-        }
-    }
-
-    private void tagSpan(String key, Object value) {
-        var span = tracer.currentSpan();
-        if (span != null) {
-            span.tag(key, String.valueOf(value));
-        }
-    }
-
-    private void recordError(Throwable e) {
-        var span = tracer.currentSpan();
-        if (span != null) {
-            span.error(e);
+            spanTagger.tag(ObservationTags.STATUS, "DOWN");
+            spanTagger.error(e);
+            log.error("CRITICAL: Failed to connect to WINE-STORE-SERVICE");
         }
     }
 }

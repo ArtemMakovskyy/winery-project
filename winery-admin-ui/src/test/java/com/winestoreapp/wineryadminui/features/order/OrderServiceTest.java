@@ -1,26 +1,16 @@
 package com.winestoreapp.wineryadminui.features.order;
 
-import com.winestoreapp.wineryadminui.core.util.FeignErrorParser;
+import com.winestoreapp.wineryadminui.core.observability.SpanTagger;
 import com.winestoreapp.wineryadminui.features.order.dto.OrderDto;
-import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import feign.FeignException;
-import feign.Request;
-import io.micrometer.tracing.Span;
-import io.micrometer.tracing.Tracer;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class OrderServiceTest {
 
@@ -28,31 +18,14 @@ class OrderServiceTest {
     private OrderFeignClient orderClient;
 
     @Mock
-    private FeignErrorParser errorParser;
-
-    @Mock
-    private Tracer tracer;
-
-    @Mock
-    private Span span;
+    private SpanTagger spanTagger;
 
     private OrderService service;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        lenient().when(tracer.currentSpan()).thenReturn(span);
-        service = new OrderService(orderClient, errorParser, tracer);
-    }
-
-    private FeignException createFeignException(int status, String message) {
-        Request request = Request.create(Request.HttpMethod.GET, "/api/orders",
-                Collections.emptyMap(), null, StandardCharsets.UTF_8, null);
-        return FeignException.errorStatus("test", feign.Response.builder()
-                .status(status)
-                .reason(message)
-                .request(request)
-                .build());
+        service = new OrderService(orderClient, spanTagger);
     }
 
     @Test
@@ -64,21 +37,7 @@ class OrderServiceTest {
 
         assertThat(result).hasSize(2);
         verify(orderClient).getAll();
-        verify(span).tag("status", "success");
-        verify(span).tag("orders.count", "2");
-    }
-
-    @Test
-    void getAll_failure_shouldThrowRuntimeException() {
-        RuntimeException ex = new RuntimeException("Backend down");
-        when(orderClient.getAll()).thenThrow(ex);
-
-        assertThatThrownBy(() -> service.getAll())
-                .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Failed to fetch orders");
-
-        verify(span).tag("status", "error");
-        verify(span).error(ex);
+        verify(spanTagger).tag("orders.count", 2);
     }
 
     @Test
@@ -88,24 +47,8 @@ class OrderServiceTest {
         Boolean result = service.setPaidStatus(5L);
 
         assertThat(result).isTrue();
+        verify(spanTagger).tag("order.id", 5L);
         verify(orderClient).setPaidStatus(5L);
-        verify(span).tag("status", "success");
-        verify(span).tag("order.id", "5");
-    }
-
-    @Test
-    void setPaidStatus_feignError_shouldUseErrorParserAndThrow() {
-        FeignException ex = createFeignException(404, "Not Found");
-        when(orderClient.setPaidStatus(5L)).thenThrow(ex);
-        when(errorParser.extractMessage(ex)).thenReturn("Order not found");
-
-        assertThatThrownBy(() -> service.setPaidStatus(5L))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("Order not found");
-
-        verify(errorParser).extractMessage(ex);
-        verify(span).tag("status", "error");
-        verify(span).error(ex);
     }
 
     @Test
@@ -114,23 +57,7 @@ class OrderServiceTest {
 
         service.deleteOrder(3L);
 
+        verify(spanTagger).tag("order.id", 3L);
         verify(orderClient).deleteOrder(3L);
-        verify(span).tag("status", "success");
-        verify(span).tag("order.id", "3");
-    }
-
-    @Test
-    void deleteOrder_feignError_shouldThrowRuntimeException() {
-        FeignException ex = createFeignException(500, "Internal Server Error");
-        doThrow(ex).when(orderClient).deleteOrder(3L);
-        when(errorParser.extractMessage(ex)).thenReturn("Delete failed");
-
-        assertThatThrownBy(() -> service.deleteOrder(3L))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("Delete failed");
-
-        verify(errorParser).extractMessage(ex);
-        verify(span).tag("status", "error");
-        verify(span).error(ex);
     }
 }

@@ -1,8 +1,9 @@
 package com.winestoreapp.wineryadminui.features.order.dto;
 
+import lombok.Getter;
+
 import java.math.BigDecimal;
 import java.util.Set;
-import lombok.Getter;
 
 @Getter
 public class ShoppingCardDto {

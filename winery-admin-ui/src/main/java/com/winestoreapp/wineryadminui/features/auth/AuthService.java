@@ -1,14 +1,17 @@
 package com.winestoreapp.wineryadminui.features.auth;
 
+import com.winestoreapp.wineryadminui.core.observability.ObservationContextualNames;
+import com.winestoreapp.wineryadminui.core.observability.ObservationNames;
+import com.winestoreapp.wineryadminui.core.observability.ObservationTags;
+import com.winestoreapp.wineryadminui.core.observability.SpanTagger;
 import com.winestoreapp.wineryadminui.core.security.SessionTokenStorage;
 import com.winestoreapp.wineryadminui.features.user.dto.UserLoginRequestDto;
 import com.winestoreapp.wineryadminui.features.user.dto.UserLoginResponseDto;
+import io.micrometer.observation.annotation.Observed;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import io.micrometer.observation.annotation.Observed;
-import io.micrometer.tracing.Tracer;
 
 @Service
 @RequiredArgsConstructor
@@ -17,63 +20,23 @@ public class AuthService {
 
     private final AuthFeignClient authFeignClient;
     private final SessionTokenStorage storage;
-    private final Tracer tracer;
+    private final SpanTagger spanTagger;
 
-    @Observed(
-            name = "auth.service.login",
-            lowCardinalityKeyValues = {"operation", "login"}
-    )
+    @Observed(name = ObservationNames.AUTH_SERVICE,
+            contextualName = ObservationContextualNames.LOGIN,
+            lowCardinalityKeyValues = {ObservationTags.OPERATION, ObservationTags.READ})
     public void login(UserLoginRequestDto dto, HttpSession session) {
-        log.info("Attempting login for email: {}", dto.email());
-        tagSpan("user.email", dto.email());
+        UserLoginResponseDto response = authFeignClient.login(dto);
+        storage.save(session, response.token());
 
-        try {
-            UserLoginResponseDto response = authFeignClient.login(dto);
-            storage.save(session, response.token());
-            log.info("Authentication successful. Session ID: {}", session.getId());
-
-            tagSpan("status", "success");
-        } catch (Exception e) {
-            log.error("Authentication failed for email: {}", dto.email(), e);
-
-            tagSpan("status", "error");
-            recordError(e);
-
-            throw new RuntimeException("Login failed: " + e.getMessage(), e);
-        }
+        spanTagger.tag(ObservationTags.AUTH_STAUS, ObservationTags.SUCCESS);
+        log.info("User successfully logged in");
     }
 
-    @Observed(
-            name = "auth.service.logout",
-            lowCardinalityKeyValues = {"operation", "logout"}
-    )
+    @Observed(name = ObservationNames.AUTH_SERVICE,
+            contextualName = ObservationContextualNames.LOGOUT)
     public void logout(HttpSession session) {
-        log.info("Logging out session: {}", session.getId());
-
-        try {
-            storage.clear(session);
-            tagSpan("status", "success");
-        } catch (Exception e) {
-            log.error("Logout failed for session: {}", session.getId(), e);
-
-            tagSpan("status", "error");
-            recordError(e);
-
-            throw new RuntimeException("Logout failed: " + e.getMessage(), e);
-        }
-    }
-
-    private void tagSpan(String key, Object value) {
-        var span = tracer.currentSpan();
-        if (span != null) {
-            span.tag(key, String.valueOf(value));
-        }
-    }
-
-    private void recordError(Throwable e) {
-        var span = tracer.currentSpan();
-        if (span != null) {
-            span.error(e);
-        }
+        storage.clear(session);
+        spanTagger.tag(ObservationTags.AUTH_STAUS, "logout_success");
     }
 }

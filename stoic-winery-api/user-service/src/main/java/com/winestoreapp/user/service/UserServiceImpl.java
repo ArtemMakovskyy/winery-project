@@ -2,6 +2,10 @@ package com.winestoreapp.user.service;
 
 import com.winestoreapp.common.exception.EntityNotFoundException;
 import com.winestoreapp.common.exception.RegistrationException;
+import com.winestoreapp.common.observability.ObservationContextualNames;
+import com.winestoreapp.common.observability.ObservationNames;
+import com.winestoreapp.common.observability.ObservationTags;
+import com.winestoreapp.common.observability.SpanTagger;
 import com.winestoreapp.user.api.UserService;
 import com.winestoreapp.user.api.dto.RoleName;
 import com.winestoreapp.user.api.dto.UserRegistrationRequestDto;
@@ -21,7 +25,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import io.micrometer.observation.annotation.Observed;
-import io.micrometer.tracing.Tracer;
 
 @Service
 @RequiredArgsConstructor
@@ -33,12 +36,12 @@ public class UserServiceImpl implements UserService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
-    private final Tracer tracer;
+    private final SpanTagger spanTagger;
 
     @Override
     @Transactional(readOnly = true)
-    @Observed(name = "user.service", contextualName = "load-user-by-email")
-    public UserResponseDto loadUserByEmail(String email) {
+    @Observed(name = ObservationNames.USER_SERVICE, contextualName = ObservationContextualNames.FIND_BY_EMAIL)
+    public UserResponseDto findUserByEmail(String email) {
         return userRepository.findUserByEmail(email)
                 .map(userMapper::toDto)
                 .orElseThrow(() -> new EntityNotFoundException("Can't find user by email: " + email));
@@ -46,9 +49,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    @Observed(name = "user.service", contextualName = "load-user-by-id")
+    @Observed(name = ObservationNames.USER_SERVICE, contextualName = ObservationContextualNames.FIND_BY_ID)
     public UserResponseDto loadUserById(Long id) {
-        tagSpan("user.id", id);
+
+        spanTagger.tag(ObservationTags.USER_ID, id);
+
         return userRepository.findById(id)
                 .map(userMapper::toDto)
                 .orElseThrow(() -> new EntityNotFoundException("Can't find user by id: " + id));
@@ -56,7 +61,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    @Observed(name = "user.service", contextualName = "get-or-create-user-by-name")
+    @Observed(name = ObservationNames.USER_SERVICE, contextualName = ObservationContextualNames.GET_OR_CREATE_BY_NAME)
     public UserResponseDto getOrCreateByFirstAndLastName(String firstName, String lastName) {
         User user = userRepository.findFirstByFirstNameAndLastName(firstName, lastName)
                 .orElseGet(() -> {
@@ -64,13 +69,14 @@ public class UserServiceImpl implements UserService {
                     User newUser = new User(firstName, lastName);
                     return userRepository.save(newUser);
                 });
-        tagSpan("user.id", user.getId());
+
+        spanTagger.tag(ObservationTags.USER_ID, user.getId());
         return userMapper.toDto(user);
     }
 
     @Override
     @Transactional
-    @Observed(name = "user.service", contextualName = "sync-user-data")
+    @Observed(name = ObservationNames.USER_SERVICE, contextualName = ObservationContextualNames.SYNC_DATA)
     public UserResponseDto getOrUpdateOrCreateUser(String email, String fName, String lName, String phone) {
         User user = userRepository.findUserByEmail(email)
                 .or(() -> userRepository.findFirstByFirstNameAndLastName(fName, lName))
@@ -87,15 +93,18 @@ public class UserServiceImpl implements UserService {
                             .ifPresent(role -> newUser.setRoles(Set.of(role)));
                     return userRepository.save(newUser);
                 });
-        tagSpan("user.id", user.getId());
+
+        spanTagger.tag(ObservationTags.USER_ID, user.getId());
         return userMapper.toDto(user);
     }
 
     @Override
     @Transactional(readOnly = true)
-    @Observed(name = "user.service", contextualName = "find-users-by-role")
+    @Observed(name = ObservationNames.USER_SERVICE, contextualName = ObservationContextualNames.FIND_BY_ROLE)
     public List<UserResponseDto> findUsersByRole(final RoleName role) {
-        tagSpan("user.role", role.name());
+
+        spanTagger.tag(ObservationTags.USER_ROLE, role.name());
+
         return userRepository.findUsersByRole(role).stream()
                 .map(userMapper::toDto)
                 .toList();
@@ -103,7 +112,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    @Observed(name = "user.service", contextualName = "find-user-by-tg-id")
+    @Observed(name = ObservationNames.USER_SERVICE, contextualName = ObservationContextualNames.FIND_BY_TG_ID)
     public Optional<UserResponseDto> findUserByTelegramChatId(final Long chatId) {
         return userRepository.findUserByTelegramChatId(chatId)
                 .map(userMapper::toDto);
@@ -111,10 +120,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    @Observed(name = "user.service", contextualName = "update-user-tg-id")
+    @Observed(name = ObservationNames.USER_SERVICE, contextualName = ObservationContextualNames.UPDATE_TG_ID)
     public void updateTelegramChatId(final Long userId, final Long chatId) {
         log.info("Updating telegram chatId for userId: {}", userId);
-        tagSpan("user.id", userId);
+
+        spanTagger.tag(ObservationTags.USER_ID, userId);
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("Can't find user by id: " + userId));
@@ -124,7 +134,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    @Observed(name = "user.service", contextualName = "register-user")
+    @Observed(name = ObservationNames.USER_SERVICE, contextualName = ObservationContextualNames.REGISTER)
     public UserResponseDto register(UserRegistrationRequestDto request) throws RegistrationException {
         if (userRepository.findUserByEmail(request.getEmail()).isPresent()) {
             log.warn("Registration failed: email {} already exists", request.getEmail());
@@ -146,17 +156,19 @@ public class UserServiceImpl implements UserService {
         );
 
         User savedUser = userRepository.save(user);
-        tagSpan("user.id", savedUser.getId());
+
+        spanTagger.tag(ObservationTags.USER_ID, savedUser.getId());
         return userMapper.toDto(savedUser);
     }
 
     @Override
     @Transactional
-    @Observed(name = "user.service", contextualName = "update-user-role")
+    @Observed(name = ObservationNames.USER_SERVICE, contextualName = ObservationContextualNames.UPDATE_ROLE)
     public UserResponseDto updateRole(Long userId, String roleNameStr) {
         log.info("Attempting to update role for userId: {} to {}", userId, roleNameStr);
-        tagSpan("user.id", userId);
-        tagSpan("new.role", roleNameStr);
+
+        spanTagger.tag(ObservationTags.USER_ID, userId);
+        spanTagger.tag(ObservationTags.USER_ROLE, roleNameStr);
 
         User userFromDb = userRepository.findById(userId).orElseThrow(
                 () -> new EntityNotFoundException("Can't find user by id " + userId));
@@ -176,11 +188,5 @@ public class UserServiceImpl implements UserService {
         log.info("Role updated successfully for userId: {}", userId);
 
         return userMapper.toDto(userRepository.save(userFromDb));
-    }
-
-    private void tagSpan(String key, Object value) {
-        if (tracer.currentSpan() != null) {
-            tracer.currentSpan().tag(key, String.valueOf(value));
-        }
     }
 }

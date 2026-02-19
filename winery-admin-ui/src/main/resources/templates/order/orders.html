@@ -21,15 +21,15 @@
         <td th:text="${order.id}"></td>
         <td th:text="${order.paymentStatus}"></td>
         <td>
-            <form th:if="${order.paymentStatus.name() == 'PENDING'}"
-                  method="post"
-                  th:action="@{'/ui/orders/' + ${order.id} + '/paid'}">
+            <form method="post"
+                  th:action="@{'/ui/orders/' + ${order.id} + '/paid'}"
+                  th:if="${order.paymentStatus.name() == 'PENDING'}">
                 <button type="submit">Mark Paid</button>
             </form>
 
             <form method="post"
-                  th:action="@{'/ui/orders/' + ${order.id} + '/delete'}"
-                  onsubmit="return confirm('Are you sure?');">
+                  onsubmit="return confirm('Are you sure?');"
+                  th:action="@{'/ui/orders/' + ${order.id} + '/delete'}">
                 <button type="submit">Delete</button>
             </form>
         </td>

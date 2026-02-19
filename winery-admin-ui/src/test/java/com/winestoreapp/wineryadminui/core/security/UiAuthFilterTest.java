@@ -4,7 +4,6 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -13,18 +12,23 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import java.util.List;
+
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UiAuthFilterTest {
 
-    @Mock private SessionTokenStorage storage;
-    @Mock private HttpServletRequest request;
-    @Mock private HttpServletResponse response;
-    @Mock private FilterChain filterChain;
-    @Mock private HttpSession session;
+    @Mock
+    private SessionTokenStorage storage;
+    @Mock
+    private HttpServletRequest request;
+    @Mock
+    private HttpServletResponse response;
+    @Mock
+    private FilterChain filterChain;
+    @Mock
+    private HttpSession session;
 
     @InjectMocks
     private UiAuthFilter filter;
@@ -60,7 +64,8 @@ class UiAuthFilterTest {
 
         filter.doFilterInternal(request, response, filterChain);
 
-        verify(response).sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied: Admins only");
+        // Сообщение синхронизировано с реализацией фильтра
+        verify(response).sendError(HttpServletResponse.SC_FORBIDDEN, "Admin access required");
         verifyNoInteractions(filterChain);
     }
 

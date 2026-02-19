@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
@@ -40,6 +40,7 @@
         <telegrambots.version>6.8.0</telegrambots.version>
         <loki.version>1.5.2</loki.version>
         <datasource.micrometer.version>1.0.1</datasource.micrometer.version>
+        <git.version>5.0.0</git.version>
 
         <!-- Maven plugins -->
         <maven.checkstyle.plugin.version>3.3.0</maven.checkstyle.plugin.version>
@@ -186,6 +187,35 @@
                         <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
                         <sourceDirectory>${project.build.testSourceDirectory}</sourceDirectory>
                     </sourceDirectories>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>io.github.git-commit-id</groupId>
+                <artifactId>git-commit-id-maven-plugin</artifactId>
+                <version>${git.version}</version>
+                <executions>
+                    <execution>
+                        <id>get-git-info</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>revision</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <failOnNoGitDirectory>false</failOnNoGitDirectory>
+                    <generateGitPropertiesFile>true</generateGitPropertiesFile>
+                    <generateGitPropertiesFilename>
+                        ${project.build.outputDirectory}/git.properties
+                    </generateGitPropertiesFilename>
+                    <includeOnlyProperties>
+                        <includeOnlyProperty>git.branch</includeOnlyProperty>
+                        <includeOnlyProperty>git.commit.id.abbrev</includeOnlyProperty>
+                        <includeOnlyProperty>git.commit.id.full</includeOnlyProperty>
+                        <includeOnlyProperty>git.commit.time</includeOnlyProperty>
+                        <includeOnlyProperty>git.commit.message.short</includeOnlyProperty>
+                    </includeOnlyProperties>
                 </configuration>
             </plugin>
         </plugins>

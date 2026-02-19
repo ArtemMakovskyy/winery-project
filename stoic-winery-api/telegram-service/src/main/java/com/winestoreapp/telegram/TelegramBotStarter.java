@@ -1,5 +1,7 @@
 package com.winestoreapp.telegram;
 
+import com.winestoreapp.common.observability.ObservationContextualNames;
+import com.winestoreapp.common.observability.ObservationNames;
 import com.winestoreapp.telegram.impl.TelegramBotNotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +23,8 @@ public class TelegramBotStarter implements ApplicationRunner {
     private final TelegramBotNotificationService telegramBotNotificationService;
 
     @Override
-    @Observed(name = "telegram.bot", contextualName = "bot-registration")
+    @Observed(name = ObservationNames.TELEGRAM_BOT,
+            contextualName = ObservationContextualNames.BOT_REGISTRATION)
     public void run(ApplicationArguments args) throws Exception {
         log.info("Starting Telegram Bot registration process...");
         try {

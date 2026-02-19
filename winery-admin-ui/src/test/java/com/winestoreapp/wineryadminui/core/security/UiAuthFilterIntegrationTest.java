@@ -1,6 +1,5 @@
 package com.winestoreapp.wineryadminui.core.security;
 
-import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,6 +10,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -25,22 +26,17 @@ class UiAuthFilterIntegrationTest {
     @Mock
     private SessionTokenStorage storage;
 
+    private UiAuthFilter filter;
+
     @BeforeEach
     void setUp() {
-        // Створюємо фільтр з моком сховища
-        UiAuthFilter filter = new UiAuthFilter(storage);
+        filter = new UiAuthFilter();
+        filter.setStorage(storage);
+        filter.setPaths(List.of("/actuator", "/login", "/static", "/css", "/js", "/favicon.ico"));
 
-        // Налаштовуємо MockMvc в ізоляції з фейковим контролером
         mockMvc = MockMvcBuilders.standaloneSetup(new TestController())
                 .addFilters(filter)
                 .build();
-    }
-
-    @RestController
-    static class TestController {
-        @GetMapping("/ui/orders") public String orders() { return "ok"; }
-        @GetMapping("/ui/users") public String users() { return "ok"; }
-        @GetMapping("/css/style.css") public String css() { return "ok"; }
     }
 
     @Test
@@ -84,5 +80,23 @@ class UiAuthFilterIntegrationTest {
     void publicStaticResource_ShouldAlwaysPass() throws Exception {
         mockMvc.perform(get("/css/style.css"))
                 .andExpect(status().isOk());
+    }
+
+    @RestController
+    static class TestController {
+        @GetMapping("/ui/orders")
+        public String orders() {
+            return "ok";
+        }
+
+        @GetMapping("/ui/users")
+        public String users() {
+            return "ok";
+        }
+
+        @GetMapping("/css/style.css")
+        public String css() {
+            return "ok";
+        }
     }
 }

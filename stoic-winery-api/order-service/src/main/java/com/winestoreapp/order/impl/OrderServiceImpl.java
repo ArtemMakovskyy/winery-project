@@ -2,6 +2,10 @@ package com.winestoreapp.order.impl;
 
 import com.winestoreapp.common.exception.EntityNotFoundException;
 import com.winestoreapp.common.exception.RegistrationException;
+import com.winestoreapp.common.observability.ObservationContextualNames;
+import com.winestoreapp.common.observability.ObservationNames;
+import com.winestoreapp.common.observability.ObservationTags;
+import com.winestoreapp.common.observability.SpanTagger;
 import com.winestoreapp.order.api.OrderService;
 import com.winestoreapp.order.api.dto.CreateOrderDeliveryInformationDto;
 import com.winestoreapp.order.api.dto.CreateOrderDto;
@@ -31,7 +35,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import io.micrometer.observation.annotation.Observed;
-import io.micrometer.tracing.Tracer;
 
 @Service
 @RequiredArgsConstructor
@@ -51,14 +54,14 @@ public class OrderServiceImpl implements OrderService {
     private final OrderMapper orderMapper;
     private final OrderDeliveryInformationRepository orderDeliveryInformationRepository;
     private final ShoppingCardRepository shoppingCardRepository;
-    private final Tracer tracer;
+    private final SpanTagger spanTagger;
 
     @Value("${telegram.bot.enabled:false}")
     private boolean telegramBotEnable;
 
     @Override
     @Transactional
-    @Observed(name = "order.service", contextualName = "create-order")
+    @Observed(name = ObservationNames.ORDER_SERVICE, contextualName = ObservationContextualNames.CREATE)
     public OrderDto createOrder(CreateOrderDto dto) {
         log.info("Creating new order for email: {}", dto.getEmail());
         String[] nameParts = validateAndParseName(dto.getUserFirstAndLastName());
@@ -77,8 +80,8 @@ public class OrderServiceImpl implements OrderService {
         order = orderRepository.save(order);
         order.generateAndSetOrderNumber();
 
-        tagSpan("order.number", order.getOrderNumber());
-        tagSpan("user.id", userDto.getId());
+        spanTagger.tag(ObservationTags.ORDER_NUMBER, order.getOrderNumber());
+        spanTagger.tag(ObservationTags.USER_ID, userDto.getId());
 
         OrderDeliveryInformation delivery = createOrderDeliveryInformation(
                 dto.getCreateOrderDeliveryInformationDto(), order);
@@ -96,10 +99,11 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    @Observed(name = "order.service", contextualName = "mark-as-paid")
+    @Observed(name = ObservationNames.ORDER_SERVICE, contextualName = ObservationContextualNames.SET_PAID)
     public boolean markAsPaid(Long orderId) {
         log.info("Marking order as paid, id: {}", orderId);
-        tagSpan("order.id", orderId);
+
+        spanTagger.tag(ObservationTags.ORDER_ID, orderId);
 
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new EntityNotFoundException("Can't find order by id: " + orderId));
@@ -114,10 +118,11 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    @Observed(name = "order.service", contextualName = "delete-order")
+    @Observed(name = ObservationNames.ORDER_SERVICE, contextualName = ObservationContextualNames.DELETE_BY_ID)
     public boolean deleteById(Long id) {
         log.info("Deleting order with id: {}", id);
-        tagSpan("order.id", id);
+
+        spanTagger.tag(ObservationTags.ORDER_ID, id);
 
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Can't find Order by id: " + id));
@@ -131,9 +136,11 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(readOnly = true)
-    @Observed(name = "order.service", contextualName = "get-order-by-id")
+    @Observed(name = ObservationNames.ORDER_SERVICE, contextualName = ObservationContextualNames.FIND_BY_ID)
     public OrderDto getById(Long id) {
-        tagSpan("order.id", id);
+
+        spanTagger.tag(ObservationTags.ORDER_ID, id);
+
         OrderDto orderDto = orderRepository.findById(id)
                 .map(orderMapper::toDto)
                 .orElseThrow(() -> new EntityNotFoundException("Can't find Order by id: " + id));
@@ -151,7 +158,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(readOnly = true)
-    @Observed(name = "order.service", contextualName = "find-all-orders")
+    @Observed(name = ObservationNames.ORDER_SERVICE, contextualName = ObservationContextualNames.FIND_ALL)
     public List<OrderDto> findAll(Pageable pageable) {
         return orderRepository.findAll(pageable).stream()
                 .map(orderMapper::toDto)
@@ -160,9 +167,12 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(readOnly = true)
-    @Observed(name = "order.service", contextualName = "find-all-by-user-id")
+    @Observed(name = ObservationNames.ORDER_SERVICE,
+            contextualName = ObservationContextualNames.FIND_ALL_BY_USER_ID)
     public List<OrderDto> findAllByUserId(Long userId, Pageable pageable) {
-        tagSpan("user.id", userId);
+
+        spanTagger.tag(ObservationTags.USER_ID, userId);
+
         userService.loadUserById(userId);
         return orderRepository.findAllByUserId(userId, pageable)
                 .map(orderMapper::toDto)
@@ -171,9 +181,12 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(readOnly = true)
-    @Observed(name = "order.service", contextualName = "find-by-order-number")
+    @Observed(name = ObservationNames.ORDER_SERVICE,
+            contextualName = ObservationContextualNames.FIND_BY_NUMBER)
     public Optional<OrderDto> findByOrderNumber(String orderNumber) {
-        tagSpan("order.number", orderNumber);
+
+        spanTagger.tag(ObservationTags.ORDER_NUMBER, orderNumber);
+
         return orderRepository.findOrderByOrderNumber(orderNumber)
                 .map(orderMapper::toDto);
     }
@@ -229,9 +242,4 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-    private void tagSpan(String key, Object value) {
-        if (tracer.currentSpan() != null) {
-            tracer.currentSpan().tag(key, String.valueOf(value));
-        }
-    }
 }

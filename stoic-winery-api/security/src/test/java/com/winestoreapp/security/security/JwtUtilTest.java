@@ -12,9 +12,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class JwtUtilTest {
-    private JwtUtil jwtUtil;
     private final String secret = "super-secret-key-that-is-at-least-32-characters-long";
     private final long expiration = 3600000L;
+    private JwtUtil jwtUtil;
 
     @BeforeEach
     void setUp() {

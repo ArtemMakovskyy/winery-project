@@ -2,11 +2,12 @@ package com.winestoreapp.wineryadminui.core.security;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import io.micrometer.observation.annotation.Observed;
 import jakarta.servlet.http.HttpSession;
-import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import io.micrometer.observation.annotation.Observed;
+
+import java.util.List;
 
 @Slf4j
 @Component
@@ -17,16 +18,15 @@ public class SessionTokenStorage {
     @Observed(name = "session.storage.save")
     public void save(HttpSession session, String token) {
         session.setAttribute(TOKEN, token);
-        log.info("Session started for ID: {}. Token saved.", session.getId());
         try {
             DecodedJWT decodedJWT = JWT.decode(token);
             List<String> roles = decodedJWT.getClaim("roles").asList(String.class);
             if (roles != null) {
                 session.setAttribute(ROLES, roles);
-                log.debug("Extracted roles from JWT: {}", roles);
+                log.debug("Roles saved to session.");
             }
         } catch (Exception e) {
-            log.error("CRITICAL: Failed to decode roles from token for session {}: {}", session.getId(), e.getMessage());
+            log.error("Failed to extract roles from JWT: {}", e.getMessage());
         }
     }
 
@@ -40,7 +40,7 @@ public class SessionTokenStorage {
     }
 
     public void clear(HttpSession session) {
-        log.info("Invalidating session: {}", session.getId());
+        log.info("Session {} invalidated", session.getId());
         session.invalidate();
     }
 }

@@ -1,5 +1,9 @@
 package com.winestoreapp.security.security;
 
+import com.winestoreapp.common.observability.ObservationContextualNames;
+import com.winestoreapp.common.observability.ObservationNames;
+import com.winestoreapp.common.observability.ObservationTags;
+import com.winestoreapp.common.observability.SpanTagger;
 import com.winestoreapp.user.api.dto.UserLoginRequestDto;
 import com.winestoreapp.user.api.dto.UserLoginResponseDto;
 import lombok.RequiredArgsConstructor;
@@ -9,7 +13,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import io.micrometer.observation.annotation.Observed;
-import io.micrometer.tracing.Tracer;
 
 @Service
 @RequiredArgsConstructor
@@ -17,14 +20,14 @@ import io.micrometer.tracing.Tracer;
 public class AuthenticationService {
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
-    private final Tracer tracer;
+    private final SpanTagger spanTagger;
 
-    @Observed(name = "auth.service", contextualName = "authenticate-user")
+    @Observed(name = ObservationNames.AUTH_SERVICE,
+            contextualName = ObservationContextualNames.AUTHENTICATE)
     public UserLoginResponseDto authenticate(UserLoginRequestDto request) {
         log.info("Authentication attempt for email: {}", request.email());
-        if (tracer.currentSpan() != null) {
-            tracer.currentSpan().tag("user.email", request.email());
-        }
+
+        spanTagger.tag(ObservationTags.USER_EMAIL, request.email());
 
         try {
             Authentication authentication = authenticationManager.authenticate(
@@ -40,7 +43,7 @@ public class AuthenticationService {
         }
     }
 
-    @Observed(name = "auth.service", contextualName = "logout-user")
+    @Observed(name = ObservationNames.AUTH_SERVICE, contextualName = ObservationContextualNames.LOGOUT)
     public void logout(String token) {
         if (token != null) {
             log.info("Invalidating token for logout");

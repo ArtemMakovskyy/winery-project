@@ -131,3 +131,16 @@ It provides:
 - **Frontend:** React
     
 - **Testing:** JUnit, Mockito, Testcontainers
+
+---
+👓 **Observability Documentation**
+
+Centralized monitoring and tracing documentation for all services, covering metrics, logs, and distributed tracing tools.
+
+- **Backend API (stoic-winery-api)**  
+    [OBSERVABILITY.md](stoic-winery-api/OBSERVABILITY.md)
+    
+- **Admin Panel UI (winery-admin-ui)**  
+    [OBSERVABILITY.md](winery-admin-ui/OBSERVABILITY.md)
+
+These documents describe the metrics, tags, events, and spans used, along with instructions for integrating Prometheus, Grafana, Loki, and Tempo/Zipkin for each service.

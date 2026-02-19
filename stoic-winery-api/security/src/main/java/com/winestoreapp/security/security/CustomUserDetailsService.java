@@ -1,5 +1,7 @@
 package com.winestoreapp.security.security;
 
+import com.winestoreapp.common.observability.ObservationContextualNames;
+import com.winestoreapp.common.observability.ObservationNames;
 import com.winestoreapp.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +18,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     private final UserRepository userRepository;
 
     @Override
-    @Observed(name = "auth.service", contextualName = "load-user-details")
+    @Observed(name = ObservationNames.AUTH_SERVICE, contextualName = ObservationContextualNames.LOAD_USER_DETAILS)
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return userRepository.findUserByEmail(username)
                 .orElseThrow(() -> {

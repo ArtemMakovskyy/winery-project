@@ -35,7 +35,7 @@ Content-Type: application/json
 }
 
 > {%
-    client.test("Admin login successful", function() {
+    client.test("Admin login successful", function () {
         client.assert(response.status === 200, "Response status is not 200");
     });
     client.global.set("admin_token", response.body.accessToken || response.body.token);
@@ -54,7 +54,7 @@ Content-Type: application/json
 }
 
 > {%
-    client.test("Manager login successful", function() {
+    client.test("Manager login successful", function () {
         client.assert(response.status === 200, "Response status is not 200");
     });
     client.global.set("manager_token", response.body.accessToken || response.body.token);
@@ -116,7 +116,10 @@ Content-Type: application/json
   "phoneNumber": "+380509876543",
   "createShoppingCardDto": {
     "purchaseObjects": [
-      { "wineId": 1, "quantity": 1 }
+      {
+        "wineId": 1,
+        "quantity": 1
+      }
     ]
   },
   "createOrderDeliveryInformationDto": {

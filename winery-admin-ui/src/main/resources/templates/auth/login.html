@@ -15,14 +15,14 @@
         <form method="post" th:action="@{/login}" th:object="${loginDto}">
             <div class="form-group">
                 <label for="email">Email</label>
-                <input id="email" type="email"
-                       th:field="*{email}" required>
+                <input id="email" required
+                       th:field="*{email}" type="email">
             </div>
 
             <div class="form-group">
                 <label for="password">Password</label>
-                <input id="password" type="password"
-                       th:field="*{password}" required>
+                <input id="password" required
+                       th:field="*{password}" type="password">
             </div>
 
             <button type="submit">Login</button>

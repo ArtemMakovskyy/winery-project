@@ -1,5 +1,7 @@
 package com.winestoreapp.security.security;
 
+import com.winestoreapp.common.observability.ObservationContextualNames;
+import com.winestoreapp.common.observability.ObservationNames;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.time.LocalDateTime;
@@ -53,8 +55,11 @@ public class JwtUtil {
                 .compact();
     }
 
-    @Observed(name = "auth.jwt", contextualName = "parse-and-validate-token")
+    @Observed(
+            name = ObservationNames.AUTH_JWT,
+            contextualName = ObservationContextualNames.PARSE_AND_VALIDATE_TOKEN)
     public Claims parseToken(String token) {
+
         if (INVALID_TOKENS.containsKey(token)) {
             log.warn("Attempt to use blacklisted token");
             throw new JwtException("Token is blacklisted");

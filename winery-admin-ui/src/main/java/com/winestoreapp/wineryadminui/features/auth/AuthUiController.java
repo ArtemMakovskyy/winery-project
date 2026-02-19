@@ -1,6 +1,10 @@
 package com.winestoreapp.wineryadminui.features.auth;
 
+import com.winestoreapp.wineryadminui.core.observability.ObservationContextualNames;
+import com.winestoreapp.wineryadminui.core.observability.ObservationNames;
+import com.winestoreapp.wineryadminui.core.observability.ObservationTags;
 import com.winestoreapp.wineryadminui.features.user.dto.UserLoginRequestDto;
+import io.micrometer.observation.annotation.Observed;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +16,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import io.micrometer.observation.annotation.Observed;
 
 @Controller
 @RequiredArgsConstructor
@@ -22,14 +25,19 @@ public class AuthUiController {
     private final AuthService authService;
 
     @GetMapping("/login")
-    @Observed(name = "ui.login.page")
+    @Observed(name = ObservationNames.AUTH_CONTROLLER,
+            contextualName = ObservationContextualNames.LOGIN,
+            lowCardinalityKeyValues = {ObservationTags.FORM, ObservationContextualNames.LOGIN}
+    )
     public String loginPage(Model model) {
         model.addAttribute("loginDto", new UserLoginRequestDto("", ""));
         return "auth/login";
     }
 
     @PostMapping("/login")
-    @Observed(name = "ui.login.submit")
+    @Observed(name = ObservationNames.AUTH_CONTROLLER,
+            contextualName = ObservationContextualNames.LOGIN
+    )
     public String doLogin(
             @Valid @ModelAttribute("loginDto") UserLoginRequestDto dto,
             BindingResult bindingResult,
@@ -52,7 +60,9 @@ public class AuthUiController {
     }
 
     @PostMapping("/logout")
-    @Observed(name = "ui.logout.submit")
+    @Observed(name = ObservationNames.AUTH_CONTROLLER,
+            contextualName = ObservationContextualNames.LOGOUT
+    )
     public String logout(HttpSession session, RedirectAttributes redirectAttributes) {
         try {
             authService.logout(session);

@@ -3,6 +3,7 @@ package com.winestoreapp.order.impl;
 import com.winestoreapp.common.config.CustomMySqlContainer;
 import com.winestoreapp.common.exception.EntityNotFoundException;
 import com.winestoreapp.common.exception.RegistrationException;
+import com.winestoreapp.common.observability.SpanTagger;
 import com.winestoreapp.order.api.dto.CreateOrderDeliveryInformationDto;
 import com.winestoreapp.order.api.dto.CreateOrderDto;
 import com.winestoreapp.order.api.dto.CreatePurchaseObjectDto;
@@ -50,6 +51,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 @ContextConfiguration(initializers = OrderServiceImplTest.Initializer.class)
 @Transactional
 class OrderServiceImplTest {
+    @MockBean
+    private SpanTagger spanTagger;
 
     @Autowired
     private OrderServiceImpl orderService;
@@ -71,22 +74,6 @@ class OrderServiceImplTest {
 
     @MockBean
     private ShoppingCardRepository shoppingCardRepository;
-
-    static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
-        @Override
-        public void initialize(ConfigurableApplicationContext context) {
-            CustomMySqlContainer container = CustomMySqlContainer.getInstance();
-            container.start();
-
-            TestPropertyValues.of(
-                    "spring.datasource.url=" + container.getJdbcUrl(),
-                    "spring.datasource.username=" + container.getUsername(),
-                    "spring.datasource.password=" + container.getPassword(),
-                    "spring.jpa.hibernate.ddl-auto=update",
-                    "telegram.bot.enabled=false"
-            ).applyTo(context.getEnvironment());
-        }
-    }
 
     @Test
     @DisplayName("Create order - should return OrderDto when data is valid")
@@ -247,5 +234,21 @@ class OrderServiceImplTest {
         dto.setCreateShoppingCardDto(card);
         dto.setCreateOrderDeliveryInformationDto(new CreateOrderDeliveryInformationDto());
         return dto;
+    }
+
+    static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+        @Override
+        public void initialize(ConfigurableApplicationContext context) {
+            CustomMySqlContainer container = CustomMySqlContainer.getInstance();
+            container.start();
+
+            TestPropertyValues.of(
+                    "spring.datasource.url=" + container.getJdbcUrl(),
+                    "spring.datasource.username=" + container.getUsername(),
+                    "spring.datasource.password=" + container.getPassword(),
+                    "spring.jpa.hibernate.ddl-auto=update",
+                    "telegram.bot.enabled=false"
+            ).applyTo(context.getEnvironment());
+        }
     }
 }

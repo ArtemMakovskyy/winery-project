@@ -1,18 +1,17 @@
 package com.winestoreapp.wineryadminui.features.order;
 
-import com.winestoreapp.wineryadminui.core.config.FeignConfig;
 import com.winestoreapp.wineryadminui.features.order.dto.OrderDto;
-import java.util.List;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import java.util.List;
+
 @FeignClient(
         name = "orderFeignClient",
-        url = "${api.backend-url}/orders",
-        configuration = FeignConfig.class
+        url = "${api.backend-url}/orders"
 )
 public interface OrderFeignClient {
 

@@ -1,21 +1,21 @@
 package com.winestoreapp.wineryadminui.features.wine;
 
+import com.winestoreapp.wineryadminui.core.observability.ObservationContextualNames;
+import com.winestoreapp.wineryadminui.core.observability.ObservationNames;
+import com.winestoreapp.wineryadminui.core.observability.ObservationTags;
+import com.winestoreapp.wineryadminui.core.observability.SpanTagger;
 import com.winestoreapp.wineryadminui.features.wine.dto.WineCreateRequestDto;
+import feign.FeignException;
+import io.micrometer.observation.annotation.Observed;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import io.micrometer.observation.annotation.Observed;
-import io.micrometer.tracing.Tracer;
 
 @Controller
 @RequestMapping("/ui/wines")
@@ -24,10 +24,12 @@ import io.micrometer.tracing.Tracer;
 public class WineUiController {
 
     private final WineService wineService;
-    private final Tracer tracer;
+    private final SpanTagger spanTagger;
 
     @GetMapping
-    @Observed(name = "ui.wine.list")
+    @Observed(name = ObservationNames.WINE_CONTROLLER,
+            contextualName = ObservationContextualNames.WINE_FORM
+    )
     public String list(Model model) {
         model.addAttribute("wines", wineService.getAll());
         model.addAttribute("wine", new WineCreateRequestDto());
@@ -35,91 +37,54 @@ public class WineUiController {
     }
 
     @PostMapping
-    @Observed(name = "ui.wine.create_submit")
-    public String create(@Valid @ModelAttribute("wine") WineCreateRequestDto createDto,
-                         BindingResult bindingResult,
-                         Model model) {
-
+    @Observed(name = ObservationNames.WINE_CONTROLLER,
+            contextualName = ObservationContextualNames.CREATE,
+            lowCardinalityKeyValues = {ObservationTags.OPERATION, ObservationTags.WRITE}
+    )
+    public String create(
+            @Valid @ModelAttribute("wine") WineCreateRequestDto createDto,
+            BindingResult bindingResult, Model model
+    ) {
         if (bindingResult.hasErrors()) {
-            log.warn("Wine creation validation failed: {} errors", bindingResult.getErrorCount());
-            tagSpan("validation.status", "failed");
             model.addAttribute("wines", wineService.getAll());
             return "wine/wines";
         }
 
-        tagSpan("wine.name", createDto.getName());
-
-        try {
-            wineService.create(createDto);
-            tagSpan("status", "success");
-            return "redirect:/ui/wines";
-        } catch (RuntimeException e) {
-            log.error("Wine creation failed: {}", e.getMessage());
-            model.addAttribute("error", e.getMessage());
-            model.addAttribute("wines", wineService.getAll());
-
-            tagSpan("status", "error");
-            recordError(e);
-
-            return "wine/wines";
-        }
+        spanTagger.tag(ObservationTags.WINE_NAME, createDto.getName());
+        wineService.create(createDto);
+        return "redirect:/ui/wines";
     }
 
     @PostMapping("/delete")
-    @Observed(name = "ui.wine.delete_submit")
+    @Observed(name = ObservationNames.WINE_CONTROLLER,
+            contextualName = ObservationContextualNames.DELETE_BY_ID,
+            lowCardinalityKeyValues = {ObservationTags.OPERATION, ObservationTags.WRITE}
+    )
     public String delete(@RequestParam Long wineId, RedirectAttributes redirectAttributes) {
-        tagSpan("wine.id", wineId);
-
+        spanTagger.tag(ObservationTags.WINE_ID, wineId);
         try {
             wineService.delete(wineId);
-            redirectAttributes.addFlashAttribute("message", "Wine successfully deleted");
-            tagSpan("status", "success");
-        } catch (Exception e) {
-            log.error("Failed to delete wine ID {}: {}", wineId, e.getMessage(), e);
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-
-            tagSpan("status", "error");
-            recordError(e);
+            redirectAttributes.addFlashAttribute("message", "Wine deleted successfully");
+        } catch (FeignException.NotFound e) {
+            redirectAttributes.addFlashAttribute("error", "Wine with ID " + wineId + " not found");
         }
-
         return "redirect:/ui/wines";
     }
 
     @PostMapping("/upload-images-proxy")
-    @Observed(name = "ui.wine.upload_images")
+    @Observed(name = ObservationNames.WINE_CONTROLLER,
+            contextualName = ObservationContextualNames.UPDATE_IMAGE,
+            lowCardinalityKeyValues = {ObservationTags.OPERATION, ObservationTags.WRITE}
+    )
     public String handleImageUpload(
             @RequestParam("wineId") Long id,
             @RequestParam("imageA") MultipartFile imageA,
             @RequestParam("imageB") MultipartFile imageB,
-            RedirectAttributes redirectAttributes) {
-
-        tagSpan("wine.id", id);
-        try {
-            wineService.updateImages(id, imageA, imageB);
-            redirectAttributes.addFlashAttribute("message", "Images updated successfully!");
-            tagSpan("status", "success");
-        } catch (RuntimeException e) {
-            log.error("Upload failed: {}", e.getMessage());
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-
-            tagSpan("status", "error");
-            recordError(e);
-        }
-
+            RedirectAttributes redirectAttributes
+    ) {
+        spanTagger.tag(ObservationTags.WINE_ID, id);
+        wineService.updateImages(id, imageA, imageB);
+        redirectAttributes.addFlashAttribute("message", "Images updated successfully!");
         return "redirect:/ui/wines";
-    }
-
-    private void tagSpan(String key, Object value) {
-        var span = tracer.currentSpan();
-        if (span != null) {
-            span.tag(key, String.valueOf(value));
-        }
-    }
-
-    private void recordError(Throwable e) {
-        var span = tracer.currentSpan();
-        if (span != null) {
-            span.error(e);
-        }
     }
 }

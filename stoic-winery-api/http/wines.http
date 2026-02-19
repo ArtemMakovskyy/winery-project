@@ -2,7 +2,7 @@
 GET {{base_url}}/wines?page=0&size=10&sort=id,desc
 
 ### Get Wine by ID
-GET {{base_url}}/wines/3
+GET {{base_url}}/wines/500
 
 ### Create New Wine (MANAGER only)
 POST {{base_url}}/wines

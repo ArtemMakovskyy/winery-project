@@ -2,6 +2,7 @@ package com.winestoreapp.wine.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.winestoreapp.common.exception.CustomGlobalExceptionHandler;
+import com.winestoreapp.common.observability.SpanTagger;
 import com.winestoreapp.wine.api.WineService;
 import com.winestoreapp.wine.api.dto.WineColor;
 import com.winestoreapp.wine.api.dto.WineCreateRequestDto;
@@ -20,7 +21,6 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
-import io.micrometer.tracing.Tracer;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
@@ -40,7 +40,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 })
 class WineControllerTest {
     @MockBean
-    private Tracer tracer;
+    private SpanTagger spanTagger;
 
     @Autowired
     private MockMvc mockMvc;

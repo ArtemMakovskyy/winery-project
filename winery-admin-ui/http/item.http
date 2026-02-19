@@ -1,0 +1,35 @@
+### Get all items
+GET http://localhost:8081/items
+Accept: application/json
+
+### Get item by ID
+GET http://localhost:8081/items/1
+Accept: application/json
+
+### Create a new item
+POST http://localhost:8081/items
+Content-Type: application/json
+
+{
+  "name": "Chateau Margot",
+  "price": 450.50,
+  "quantity": "Fine red wine from France"
+}
+
+### Get details for a specific metric: HTTP server requests
+GET http://localhost:8081/actuator/metrics/items.retrieved.duration
+
+### Get details for a specific metric: HTTP server requests
+GET http://localhost:8081/actuator/metrics/items.retrieved.total
+
+### Get details for a specific metric: HTTP server requests
+GET http://localhost:8081/actuator/metrics/items.retrieved.total?tag=status:error
+
+### Get details for a specific metric: HTTP server requests
+GET http://localhost:8081/actuator/metrics/items.retrieved.total?tag=status:success
+
+### Get details for a specific metric: HTTP server requests
+GET http://localhost:8081/actuator/metrics/items.created.duration
+
+### Get details for a specific metric: HTTP server requests
+GET http://localhost:8081/actuator/metrics/items.created.total

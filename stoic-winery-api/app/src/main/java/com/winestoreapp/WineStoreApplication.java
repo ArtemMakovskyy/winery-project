@@ -62,7 +62,7 @@ public class WineStoreApplication {
 
         log.info("");
         log.info("📦 Source code:");
-        log.info("   ➜ https://github.com/ArtemMakovskyy/wine-store-app");
+        log.info("   ➜ https://github.com/ArtemMakovskyy/winery-project");
 
         log.info("");
         log.info("🍷 ================================================================");

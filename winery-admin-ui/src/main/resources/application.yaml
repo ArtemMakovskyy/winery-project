@@ -1,6 +1,7 @@
 spring:
   application:
     name: winery-admin-ui
+
   servlet:
     multipart:
       max-file-size: 5MB
@@ -15,9 +16,21 @@ server:
 
 api:
   backend-url: ${BACKEND_URL:http://localhost:8080/api}
+  filter:
+    public:
+      paths:
+        - /actuator
+        - /login
+        - /static
+        - /css
+        - /js
+        - /favicon.ico
 
 feign:
   client:
     config:
       default:
         loggerLevel: full
+  auth:
+    skip-urls:
+      - /health

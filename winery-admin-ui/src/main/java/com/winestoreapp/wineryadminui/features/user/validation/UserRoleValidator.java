@@ -3,6 +3,7 @@ package com.winestoreapp.wineryadminui.features.user.validation;
 import com.winestoreapp.wineryadminui.features.user.dto.RoleName;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
+
 import java.util.Arrays;
 
 public class UserRoleValidator implements ConstraintValidator<ValidUserRole, String> {

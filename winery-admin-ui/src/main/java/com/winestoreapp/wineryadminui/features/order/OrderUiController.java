@@ -1,7 +1,10 @@
 package com.winestoreapp.wineryadminui.features.order;
 
-import com.winestoreapp.wineryadminui.features.order.dto.OrderDto;
-import java.util.List;
+import com.winestoreapp.wineryadminui.core.observability.ObservationContextualNames;
+import com.winestoreapp.wineryadminui.core.observability.ObservationNames;
+import com.winestoreapp.wineryadminui.core.observability.ObservationTags;
+import com.winestoreapp.wineryadminui.core.observability.SpanTagger;
+import io.micrometer.observation.annotation.Observed;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -11,8 +14,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import io.micrometer.observation.annotation.Observed;
-import io.micrometer.tracing.Tracer;
 
 @Controller
 @RequestMapping("/ui/orders")
@@ -21,47 +22,38 @@ import io.micrometer.tracing.Tracer;
 public class OrderUiController {
 
     private final OrderService orderService;
-    private final Tracer tracer;
+    private final SpanTagger spanTagger;
 
     @GetMapping
-    @Observed(name = "ui.order.list")
+    @Observed(name = ObservationNames.ORDER_CONTROLLER,
+            contextualName = ObservationContextualNames.ORDER_FORM
+    )
     public String list(Model model) {
-        List<OrderDto> orders = orderService.getAll();
-        model.addAttribute("orders", orders);
+        model.addAttribute("orders", orderService.getAll());
         return "order/orders";
     }
 
     @PostMapping("/{id}/paid")
-    @Observed(name = "ui.order.set_paid")
+    @Observed(name = ObservationNames.ORDER_CONTROLLER,
+            contextualName = ObservationContextualNames.SET_PAID,
+            lowCardinalityKeyValues = {ObservationTags.OPERATION, ObservationTags.WRITE}
+    )
     public String setPaid(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        tagSpan("order.id", id);
-        try {
-            orderService.setPaidStatus(id);
-            redirectAttributes.addFlashAttribute("message", "Order marked as paid");
-        } catch (Exception e) {
-            log.warn("UI Order Update Failure: ID={}, Error={}", id, e.getMessage());
-            redirectAttributes.addFlashAttribute("error", "Failed to update status: " + e.getMessage());
-        }
+        spanTagger.tag(ObservationTags.ORDER_ID, id);
+        orderService.setPaidStatus(id);
+        redirectAttributes.addFlashAttribute("message", "Order marked as paid");
         return "redirect:/ui/orders";
     }
 
     @PostMapping("/{id}/delete")
-    @Observed(name = "ui.order.delete")
+    @Observed(name = ObservationNames.ORDER_CONTROLLER,
+            contextualName = ObservationContextualNames.DELETE_BY_ID,
+            lowCardinalityKeyValues = {ObservationTags.OPERATION, ObservationTags.WRITE}
+    )
     public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        tagSpan("order.id", id);
-        try {
-            orderService.deleteOrder(id);
-            redirectAttributes.addFlashAttribute("message", "Order deleted");
-        } catch (Exception e) {
-            log.error("UI Order Deletion Failure: ID={}", id, e);
-            redirectAttributes.addFlashAttribute("error", "Failed to delete order");
-        }
+        spanTagger.tag(ObservationTags.ORDER_ID, id);
+        orderService.deleteOrder(id);
+        redirectAttributes.addFlashAttribute("message", "Order deleted");
         return "redirect:/ui/orders";
-    }
-
-    private void tagSpan(String key, Object value) {
-        if (tracer.currentSpan() != null) {
-            tracer.currentSpan().tag(key, String.valueOf(value));
-        }
     }
 }

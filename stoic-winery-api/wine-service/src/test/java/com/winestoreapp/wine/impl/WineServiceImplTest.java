@@ -1,6 +1,8 @@
 package com.winestoreapp.wine.impl;
 
 import com.winestoreapp.common.exception.EntityNotFoundException;
+import com.winestoreapp.common.observability.ObservationTags;
+import com.winestoreapp.common.observability.SpanTagger;
 import com.winestoreapp.wine.api.dto.WineCreateRequestDto;
 import com.winestoreapp.wine.api.dto.WineDto;
 import com.winestoreapp.wine.mapper.WineMapper;
@@ -20,7 +22,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.web.multipart.MultipartFile;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.tracing.Tracer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -36,7 +37,7 @@ import static org.mockito.Mockito.when;
 class WineServiceImplTest {
 
     @Mock
-    private Tracer tracer;
+    private SpanTagger spanTagger;
 
     @Mock
     private MeterRegistry registry;
@@ -85,8 +86,8 @@ class WineServiceImplTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getName()).isEqualTo("Test Wine");
-
         verify(wineRepository).save(wine);
+        verify(spanTagger).tag(ObservationTags.WINE_ID, wine.getId());
     }
 
     @Test
@@ -97,6 +98,8 @@ class WineServiceImplTest {
         WineDto result = wineService.findById(1L);
 
         assertThat(result.getId()).isEqualTo(1L);
+        verify(spanTagger).tag(ObservationTags.WINE_ID, 1L);
+        verify(spanTagger).tag("status", "success");
     }
 
     @Test
@@ -105,6 +108,10 @@ class WineServiceImplTest {
 
         assertThatThrownBy(() -> wineService.findById(1L))
                 .isInstanceOf(EntityNotFoundException.class);
+
+        verify(spanTagger).tag(ObservationTags.WINE_ID, 1L);
+        verify(spanTagger).tag("status", "error");
+        verify(spanTagger).tag(eq("errorMessage"), anyString());
     }
 
     @Test
@@ -122,7 +129,10 @@ class WineServiceImplTest {
     void existsById_ShouldReturnTrue() {
         when(wineRepository.existsById(1L)).thenReturn(true);
 
-        assertThat(wineService.existsById(1L)).isTrue();
+        boolean exists = wineService.existsById(1L);
+
+        assertThat(exists).isTrue();
+        verify(spanTagger).tag(ObservationTags.WINE_ID, 1L);
     }
 
     @Test
@@ -132,6 +142,7 @@ class WineServiceImplTest {
         wineService.deleteById(1L);
 
         verify(wineRepository).delete(wine);
+        verify(spanTagger).tag(ObservationTags.WINE_ID, 1L);
     }
 
     @Test
@@ -141,6 +152,10 @@ class WineServiceImplTest {
         assertThatThrownBy(() -> wineService.deleteById(1L))
                 .isInstanceOf(EntityNotFoundException.class)
                 .hasMessageContaining("Can't find wine by id: 1");
+
+        verify(spanTagger).tag(ObservationTags.WINE_ID, 1L);
+        verify(spanTagger).tag("status", "error");
+        verify(spanTagger).tag(eq("errorMessage"), anyString());
     }
 
     @Test
@@ -151,6 +166,7 @@ class WineServiceImplTest {
 
         assertThat(wine.getAverageRatingScore())
                 .isEqualByComparingTo(BigDecimal.valueOf(4.5));
+        verify(spanTagger).tag(ObservationTags.WINE_SCORE, 4.5);
     }
 
     @Test
@@ -162,10 +178,8 @@ class WineServiceImplTest {
         wine.setPictureLink2("oldB.jpg");
 
         when(wineRepository.findById(1L)).thenReturn(Optional.of(wine));
-        when(imageStorageService.saveImage(any(), eq("a"), eq(imageA)))
-                .thenReturn("newA.jpg");
-        when(imageStorageService.saveImage(any(), eq("b"), eq(imageB)))
-                .thenReturn("newB.jpg");
+        when(imageStorageService.saveImage(any(), eq("a"), eq(imageA))).thenReturn("newA.jpg");
+        when(imageStorageService.saveImage(any(), eq("b"), eq(imageB))).thenReturn("newB.jpg");
         when(wineMapper.toDto(any())).thenReturn(wineDto);
         when(wineRepository.save(any())).thenReturn(wine);
 
@@ -174,5 +188,8 @@ class WineServiceImplTest {
         assertThat(result).isNotNull();
         verify(imageStorageService).deleteImage("oldA.jpg");
         verify(imageStorageService).deleteImage("oldB.jpg");
+        verify(imageStorageService).saveImage(any(), eq("a"), eq(imageA));
+        verify(imageStorageService).saveImage(any(), eq("b"), eq(imageB));
+        verify(spanTagger).tag(ObservationTags.WINE_ID, 1L);
     }
 }

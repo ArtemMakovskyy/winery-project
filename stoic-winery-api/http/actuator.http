@@ -1,8 +1,70 @@
-### Перевірка стану (Health)
+### --- Actuator Discovery and Status ---
+
+### Get the list of all available Actuator endpoints (Discovery)
+GET http://localhost:8080/api/actuator
+
+### todo !!!! Check the general health status of the application
 GET http://localhost:8080/api/actuator/health
 
-### Перевірка метрик Prometheus
+### Get application information (Name, Version, Description)
+GET http://localhost:8080/api/actuator/info
+
+### Get the list of all available metric names
+GET http://localhost:8080/api/actuator/metrics
+
+### Get metrics in Prometheus format for monitoring
 GET http://localhost:8080/api/actuator/prometheus
 
-### Список усіх доступних ендпоїнтів
-GET http://localhost:8080/api/actuator
+
+### --- Logging ---
+
+### Get log details
+GET http://localhost:8080/api/actuator/loggers
+
+### Get log details for WineServiceImpl
+GET http://localhost:8080/api/actuator/loggers/com.winestoreapp.wine.impl.WineServiceImpl
+
+### Post log details for WineServiceImpl
+POST http://localhost:8080/api/actuator/loggers/com.winestoreapp.wine.impl.WineServiceImpl
+Content-Type: application/json
+
+{
+  "configuredLevel": "INFO"
+}
+
+
+### --- Metrics: Wine Services and Controllers ---
+
+### Get details for a specific metric: wine.average.rating
+GET http://localhost:8080/api/actuator/metrics/wine.average.rating
+
+### Get details for a specific metric: wine.average.rating
+GET http://localhost:8080/api/actuator/metrics/wine.average.rating?tag=wine.id:5
+
+### Get details for a specific metric: wine.controller
+GET http://localhost:8080/api/actuator/metrics/wine.controller
+
+### Get details for a specific metric: wine.controller.active
+GET http://localhost:8080/api/actuator/metrics/wine.controller.active
+
+### Get details for a specific metric: wine.service
+GET http://localhost:8080/api/actuator/metrics/wine.service
+
+### Get details for a specific metric: wine.service (method:add)
+GET http://localhost:8080/api/actuator/metrics/wine.service?tag=method:add
+
+### Get details for a specific metric: wine.service (method:add, class:WineServiceImpl)
+GET http://localhost:8080/api/actuator/metrics/wine.service?tag=method:add&
+    tag=class:com.winestoreapp.wine.impl.WineServiceImpl
+
+### Get details for a specific metric: wine.service.active
+GET http://localhost:8080/api/actuator/metrics/wine.service.active
+
+### Get details for a specific metric registry.gauge: wine.total.count
+GET http://localhost:8080/api/actuator/metrics/wine.total.count
+
+
+### --- HTTP Server Requests Metrics ---
+
+### Get details for a specific metric: HTTP server requests
+GET http://localhost:8080/api/actuator/metrics/http.server.requests

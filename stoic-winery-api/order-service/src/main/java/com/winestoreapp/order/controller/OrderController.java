@@ -2,6 +2,10 @@ package com.winestoreapp.order.controller;
 
 import com.winestoreapp.common.dto.ResponseErrorDto;
 import com.winestoreapp.common.exception.EntityNotFoundException;
+import com.winestoreapp.common.observability.ObservationContextualNames;
+import com.winestoreapp.common.observability.ObservationNames;
+import com.winestoreapp.common.observability.ObservationTags;
+import com.winestoreapp.common.observability.SpanTagger;
 import com.winestoreapp.order.api.OrderService;
 import com.winestoreapp.order.api.dto.CreateOrderDto;
 import com.winestoreapp.order.api.dto.OrderDto;
@@ -24,7 +28,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import io.micrometer.observation.annotation.Observed;
-import io.micrometer.tracing.Tracer;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -42,7 +45,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Slf4j
 public class OrderController {
     private final OrderService orderService;
-    private final Tracer tracer;
+    private final SpanTagger spanTagger;
 
     @Operation(summary = "Find all orders",
             description = """
@@ -55,7 +58,11 @@ public class OrderController {
                             array = @ArraySchema(schema = @Schema(implementation = OrderDto.class))))
     })
     @GetMapping
-    @Observed(name = "order.controller", contextualName = "find-all-orders")
+    @Observed(
+            name = ObservationNames.ORDER_CONTROLLER,
+            contextualName = ObservationContextualNames.FIND_ALL,
+            lowCardinalityKeyValues = {ObservationTags.OPERATION, ObservationTags.READ}
+    )
     public ResponseEntity<List<OrderDto>> findAllOrders(Pageable pageable) {
         log.info("REST request to find all orders with pagination: {}", pageable);
         return ResponseEntity.ok(orderService.findAll(pageable));
@@ -72,13 +79,17 @@ public class OrderController {
                             array = @ArraySchema(schema = @Schema(implementation = OrderDto.class))))
     })
     @GetMapping("/users/{userId}")
-    @Observed(name = "order.controller", contextualName = "find-orders-by-user")
+    @Observed(
+            name = ObservationNames.ORDER_CONTROLLER,
+            contextualName = ObservationContextualNames.FIND_ALL_BY_USER_ID,
+            lowCardinalityKeyValues = {ObservationTags.OPERATION, ObservationTags.READ}
+    )
     public ResponseEntity<List<OrderDto>> findAllOrdersByUserId(
             @PathVariable("userId") Long userId,
             Pageable pageable
     ) {
         log.info("REST request to find orders for userId: {}", userId);
-        tagSpan("user.id", userId);
+        spanTagger.tag(ObservationTags.USER_ID, userId);
         return ResponseEntity.ok(orderService.findAllByUserId(userId, pageable));
     }
 
@@ -100,11 +111,15 @@ public class OrderController {
                             schema = @Schema(implementation = ResponseErrorDto.class)))
     })
     @PostMapping
-    @Observed(name = "order.controller", contextualName = "add-order")
+    @Observed(
+            name = ObservationNames.ORDER_CONTROLLER,
+            contextualName = ObservationContextualNames.CREATE,
+            lowCardinalityKeyValues = {ObservationTags.OPERATION, ObservationTags.WRITE}
+    )
     public ResponseEntity<OrderDto> addOrder(@RequestBody @Valid CreateOrderDto dto) {
         log.info("REST request to add new order for customer: {}", dto.getUserFirstAndLastName());
         OrderDto responseDto = orderService.createOrder(dto);
-        tagSpan("order.id", responseDto.getId());
+        spanTagger.tag(ObservationTags.ORDER_ID, responseDto.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 
@@ -119,10 +134,14 @@ public class OrderController {
                             schema = @Schema(implementation = ResponseErrorDto.class)))
     })
     @GetMapping("/{id}")
-    @Observed(name = "order.controller", contextualName = "get-order-by-id")
+    @Observed(
+            name = ObservationNames.ORDER_CONTROLLER,
+            contextualName = ObservationContextualNames.FIND_BY_ID,
+            lowCardinalityKeyValues = {ObservationTags.OPERATION, ObservationTags.READ}
+    )
     public ResponseEntity<OrderDto> getOrderById(@PathVariable("id") Long id) {
         log.info("REST request to get order by id: {}", id);
-        tagSpan("order.id", id);
+        spanTagger.tag(ObservationTags.ORDER_ID, id);
         return ResponseEntity.ok(orderService.getById(id));
     }
 
@@ -141,10 +160,14 @@ public class OrderController {
     })
     @PreAuthorize("hasRole('MANAGER')")
     @PatchMapping("/{id}/paid")
-    @Observed(name = "order.controller", contextualName = "set-paid-status")
+    @Observed(
+            name = ObservationNames.ORDER_CONTROLLER,
+            contextualName = ObservationContextualNames.SET_PAID,
+            lowCardinalityKeyValues = {ObservationTags.OPERATION, ObservationTags.WRITE}
+    )
     public ResponseEntity<Boolean> setPaidStatus(@PathVariable("id") Long id) {
         log.info("REST request to mark order {} as PAID", id);
-        tagSpan("order.id", id);
+        spanTagger.tag(ObservationTags.ORDER_ID, id);
 
         boolean updated = orderService.markAsPaid(id);
         if (!updated) {
@@ -167,10 +190,14 @@ public class OrderController {
     })
     @PreAuthorize("hasRole('MANAGER')")
     @DeleteMapping("/{id}")
-    @Observed(name = "order.controller", contextualName = "delete-order")
+    @Observed(
+            name = ObservationNames.ORDER_CONTROLLER,
+            contextualName = ObservationContextualNames.DELETE_BY_ID,
+            lowCardinalityKeyValues = {ObservationTags.OPERATION, ObservationTags.WRITE}
+    )
     public ResponseEntity<Void> deleteOrderById(@PathVariable("id") Long id) {
         log.info("REST request to delete order by id: {}", id);
-        tagSpan("order.id", id);
+        spanTagger.tag(ObservationTags.ORDER_ID, id);
 
         boolean deleted = orderService.deleteById(id);
         if (!deleted) {
@@ -180,9 +207,4 @@ public class OrderController {
         return ResponseEntity.noContent().build();
     }
 
-    private void tagSpan(String key, Object value) {
-        if (tracer.currentSpan() != null) {
-            tracer.currentSpan().tag(key, String.valueOf(value));
-        }
-    }
 }

@@ -2,6 +2,10 @@ package com.winestoreapp.review.impl;
 
 import com.winestoreapp.common.exception.EntityNotFoundException;
 import com.winestoreapp.common.exception.RegistrationException;
+import com.winestoreapp.common.observability.ObservationContextualNames;
+import com.winestoreapp.common.observability.ObservationNames;
+import com.winestoreapp.common.observability.ObservationTags;
+import com.winestoreapp.common.observability.SpanTagger;
 import com.winestoreapp.review.api.ReviewService;
 import com.winestoreapp.review.api.dto.CreateReviewDto;
 import com.winestoreapp.review.api.dto.ReviewWithUserDescriptionDto;
@@ -21,7 +25,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import io.micrometer.observation.annotation.Observed;
-import io.micrometer.tracing.Tracer;
 
 @Service
 @RequiredArgsConstructor
@@ -31,16 +34,17 @@ public class ReviewServiceImpl implements ReviewService {
     private final ReviewMapper reviewMapper;
     private final UserService userService;
     private final WineService wineService;
-    private final Tracer tracer;
+    private final SpanTagger spanTagger;
 
     @Value("${limiter.number.of.recorded.ratings}")
     private int limiter;
 
     @Override
     @Transactional(readOnly = true)
-    @Observed(name = "review.service", contextualName = "find-all-reviews-by-wine-id")
+    @Observed(name = ObservationNames.REVIEW_SERVICE,
+            contextualName = ObservationContextualNames.FIND_ALL_BY_WINE_ID)
     public List<ReviewWithUserDescriptionDto> findAllByWineId(Long wineId, Pageable pageable) {
-        tagSpan("wine.id", wineId);
+        spanTagger.tag(ObservationTags.WINE_ID, wineId);
 
         List<Review> reviews = reviewRepository.findAllByWineId(wineId, pageable).getContent();
         Map<Long, UserResponseDto> usersCache = new HashMap<>();
@@ -58,10 +62,11 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     @Transactional
-    @Observed(name = "review.service", contextualName = "add-new-review")
+    @Observed(name = ObservationNames.REVIEW_SERVICE,
+            contextualName = ObservationContextualNames.CREATE)
     public ReviewWithUserDescriptionDto addReview(CreateReviewDto dto) {
         log.info("Adding new review for wineId: {}", dto.getWineId());
-        tagSpan("wine.id", dto.getWineId());
+        spanTagger.tag(ObservationTags.WINE_ID, dto.getWineId());
 
         String[] nameParts = dto.getUserFirstAndLastName().strip().split("\\s+");
         if (nameParts.length != 2) {
@@ -75,7 +80,7 @@ public class ReviewServiceImpl implements ReviewService {
         }
 
         UserResponseDto userDto = userService.getOrCreateByFirstAndLastName(nameParts[0], nameParts[1]);
-        tagSpan("user.id", userDto.getId());
+        spanTagger.tag(ObservationTags.USER_ID, userDto.getId());
 
         removeOutdatedReviews(dto.getWineId(), userDto.getId());
 
@@ -116,9 +121,4 @@ public class ReviewServiceImpl implements ReviewService {
         log.debug("Updated average rating for wine {}: {}", wineId, avg);
     }
 
-    private void tagSpan(String key, Object value) {
-        if (tracer.currentSpan() != null) {
-            tracer.currentSpan().tag(key, String.valueOf(value));
-        }
-    }
 }

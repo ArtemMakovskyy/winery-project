@@ -11,10 +11,10 @@
 <form method="post" th:action="@{/ui/users/role}" th:object="${form}">
     <div>
         <label for="userId">User ID</label>
-        <input id="userId" type="number" required th:field="*{userId}"/>
+        <input id="userId" required th:field="*{userId}" type="number"/>
         <span class="error-message"
-              th:if="${#fields.hasErrors('userId')}"
-              th:errors="*{userId}"></span>
+              th:errors="*{userId}"
+              th:if="${#fields.hasErrors('userId')}"></span>
     </div>
 
     <div>
@@ -26,8 +26,8 @@
             <option value="ROLE_ADMIN">ADMIN</option>
         </select>
         <span class="error-message"
-              th:if="${#fields.hasErrors('role')}"
-              th:errors="*{role}"></span>
+              th:errors="*{role}"
+              th:if="${#fields.hasErrors('role')}"></span>
     </div>
 
     <button type="submit">Update Role</button>
