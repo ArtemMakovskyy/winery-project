@@ -1,18 +1,17 @@
 package com.winestoreapp.security.security;
 
-import com.winestoreapp.common.observability.ObservationContextualNames;
 import com.winestoreapp.common.observability.ObservationNames;
 import com.winestoreapp.common.observability.ObservationTags;
 import com.winestoreapp.common.observability.SpanTagger;
 import com.winestoreapp.user.api.dto.UserLoginRequestDto;
 import com.winestoreapp.user.api.dto.UserLoginResponseDto;
+import io.micrometer.observation.annotation.Observed;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
-import io.micrometer.observation.annotation.Observed;
 
 @Service
 @RequiredArgsConstructor
@@ -22,8 +21,7 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final SpanTagger spanTagger;
 
-    @Observed(name = ObservationNames.AUTH_SERVICE,
-            contextualName = ObservationContextualNames.AUTHENTICATE)
+    @Observed(name = ObservationNames.AUTH_AUTHENTICATE)
     public UserLoginResponseDto authenticate(UserLoginRequestDto request) {
         log.info("Authentication attempt for email: {}", request.email());
 
@@ -43,7 +41,7 @@ public class AuthenticationService {
         }
     }
 
-    @Observed(name = ObservationNames.AUTH_SERVICE, contextualName = ObservationContextualNames.LOGOUT)
+    @Observed(name = ObservationNames.AUTH_LOGOUT)
     public void logout(String token) {
         if (token != null) {
             log.info("Invalidating token for logout");

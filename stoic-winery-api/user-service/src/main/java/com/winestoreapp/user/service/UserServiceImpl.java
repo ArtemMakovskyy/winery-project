@@ -2,7 +2,6 @@ package com.winestoreapp.user.service;
 
 import com.winestoreapp.common.exception.EntityNotFoundException;
 import com.winestoreapp.common.exception.RegistrationException;
-import com.winestoreapp.common.observability.ObservationContextualNames;
 import com.winestoreapp.common.observability.ObservationNames;
 import com.winestoreapp.common.observability.ObservationTags;
 import com.winestoreapp.common.observability.SpanTagger;
@@ -15,6 +14,7 @@ import com.winestoreapp.user.model.Role;
 import com.winestoreapp.user.model.User;
 import com.winestoreapp.user.repository.RoleRepository;
 import com.winestoreapp.user.repository.UserRepository;
+import io.micrometer.observation.annotation.Observed;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -24,7 +24,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import io.micrometer.observation.annotation.Observed;
 
 @Service
 @RequiredArgsConstructor
@@ -40,7 +39,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    @Observed(name = ObservationNames.USER_SERVICE, contextualName = ObservationContextualNames.FIND_BY_EMAIL)
+    @Observed(name = ObservationNames.USER_FIND_BY_EMAIL)
     public UserResponseDto findUserByEmail(String email) {
         return userRepository.findUserByEmail(email)
                 .map(userMapper::toDto)
@@ -49,7 +48,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    @Observed(name = ObservationNames.USER_SERVICE, contextualName = ObservationContextualNames.FIND_BY_ID)
+    @Observed(name = ObservationNames.USER_FIND_BY_ID)
     public UserResponseDto loadUserById(Long id) {
 
         spanTagger.tag(ObservationTags.USER_ID, id);
@@ -61,7 +60,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    @Observed(name = ObservationNames.USER_SERVICE, contextualName = ObservationContextualNames.GET_OR_CREATE_BY_NAME)
+    @Observed(name = ObservationNames.USER_GET_OR_CREATE)
     public UserResponseDto getOrCreateByFirstAndLastName(String firstName, String lastName) {
         User user = userRepository.findFirstByFirstNameAndLastName(firstName, lastName)
                 .orElseGet(() -> {
@@ -76,7 +75,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    @Observed(name = ObservationNames.USER_SERVICE, contextualName = ObservationContextualNames.SYNC_DATA)
+    @Observed(name = ObservationNames.USER_SYNC_DATA)
     public UserResponseDto getOrUpdateOrCreateUser(String email, String fName, String lName, String phone) {
         User user = userRepository.findUserByEmail(email)
                 .or(() -> userRepository.findFirstByFirstNameAndLastName(fName, lName))
@@ -100,7 +99,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    @Observed(name = ObservationNames.USER_SERVICE, contextualName = ObservationContextualNames.FIND_BY_ROLE)
+    @Observed(name = ObservationNames.USER_FIND_BY_ROLE)
     public List<UserResponseDto> findUsersByRole(final RoleName role) {
 
         spanTagger.tag(ObservationTags.USER_ROLE, role.name());
@@ -112,7 +111,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    @Observed(name = ObservationNames.USER_SERVICE, contextualName = ObservationContextualNames.FIND_BY_TG_ID)
+    @Observed(name = ObservationNames.USER_FIND_BY_TG_ID)
     public Optional<UserResponseDto> findUserByTelegramChatId(final Long chatId) {
         return userRepository.findUserByTelegramChatId(chatId)
                 .map(userMapper::toDto);
@@ -120,7 +119,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    @Observed(name = ObservationNames.USER_SERVICE, contextualName = ObservationContextualNames.UPDATE_TG_ID)
+    @Observed(name = ObservationNames.USER_UPDATE_TG_ID)
     public void updateTelegramChatId(final Long userId, final Long chatId) {
         log.info("Updating telegram chatId for userId: {}", userId);
 
@@ -134,7 +133,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    @Observed(name = ObservationNames.USER_SERVICE, contextualName = ObservationContextualNames.REGISTER)
+    @Observed(name = ObservationNames.USER_REGISTER)
     public UserResponseDto register(UserRegistrationRequestDto request) throws RegistrationException {
         if (userRepository.findUserByEmail(request.getEmail()).isPresent()) {
             log.warn("Registration failed: email {} already exists", request.getEmail());
@@ -163,7 +162,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    @Observed(name = ObservationNames.USER_SERVICE, contextualName = ObservationContextualNames.UPDATE_ROLE)
+    @Observed(name = ObservationNames.USER_UPDATE_ROLE)
     public UserResponseDto updateRole(Long userId, String roleNameStr) {
         log.info("Attempting to update role for userId: {} to {}", userId, roleNameStr);
 

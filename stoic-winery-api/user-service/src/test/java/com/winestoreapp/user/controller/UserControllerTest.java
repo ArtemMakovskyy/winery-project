@@ -19,6 +19,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 
+
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -66,7 +67,7 @@ class UserControllerTest {
         when(userService.updateRole(eq(1L), eq("ROLE_MANAGER"))).thenReturn(userResponseDto);
 
         mockMvc.perform(put("/users/1/role")
-                        .with(csrf()) // Добавлено, так как PUT требует CSRF в защищенных тестах
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateDto)))
                 .andExpect(status().isOk())

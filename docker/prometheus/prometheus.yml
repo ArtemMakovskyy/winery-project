@@ -8,10 +8,10 @@ scrape_configs:
     static_configs:
       - targets: ['api-backend:8080']
         labels:
-          application: 'wine-store (docker)'
-      - targets: ['host.docker.internal:8080']
-        labels:
-          application: 'wine-store (intellij)'
+          application: 'wine-store'
+#      - targets: ['host.docker.internal:8080']
+#        labels:
+#          application: 'wine-store (intellij)'
 
   - job_name: 'winery-admin-ui'
     metrics_path: '/actuator/prometheus'
@@ -19,3 +19,6 @@ scrape_configs:
       - targets: ['winery-admin-ui:8081']
         labels:
           application: 'admin-ui'
+
+rule_files:
+  - "/etc/prometheus/rules.yml"

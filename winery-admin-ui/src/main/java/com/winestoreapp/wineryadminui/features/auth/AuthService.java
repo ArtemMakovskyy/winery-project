@@ -1,6 +1,5 @@
 package com.winestoreapp.wineryadminui.features.auth;
 
-import com.winestoreapp.wineryadminui.core.observability.ObservationContextualNames;
 import com.winestoreapp.wineryadminui.core.observability.ObservationNames;
 import com.winestoreapp.wineryadminui.core.observability.ObservationTags;
 import com.winestoreapp.wineryadminui.core.observability.SpanTagger;
@@ -22,8 +21,7 @@ public class AuthService {
     private final SessionTokenStorage storage;
     private final SpanTagger spanTagger;
 
-    @Observed(name = ObservationNames.AUTH_SERVICE,
-            contextualName = ObservationContextualNames.LOGIN,
+    @Observed(name = ObservationNames.AUTH_LOGIN,
             lowCardinalityKeyValues = {ObservationTags.OPERATION, ObservationTags.READ})
     public void login(UserLoginRequestDto dto, HttpSession session) {
         UserLoginResponseDto response = authFeignClient.login(dto);
@@ -33,8 +31,7 @@ public class AuthService {
         log.info("User successfully logged in");
     }
 
-    @Observed(name = ObservationNames.AUTH_SERVICE,
-            contextualName = ObservationContextualNames.LOGOUT)
+    @Observed(name = ObservationNames.AUTH_LOGOUT)
     public void logout(HttpSession session) {
         storage.clear(session);
         spanTagger.tag(ObservationTags.AUTH_STAUS, "logout_success");

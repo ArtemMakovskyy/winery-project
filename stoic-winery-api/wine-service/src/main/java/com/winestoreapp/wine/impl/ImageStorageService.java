@@ -1,9 +1,9 @@
 package com.winestoreapp.wine.impl;
 
-import com.winestoreapp.common.observability.ObservationContextualNames;
 import com.winestoreapp.common.observability.ObservationNames;
 import com.winestoreapp.common.observability.ObservationTags;
 import com.winestoreapp.common.observability.SpanTagger;
+import io.micrometer.observation.annotation.Observed;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -15,7 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import io.micrometer.observation.annotation.Observed;
 
 @Service
 @Slf4j
@@ -26,7 +25,7 @@ public class ImageStorageService {
     @Value("${image.save.path}")
     private String imageSavePath;
 
-    @Observed(name = ObservationNames.IMAGE_STORAGE, contextualName = ObservationContextualNames.UPDATE_BY_NAME)
+    @Observed(name = ObservationNames.IMAGE_UPDATE)
     public String saveImage(String originalName, String suffix, MultipartFile file) {
         try {
             Path uploadPath = Path.of(imageSavePath);
@@ -49,7 +48,7 @@ public class ImageStorageService {
         }
     }
 
-    @Observed(name = ObservationNames.IMAGE_STORAGE, contextualName = ObservationContextualNames.DELETE_BY_ID)
+    @Observed(name = ObservationNames.IMAGE_DELETE)
     public void deleteImage(String pictureLink) {
         if (pictureLink == null || pictureLink.isEmpty()) return;
 

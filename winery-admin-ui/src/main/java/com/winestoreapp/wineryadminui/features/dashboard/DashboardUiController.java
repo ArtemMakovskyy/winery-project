@@ -1,5 +1,6 @@
 package com.winestoreapp.wineryadminui.features.dashboard;
 
+import com.winestoreapp.wineryadminui.core.observability.ObservationNames;
 import com.winestoreapp.wineryadminui.core.observability.SpanTagger;
 import io.micrometer.observation.annotation.Observed;
 import lombok.RequiredArgsConstructor;
@@ -14,10 +15,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequiredArgsConstructor
 public class DashboardUiController {
 
-    private final SpanTagger spanTagger; // Вместо Tracer
+    private final SpanTagger spanTagger;
 
     @GetMapping("/dashboard")
-    @Observed(name = "ui.dashboard.view")
+    @Observed(name = ObservationNames.UI_DASHBOARD_VIEW)
     public String dashboard() {
         log.debug("Accessing dashboard page");
         spanTagger.tag("ui.page", "dashboard");

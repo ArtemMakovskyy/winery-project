@@ -1,8 +1,8 @@
 package com.winestoreapp.common.observability;
 
+import io.micrometer.tracing.Tracer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import io.micrometer.tracing.Tracer;
 
 @Component
 @RequiredArgsConstructor

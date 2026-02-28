@@ -8,6 +8,8 @@ import com.winestoreapp.wine.api.dto.WineDto;
 import com.winestoreapp.wine.mapper.WineMapper;
 import com.winestoreapp.wine.model.Wine;
 import com.winestoreapp.wine.repository.WineRepository;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
@@ -20,8 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.web.multipart.MultipartFile;
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.MeterRegistry;
+
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -111,7 +112,7 @@ class WineServiceImplTest {
 
         verify(spanTagger).tag(ObservationTags.WINE_ID, 1L);
         verify(spanTagger).tag("status", "error");
-        verify(spanTagger).tag(eq("errorMessage"), anyString());
+        verify(spanTagger).tag(eq(ObservationTags.ERROR_MESSAGE), anyString());
     }
 
     @Test
@@ -155,7 +156,7 @@ class WineServiceImplTest {
 
         verify(spanTagger).tag(ObservationTags.WINE_ID, 1L);
         verify(spanTagger).tag("status", "error");
-        verify(spanTagger).tag(eq("errorMessage"), anyString());
+        verify(spanTagger).tag(eq(ObservationTags.ERROR_MESSAGE), anyString());
     }
 
     @Test

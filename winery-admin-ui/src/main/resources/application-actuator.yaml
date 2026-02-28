@@ -2,7 +2,6 @@ management:
   info:
     env:
       enabled: true
-
     git:
       enabled: true
       mode: full
@@ -10,6 +9,11 @@ management:
   observations:
     key-values:
       application: winery-admin-ui
+    http:
+      server:
+        enabled: true
+      client:
+        enabled: true
 
   tracing:
     sampling:
@@ -39,6 +43,7 @@ management:
       percentiles-histogram:
         all: true
         http.server.requests: true
+        http.client.requests: true
 
 loki:
   url: ${LOKI_URL:http://localhost:3100/loki/api/v1/push}
@@ -54,4 +59,3 @@ info:
     name: "winery-admin-ui"
     version: "0.0.1-SNAPSHOT"
     description: "BFF (Backend-for-Frontend) application for wine store administration. Provides a thin-client UI for managers and administrators using Spring MVC, Thymeleaf, and OpenFeign."
-

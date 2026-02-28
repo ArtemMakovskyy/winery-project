@@ -1,7 +1,6 @@
 package com.winestoreapp.telegram.impl;
 
 import com.winestoreapp.common.exception.EntityNotFoundException;
-import com.winestoreapp.common.observability.ObservationContextualNames;
 import com.winestoreapp.common.observability.ObservationNames;
 import com.winestoreapp.order.api.OrderService;
 import com.winestoreapp.order.api.dto.OrderDto;
@@ -10,6 +9,8 @@ import com.winestoreapp.telegram.api.NotificationService;
 import com.winestoreapp.user.api.UserService;
 import com.winestoreapp.user.api.dto.RoleName;
 import com.winestoreapp.user.api.dto.UserResponseDto;
+import io.micrometer.observation.annotation.Observed;
+import io.micrometer.tracing.Tracer;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,8 +28,6 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import io.micrometer.observation.annotation.Observed;
-import io.micrometer.tracing.Tracer;
 
 @Slf4j
 @Component
@@ -83,7 +82,7 @@ public class TelegramBotNotificationService
     }
 
     @Override
-    @Observed(name = ObservationNames.TELEGRAM_BOT, contextualName = ObservationContextualNames.RECEIVE_UPDATE)
+    @Observed(name = ObservationNames.TELEGRAM_RECEIVE_UPDATE)
     public void onUpdateReceived(Update update) {
         if (update.hasMessage() && update.getMessage().hasText()) {
             String textFromUSer = update.getMessage().getText();
@@ -101,20 +100,13 @@ public class TelegramBotNotificationService
                     executingTheStartCommand(
                             userChatId, update.getMessage().getChat().getFirstName());
                 }
-                case "/contacts", "Contacts" ->
-                        executingTheContactsCommand(userChatId);
-                case "/wine_selection", "Select wine by color" ->
-                        executingTheWineColorSelectionCommand(userChatId);
-                case "/red_wine", "Red wine" ->
-                        executingRedWineCommand(userChatId);
-                case "/white_wine", "White wine" ->
-                        executingWhiteWineCommand(userChatId);
-                case "/dry_red_whine", "Dry red whine" ->
-                        executingGetDryRedWineLinkCommand(userChatId);
-                case "/semi-dry_red_whine", "Semi-dry red whine" ->
-                        executingGetSemiDryRedWhineLinkCommand(userChatId);
-                case "/dry_white_whine", "Dry white whine" ->
-                        executingGetDryWhiteWhineLinkCommand(userChatId);
+                case "/contacts", "Contacts" -> executingTheContactsCommand(userChatId);
+                case "/wine_selection", "Select wine by color" -> executingTheWineColorSelectionCommand(userChatId);
+                case "/red_wine", "Red wine" -> executingRedWineCommand(userChatId);
+                case "/white_wine", "White wine" -> executingWhiteWineCommand(userChatId);
+                case "/dry_red_whine", "Dry red whine" -> executingGetDryRedWineLinkCommand(userChatId);
+                case "/semi-dry_red_whine", "Semi-dry red whine" -> executingGetSemiDryRedWhineLinkCommand(userChatId);
+                case "/dry_white_whine", "Dry white whine" -> executingGetDryWhiteWhineLinkCommand(userChatId);
                 case "/semi-dry_white_whine", "Semi-dry white whine" ->
                         executingGetSemiDryWhiteWhineLinkCommand(userChatId);
                 default -> processTextMessage(userChatId, textFromUSer, update);
@@ -123,7 +115,7 @@ public class TelegramBotNotificationService
     }
 
     @Override
-    @Observed(name = ObservationNames.TELEGRAM_BOT, contextualName = ObservationContextualNames.SEND_NOTIFICATION)
+    @Observed(name = ObservationNames.TELEGRAM_SEND_NOTIFICATION)
     public boolean sendNotification(String message, Long recipientId) {
         if (recipientId != null) {
             sendInnerMessageToChat(recipientId, message, getMainButtons());
@@ -174,7 +166,7 @@ public class TelegramBotNotificationService
         return ". \nLink to user: @" + update.getMessage().getFrom().getUserName();
     }
 
-    @Observed(name = ObservationNames.TELEGRAM_BOT, contextualName = ObservationContextualNames.REGISTER_BY_ORDER)
+    @Observed(name = ObservationNames.TELEGRAM_REGISTER_BY_ORDER)
     private void userRegisterByOrderNumber(Long chatId, String orderNumber) {
         log.info("Process telegram user registration via order: {}", orderNumber);
 
@@ -314,11 +306,10 @@ public class TelegramBotNotificationService
             log.debug("Message sent to chatId: {}", chatId);
         } catch (TelegramApiException e) {
             log.error("Failed to send Telegram message to {}: {}", chatId, e.getMessage());
-//            throw new RuntimeException(e);
         }
     }
 
-    @Observed(name = ObservationNames.TELEGRAM_BOT, contextualName = ObservationContextualNames.SEND_PICTURE)
+    @Observed(name = ObservationNames.TELEGRAM_SEND_PICTURE)
     private void sendPicture(Long chatId) {
         try {
             File file = new File(PATH_TO_IMAGE);

@@ -1,13 +1,19 @@
 package com.winestoreapp.user.controller;
 
 import com.winestoreapp.common.dto.ResponseErrorDto;
-import com.winestoreapp.common.observability.ObservationContextualNames;
 import com.winestoreapp.common.observability.ObservationNames;
 import com.winestoreapp.common.observability.ObservationTags;
 import com.winestoreapp.common.observability.SpanTagger;
 import com.winestoreapp.user.api.UserService;
 import com.winestoreapp.user.api.dto.UpdateUserRoleDto;
 import com.winestoreapp.user.api.dto.UserResponseDto;
+import io.micrometer.observation.annotation.Observed;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,13 +26,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-import io.micrometer.observation.annotation.Observed;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Tag(name = "User management", description = "Endpoints for managing users")
 @RestController
@@ -59,8 +58,7 @@ public class UserController {
     })
     @PutMapping("/{id}/role")
     @PreAuthorize("hasRole('ADMIN')")
-    @Observed(name = ObservationNames.USER_CONTROLLER,
-            contextualName = ObservationContextualNames.UPDATE_ROLE,
+    @Observed(name = ObservationNames.USER_UPDATE_ROLE,
             lowCardinalityKeyValues = {ObservationTags.OPERATION, ObservationTags.WRITE}
     )
     public ResponseEntity<UserResponseDto> updateUserRole(

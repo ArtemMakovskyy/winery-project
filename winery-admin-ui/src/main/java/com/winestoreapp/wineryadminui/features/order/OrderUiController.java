@@ -1,6 +1,5 @@
 package com.winestoreapp.wineryadminui.features.order;
 
-import com.winestoreapp.wineryadminui.core.observability.ObservationContextualNames;
 import com.winestoreapp.wineryadminui.core.observability.ObservationNames;
 import com.winestoreapp.wineryadminui.core.observability.ObservationTags;
 import com.winestoreapp.wineryadminui.core.observability.SpanTagger;
@@ -25,17 +24,14 @@ public class OrderUiController {
     private final SpanTagger spanTagger;
 
     @GetMapping
-    @Observed(name = ObservationNames.ORDER_CONTROLLER,
-            contextualName = ObservationContextualNames.ORDER_FORM
-    )
+    @Observed(name = ObservationNames.UI_ORDER_FORM)
     public String list(Model model) {
         model.addAttribute("orders", orderService.getAll());
         return "order/orders";
     }
 
     @PostMapping("/{id}/paid")
-    @Observed(name = ObservationNames.ORDER_CONTROLLER,
-            contextualName = ObservationContextualNames.SET_PAID,
+    @Observed(name = ObservationNames.ORDER_SET_PAID,
             lowCardinalityKeyValues = {ObservationTags.OPERATION, ObservationTags.WRITE}
     )
     public String setPaid(@PathVariable Long id, RedirectAttributes redirectAttributes) {
@@ -46,8 +42,7 @@ public class OrderUiController {
     }
 
     @PostMapping("/{id}/delete")
-    @Observed(name = ObservationNames.ORDER_CONTROLLER,
-            contextualName = ObservationContextualNames.DELETE_BY_ID,
+    @Observed(name = ObservationNames.ORDER_DELETE,
             lowCardinalityKeyValues = {ObservationTags.OPERATION, ObservationTags.WRITE}
     )
     public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) {

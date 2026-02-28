@@ -1,7 +1,6 @@
 package com.winestoreapp.security.controller;
 
 import com.winestoreapp.common.dto.ResponseErrorDto;
-import com.winestoreapp.common.observability.ObservationContextualNames;
 import com.winestoreapp.common.observability.ObservationNames;
 import com.winestoreapp.common.observability.ObservationTags;
 import com.winestoreapp.common.observability.SpanTagger;
@@ -11,6 +10,13 @@ import com.winestoreapp.user.api.dto.UserLoginRequestDto;
 import com.winestoreapp.user.api.dto.UserLoginResponseDto;
 import com.winestoreapp.user.api.dto.UserRegistrationRequestDto;
 import com.winestoreapp.user.api.dto.UserResponseDto;
+import io.micrometer.observation.annotation.Observed;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,13 +29,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-import io.micrometer.observation.annotation.Observed;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
 
 
 @Tag(name = "Management authentication", description = "Endpoints to login and register")
@@ -56,8 +55,7 @@ public class AuthenticationController {
     })
     @PostMapping("/login")
     @Observed(
-            name = ObservationNames.AUTH_CONTROLLER,
-            contextualName = ObservationContextualNames.LOGIN,
+            name = ObservationNames.AUTH_LOGIN,
             lowCardinalityKeyValues = {
                     ObservationTags.OPERATION, ObservationTags.READ}
     )
@@ -78,8 +76,7 @@ public class AuthenticationController {
                             schema = @Schema(implementation = ResponseErrorDto.class)))
     })
     @PostMapping("/logout")
-    @Observed(name = ObservationNames.AUTH_CONTROLLER,
-            contextualName = ObservationContextualNames.LOGOUT,
+    @Observed(name = ObservationNames.AUTH_LOGOUT,
             lowCardinalityKeyValues = {
                     ObservationTags.OPERATION, ObservationTags.READ}
     )
@@ -104,8 +101,7 @@ public class AuthenticationController {
                             schema = @Schema(implementation = ResponseErrorDto.class)))
     })
     @PostMapping("/register")
-    @Observed(name = ObservationNames.AUTH_CONTROLLER,
-            contextualName = ObservationContextualNames.REGISTER,
+    @Observed(name = ObservationNames.AUTH_REGISTER,
             lowCardinalityKeyValues = {
                     ObservationTags.OPERATION, ObservationTags.READ}
     )

@@ -1,6 +1,5 @@
 package com.winestoreapp.wineryadminui.features.wine;
 
-import com.winestoreapp.wineryadminui.core.observability.ObservationContextualNames;
 import com.winestoreapp.wineryadminui.core.observability.ObservationNames;
 import com.winestoreapp.wineryadminui.core.observability.ObservationTags;
 import com.winestoreapp.wineryadminui.core.observability.SpanTagger;
@@ -13,7 +12,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -27,9 +30,7 @@ public class WineUiController {
     private final SpanTagger spanTagger;
 
     @GetMapping
-    @Observed(name = ObservationNames.WINE_CONTROLLER,
-            contextualName = ObservationContextualNames.WINE_FORM
-    )
+    @Observed(name = ObservationNames.UI_WINE_FORM)
     public String list(Model model) {
         model.addAttribute("wines", wineService.getAll());
         model.addAttribute("wine", new WineCreateRequestDto());
@@ -37,8 +38,7 @@ public class WineUiController {
     }
 
     @PostMapping
-    @Observed(name = ObservationNames.WINE_CONTROLLER,
-            contextualName = ObservationContextualNames.CREATE,
+    @Observed(name = ObservationNames.WINE_CREATE,
             lowCardinalityKeyValues = {ObservationTags.OPERATION, ObservationTags.WRITE}
     )
     public String create(
@@ -56,8 +56,7 @@ public class WineUiController {
     }
 
     @PostMapping("/delete")
-    @Observed(name = ObservationNames.WINE_CONTROLLER,
-            contextualName = ObservationContextualNames.DELETE_BY_ID,
+    @Observed(name = ObservationNames.WINE_DELETE,
             lowCardinalityKeyValues = {ObservationTags.OPERATION, ObservationTags.WRITE}
     )
     public String delete(@RequestParam Long wineId, RedirectAttributes redirectAttributes) {
@@ -72,8 +71,7 @@ public class WineUiController {
     }
 
     @PostMapping("/upload-images-proxy")
-    @Observed(name = ObservationNames.WINE_CONTROLLER,
-            contextualName = ObservationContextualNames.UPDATE_IMAGE,
+    @Observed(name = ObservationNames.WINE_UPDATE_IMAGE,
             lowCardinalityKeyValues = {ObservationTags.OPERATION, ObservationTags.WRITE}
     )
     public String handleImageUpload(

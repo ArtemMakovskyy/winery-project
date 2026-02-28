@@ -1,7 +1,11 @@
 package com.winestoreapp.security.security;
 
-import com.winestoreapp.common.observability.ObservationContextualNames;
 import com.winestoreapp.common.observability.ObservationNames;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+import io.micrometer.observation.annotation.Observed;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.time.LocalDateTime;
@@ -17,11 +21,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
-import io.micrometer.observation.annotation.Observed;
 
 @Component
 @Slf4j
@@ -55,9 +54,7 @@ public class JwtUtil {
                 .compact();
     }
 
-    @Observed(
-            name = ObservationNames.AUTH_JWT,
-            contextualName = ObservationContextualNames.PARSE_AND_VALIDATE_TOKEN)
+    @Observed(name = ObservationNames.AUTH_VALIDATE_TOKEN)
     public Claims parseToken(String token) {
 
         if (INVALID_TOKENS.containsKey(token)) {

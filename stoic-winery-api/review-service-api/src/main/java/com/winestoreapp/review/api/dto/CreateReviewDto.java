@@ -1,11 +1,11 @@
 package com.winestoreapp.review.api.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
-import io.swagger.v3.oas.annotations.media.Schema;
 
 @Data
 public class CreateReviewDto {

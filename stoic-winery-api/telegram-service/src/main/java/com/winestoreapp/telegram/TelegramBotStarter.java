@@ -1,8 +1,8 @@
 package com.winestoreapp.telegram;
 
-import com.winestoreapp.common.observability.ObservationContextualNames;
 import com.winestoreapp.common.observability.ObservationNames;
 import com.winestoreapp.telegram.impl.TelegramBotNotificationService;
+import io.micrometer.observation.annotation.Observed;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
@@ -12,7 +12,6 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
-import io.micrometer.observation.annotation.Observed;
 
 @Component
 @ConditionalOnProperty(name = "telegram.bot.enabled", havingValue = "true", matchIfMissing = true)
@@ -23,8 +22,7 @@ public class TelegramBotStarter implements ApplicationRunner {
     private final TelegramBotNotificationService telegramBotNotificationService;
 
     @Override
-    @Observed(name = ObservationNames.TELEGRAM_BOT,
-            contextualName = ObservationContextualNames.BOT_REGISTRATION)
+    @Observed(name = ObservationNames.TELEGRAM_START)
     public void run(ApplicationArguments args) throws Exception {
         log.info("Starting Telegram Bot registration process...");
         try {

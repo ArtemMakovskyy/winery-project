@@ -12,6 +12,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
 
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ImageStorageServiceTest {

@@ -1,29 +1,10 @@
-# --- Actuator and Observation Settings ---
 management:
   info:
     env:
       enabled: true
-
     git:
       enabled: true
       mode: full
-
-  observations:
-    key-values:
-      application: wine-store-service
-    http:
-      client:
-        enabled: true
-      server:
-        enabled: true
-    jdbc:
-      enabled: true
-
-  tracing:
-    sampling:
-      probability: 1.0
-    zipkin:
-      endpoint: ${MANAGEMENT_ZIPKIN_TRACING_ENDPOINT:http://localhost:9411/api/v2/spans}
 
   endpoints:
     web:
@@ -36,22 +17,19 @@ management:
           - prometheus
           - loggers
 
+  prometheus:
     metrics:
-      distribution:
-        percentiles-histogram:
-          all: true
-        slo:
-          "[http.server.requests]": 50ms, 100ms, 500ms, 1s, 2s
-          "[jdbc.connections.usage]": 100ms, 500ms, 1s
-      enable:
-        all: true
-      enabled: true
-    health:
-      show-details: always
+      export:
+        enabled: true
 
   metrics:
     enable:
       all: true
+      jvm: true
+      process: true
+      system: true
+      hikaricp: true
+      tomcat: true
 
     distribution:
       percentiles-histogram:
@@ -61,13 +39,39 @@ management:
         jdbc.connections.usage: true
         hikaricp.connections.usage: true
         jdbc.query: true
-        jdbc.connections.acquire.seconds: true
-        jdbc.connections.usage.seconds: true
 
-    data:
-      repository:
-        autotime:
-          enabled: true
+      slo:
+        "[http.server.requests]": 50ms, 100ms, 500ms, 1s, 2s
+        "[jdbc.connections.usage]": 100ms, 500ms, 1s
+
+  health:
+    show-details: always
+
+  observations:
+    key-values:
+      application: wine-store
+    http:
+      client:
+        enabled: true
+      server:
+        enabled: true
+    jdbc:
+      enabled: true
+
+  tracing:
+    sampling:
+      probability: 1.0
+    #      probability: 0.2
+    zipkin:
+      endpoint: ${MANAGEMENT_ZIPKIN_TRACING_ENDPOINT:http://localhost:9411/api/v2/spans}
+    enabled: true
+
+spring:
+  datasource:
+    hikari:
+      metrics-tracking: true
+    observation:
+      enabled: true
 
 jdbc:
   includes-parameters: true
@@ -82,15 +86,8 @@ logging:
     org.hibernate.sql: info
     root: info
 
-spring:
-  datasource:
-    hikari:
-      metrics-tracking: true
-    observation:
-      enabled: true
-
 info:
   app:
     name: "stoic-winery-api"
     version: "0.0.1-SNAPSHOT"
-    description: "Core Modular Monolith backend for the Stoic Winery project. Handles business logic, JWT security, MySQL persistence with Liquibase, and Telegram notifications."
+    description: "Core Modular Monolith backend for the Stoic Winery project."

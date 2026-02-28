@@ -22,6 +22,7 @@ public class ObservationTags {
     public static final String WINE_ID = "wine.id";
     public static final String WINE_NAME = "wine.name";
     public static final String WRITE = "write";
+    public static final String LOGIN = "login.user";
 
     private ObservationTags() {
     }

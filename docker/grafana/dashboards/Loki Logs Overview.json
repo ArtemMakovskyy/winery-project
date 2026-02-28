@@ -1,0 +1,95 @@
+{
+  "id": null,
+  "title": "Loki Logs Overview (Dynamic)",
+  "uid": "loki-logs-overview-dynamic",
+  "timezone": "browser",
+  "schemaVersion": 36,
+  "version": 2,
+  "templating": {
+    "list": [
+      {
+        "name": "application",
+        "label": "Приложение",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "loki"
+        },
+        "definition": "label_values(application)",
+        "query": "label_values(application)",
+        "refresh": 1,
+        "hide": 0,
+        "multi": false,
+        "includeAll": true,
+        "allValue": ".*",
+        "sort": 1
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "logs",
+      "title": "Логи приложения: $application",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "expr": "{application=~\"$application\"}"
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "showLabels": true,
+        "wrapLogMessage": true,
+        "sortOrder": "Descending"
+      },
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 10 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Объем логов по уровням (ошибки/варнинги)",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "expr": "count_over_time({application=~\"$application\"} |= \"ERROR\" [$__interval])",
+          "legendFormat": "ERROR"
+        },
+        {
+          "expr": "count_over_time({application=~\"$application\"} |= \"WARN\" [$__interval])",
+          "legendFormat": "WARN"
+        },
+        {
+          "expr": "count_over_time({application=~\"$application\"} |= \"INFO\" [$__interval])",
+          "legendFormat": "INFO"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "bold_line"
+          }
+        }
+      },
+      "gridPos": { "x": 0, "y": 10, "w": 24, "h": 10 }
+    },
+    {
+      "type": "table",
+      "title": "Топ частых ошибок",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "expr": "topk(10, count_over_time({application=~\"$application\"} |= \"ERROR\" [$__range]))"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 20, "w": 24, "h": 10 }
+    }
+  ]
+}

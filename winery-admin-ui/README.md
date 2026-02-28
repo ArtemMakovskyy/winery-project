@@ -160,6 +160,8 @@ The UI application acts as a **Backend-for-Frontend**:
 
 - **Grafana Loki (logback appender)** — centralized logging
 
+- **Tracing naming convention:** `<domain>/<action>` format (e.g., `wine/create`, `order/find-all`, `ui/wine-form`)
+
 ### Security & Utilities
 
 - **JWT (java-jwt)** — access token handling

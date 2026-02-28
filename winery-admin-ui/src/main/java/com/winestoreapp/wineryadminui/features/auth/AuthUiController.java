@@ -1,6 +1,5 @@
 package com.winestoreapp.wineryadminui.features.auth;
 
-import com.winestoreapp.wineryadminui.core.observability.ObservationContextualNames;
 import com.winestoreapp.wineryadminui.core.observability.ObservationNames;
 import com.winestoreapp.wineryadminui.core.observability.ObservationTags;
 import com.winestoreapp.wineryadminui.features.user.dto.UserLoginRequestDto;
@@ -25,9 +24,8 @@ public class AuthUiController {
     private final AuthService authService;
 
     @GetMapping("/login")
-    @Observed(name = ObservationNames.AUTH_CONTROLLER,
-            contextualName = ObservationContextualNames.LOGIN,
-            lowCardinalityKeyValues = {ObservationTags.FORM, ObservationContextualNames.LOGIN}
+    @Observed(name = ObservationNames.AUTH_LOGIN,
+            lowCardinalityKeyValues = {ObservationTags.FORM, ObservationTags.LOGIN}
     )
     public String loginPage(Model model) {
         model.addAttribute("loginDto", new UserLoginRequestDto("", ""));
@@ -35,9 +33,7 @@ public class AuthUiController {
     }
 
     @PostMapping("/login")
-    @Observed(name = ObservationNames.AUTH_CONTROLLER,
-            contextualName = ObservationContextualNames.LOGIN
-    )
+    @Observed(name = ObservationNames.AUTH_LOGIN)
     public String doLogin(
             @Valid @ModelAttribute("loginDto") UserLoginRequestDto dto,
             BindingResult bindingResult,
@@ -60,9 +56,7 @@ public class AuthUiController {
     }
 
     @PostMapping("/logout")
-    @Observed(name = ObservationNames.AUTH_CONTROLLER,
-            contextualName = ObservationContextualNames.LOGOUT
-    )
+    @Observed(name = ObservationNames.AUTH_LOGOUT)
     public String logout(HttpSession session, RedirectAttributes redirectAttributes) {
         try {
             authService.logout(session);

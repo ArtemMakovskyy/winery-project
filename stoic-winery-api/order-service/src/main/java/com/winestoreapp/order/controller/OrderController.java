@@ -2,13 +2,20 @@ package com.winestoreapp.order.controller;
 
 import com.winestoreapp.common.dto.ResponseErrorDto;
 import com.winestoreapp.common.exception.EntityNotFoundException;
-import com.winestoreapp.common.observability.ObservationContextualNames;
 import com.winestoreapp.common.observability.ObservationNames;
 import com.winestoreapp.common.observability.ObservationTags;
 import com.winestoreapp.common.observability.SpanTagger;
 import com.winestoreapp.order.api.OrderService;
 import com.winestoreapp.order.api.dto.CreateOrderDto;
 import com.winestoreapp.order.api.dto.OrderDto;
+import io.micrometer.observation.annotation.Observed;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -27,14 +34,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-import io.micrometer.observation.annotation.Observed;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Tag(name = "Order management", description = "Endpoints to managing orders")
 @RestController
@@ -59,8 +58,7 @@ public class OrderController {
     })
     @GetMapping
     @Observed(
-            name = ObservationNames.ORDER_CONTROLLER,
-            contextualName = ObservationContextualNames.FIND_ALL,
+            name = ObservationNames.ORDER_FIND_ALL,
             lowCardinalityKeyValues = {ObservationTags.OPERATION, ObservationTags.READ}
     )
     public ResponseEntity<List<OrderDto>> findAllOrders(Pageable pageable) {
@@ -80,8 +78,7 @@ public class OrderController {
     })
     @GetMapping("/users/{userId}")
     @Observed(
-            name = ObservationNames.ORDER_CONTROLLER,
-            contextualName = ObservationContextualNames.FIND_ALL_BY_USER_ID,
+            name = ObservationNames.ORDER_FIND_BY_USER,
             lowCardinalityKeyValues = {ObservationTags.OPERATION, ObservationTags.READ}
     )
     public ResponseEntity<List<OrderDto>> findAllOrdersByUserId(
@@ -112,8 +109,7 @@ public class OrderController {
     })
     @PostMapping
     @Observed(
-            name = ObservationNames.ORDER_CONTROLLER,
-            contextualName = ObservationContextualNames.CREATE,
+            name = ObservationNames.ORDER_CREATE,
             lowCardinalityKeyValues = {ObservationTags.OPERATION, ObservationTags.WRITE}
     )
     public ResponseEntity<OrderDto> addOrder(@RequestBody @Valid CreateOrderDto dto) {
@@ -135,8 +131,7 @@ public class OrderController {
     })
     @GetMapping("/{id}")
     @Observed(
-            name = ObservationNames.ORDER_CONTROLLER,
-            contextualName = ObservationContextualNames.FIND_BY_ID,
+            name = ObservationNames.ORDER_FIND_BY_ID,
             lowCardinalityKeyValues = {ObservationTags.OPERATION, ObservationTags.READ}
     )
     public ResponseEntity<OrderDto> getOrderById(@PathVariable("id") Long id) {
@@ -161,8 +156,7 @@ public class OrderController {
     @PreAuthorize("hasRole('MANAGER')")
     @PatchMapping("/{id}/paid")
     @Observed(
-            name = ObservationNames.ORDER_CONTROLLER,
-            contextualName = ObservationContextualNames.SET_PAID,
+            name = ObservationNames.ORDER_SET_PAID,
             lowCardinalityKeyValues = {ObservationTags.OPERATION, ObservationTags.WRITE}
     )
     public ResponseEntity<Boolean> setPaidStatus(@PathVariable("id") Long id) {
@@ -191,8 +185,7 @@ public class OrderController {
     @PreAuthorize("hasRole('MANAGER')")
     @DeleteMapping("/{id}")
     @Observed(
-            name = ObservationNames.ORDER_CONTROLLER,
-            contextualName = ObservationContextualNames.DELETE_BY_ID,
+            name = ObservationNames.ORDER_DELETE,
             lowCardinalityKeyValues = {ObservationTags.OPERATION, ObservationTags.WRITE}
     )
     public ResponseEntity<Void> deleteOrderById(@PathVariable("id") Long id) {

@@ -1,8 +1,7 @@
 package com.winestoreapp.wineryadminui.features.order.dto;
 
-import lombok.Getter;
-
 import java.math.BigDecimal;
+import lombok.Getter;
 
 @Getter
 public class PurchaseObjectDto {

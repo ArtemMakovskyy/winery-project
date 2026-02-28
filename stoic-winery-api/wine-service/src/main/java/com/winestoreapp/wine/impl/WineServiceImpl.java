@@ -1,7 +1,6 @@
 package com.winestoreapp.wine.impl;
 
 import com.winestoreapp.common.exception.EntityNotFoundException;
-import com.winestoreapp.common.observability.ObservationContextualNames;
 import com.winestoreapp.common.observability.ObservationMetrics;
 import com.winestoreapp.common.observability.ObservationNames;
 import com.winestoreapp.common.observability.ObservationTags;
@@ -12,6 +11,9 @@ import com.winestoreapp.wine.api.dto.WineDto;
 import com.winestoreapp.wine.mapper.WineMapper;
 import com.winestoreapp.wine.model.Wine;
 import com.winestoreapp.wine.repository.WineRepository;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
+import io.micrometer.observation.annotation.Observed;
 import java.math.BigDecimal;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -19,9 +21,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Tags;
-import io.micrometer.observation.annotation.Observed;
 
 @Service
 @Slf4j
@@ -56,9 +55,7 @@ public class WineServiceImpl implements WineService {
     }
 
     @Override
-    @Observed(
-            name = ObservationNames.WINE_SERVICE,
-            contextualName = ObservationContextualNames.CREATE)
+    @Observed(name = ObservationNames.WINE_CREATE)
     public WineDto add(WineCreateRequestDto createDto) {
         log.info("Adding new wine: {}", createDto.getName());
         Wine wine = wineMapper.toEntity(createDto);
@@ -73,8 +70,7 @@ public class WineServiceImpl implements WineService {
 
     @Override
     @Transactional
-    @Observed(name = ObservationNames.WINE_SERVICE,
-            contextualName = ObservationContextualNames.UPDATE_IMAGE)
+    @Observed(name = ObservationNames.WINE_UPDATE_IMAGE)
     public WineDto updateImage(Long id, MultipartFile imageA, MultipartFile imageB) {
         log.info("Updating images for wine ID: {}", id);
 
@@ -93,8 +89,7 @@ public class WineServiceImpl implements WineService {
     }
 
     @Override
-    @Observed(name = ObservationNames.WINE_SERVICE,
-            contextualName = ObservationContextualNames.EXISTS)
+    @Observed(name = ObservationNames.WINE_EXISTS)
     public boolean existsById(Long id) {
 
         spanTagger.tag(ObservationTags.WINE_ID, id);
@@ -104,8 +99,7 @@ public class WineServiceImpl implements WineService {
 
     @Override
     @Transactional
-    @Observed(name = ObservationNames.WINE_SERVICE,
-            contextualName = ObservationContextualNames.UPDATE_RATING)
+    @Observed(name = ObservationNames.WINE_UPDATE_RATING)
     public void updateAverageRatingScore(Long id, Double score) {
         log.debug("Updating rating for wine ID {}: {}", id, score);
 
@@ -127,8 +121,7 @@ public class WineServiceImpl implements WineService {
 
     @Override
     @Transactional(readOnly = true)
-    @Observed(name = ObservationNames.WINE_SERVICE,
-            contextualName = ObservationContextualNames.FIND_ALL)
+    @Observed(name = ObservationNames.WINE_FIND_ALL)
     public List<WineDto> findAll(Pageable pageable) {
         return wineRepository.findAll(pageable).stream()
                 .map(wineMapper::toDto)
@@ -137,8 +130,7 @@ public class WineServiceImpl implements WineService {
 
     @Override
     @Transactional(readOnly = true)
-    @Observed(name = ObservationNames.WINE_SERVICE,
-            contextualName = ObservationContextualNames.FIND_BY_ID)
+    @Observed(name = ObservationNames.WINE_FIND)
     public WineDto findById(Long id) {
         Wine wine = findWineById(id);
         return wineMapper.toDto(wine);
@@ -146,8 +138,7 @@ public class WineServiceImpl implements WineService {
 
     @Override
     @Transactional
-    @Observed(name = ObservationNames.WINE_SERVICE,
-            contextualName = ObservationContextualNames.DELETE_BY_ID)
+    @Observed(name = ObservationNames.WINE_DELETE)
     public void deleteById(Long id) {
         log.info("Deleting wine with id={}", id);
         Wine wine = findWineById(id);

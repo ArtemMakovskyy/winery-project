@@ -16,4 +16,4 @@ security:
 
 jwt:
   expiration: ${JWT_EXPIRATION:3600000}
-  secret: ${JWT_SECRET:winestoreapi13112023secretkey123456789012}
+  secret: ${JWT_SECRET:dev-jwt-secret-change-me-please-min-32-chars}

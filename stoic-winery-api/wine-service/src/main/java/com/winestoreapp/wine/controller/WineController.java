@@ -1,13 +1,20 @@
 package com.winestoreapp.wine.controller;
 
 import com.winestoreapp.common.dto.ResponseErrorDto;
-import com.winestoreapp.common.observability.ObservationContextualNames;
 import com.winestoreapp.common.observability.ObservationNames;
 import com.winestoreapp.common.observability.ObservationTags;
 import com.winestoreapp.common.observability.SpanTagger;
 import com.winestoreapp.wine.api.WineService;
 import com.winestoreapp.wine.api.dto.WineCreateRequestDto;
 import com.winestoreapp.wine.api.dto.WineDto;
+import io.micrometer.observation.annotation.Observed;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.net.MalformedURLException;
 import java.util.List;
@@ -31,14 +38,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import io.micrometer.observation.annotation.Observed;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Tag(name = "Wine management", description = "Endpoints to managing wines")
 @RestController
@@ -63,8 +62,7 @@ public class WineController {
     })
     @GetMapping("/{id}")
     @Observed(
-            name = ObservationNames.WINE_CONTROLLER,
-            contextualName = ObservationContextualNames.FIND_BY_ID,
+            name = ObservationNames.WINE_FIND,
             lowCardinalityKeyValues = {ObservationTags.OPERATION, ObservationTags.READ}
     )
     public ResponseEntity<WineDto> findWineById(@PathVariable("id") Long id) {
@@ -86,8 +84,7 @@ public class WineController {
                             array = @ArraySchema(schema = @Schema(implementation = WineDto.class))))
     })
     @GetMapping
-    @Observed(name = ObservationNames.WINE_CONTROLLER,
-            contextualName = ObservationContextualNames.FIND_ALL,
+    @Observed(name = ObservationNames.WINE_FIND_ALL,
             lowCardinalityKeyValues = {ObservationTags.OPERATION, ObservationTags.READ}
     )
     public ResponseEntity<List<WineDto>> findAllWines(
@@ -117,8 +114,7 @@ public class WineController {
     })
     @PreAuthorize("hasRole('MANAGER')")
     @PostMapping
-    @Observed(name = ObservationNames.WINE_CONTROLLER,
-            contextualName = ObservationContextualNames.CREATE,
+    @Observed(name = ObservationNames.WINE_CREATE,
             lowCardinalityKeyValues = {ObservationTags.OPERATION, ObservationTags.WRITE}
     )
     public ResponseEntity<WineDto> createWine(@RequestBody @Valid WineCreateRequestDto createDto) {
@@ -143,8 +139,7 @@ public class WineController {
     })
     @PreAuthorize("hasRole('MANAGER')")
     @PatchMapping("/{id}/image")
-    @Observed(name = ObservationNames.WINE_CONTROLLER,
-            contextualName = ObservationContextualNames.UPDATE_IMAGE,
+    @Observed(name = ObservationNames.WINE_UPDATE_IMAGE,
             lowCardinalityKeyValues = {ObservationTags.OPERATION, ObservationTags.WRITE}
     )
     public ResponseEntity<WineDto> addImageByIdIntoPath(
@@ -174,8 +169,7 @@ public class WineController {
     })
     @PreAuthorize("hasRole('MANAGER')")
     @DeleteMapping("/{id}")
-    @Observed(name = ObservationNames.WINE_CONTROLLER,
-            contextualName = ObservationContextualNames.DELETE_BY_ID,
+    @Observed(name = ObservationNames.WINE_DELETE,
             lowCardinalityKeyValues = {ObservationTags.OPERATION, ObservationTags.WRITE}
     )
     public ResponseEntity<Void> deleteWineById(@PathVariable("id") Long id) {

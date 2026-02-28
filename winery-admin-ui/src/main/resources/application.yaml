@@ -12,7 +12,7 @@ spring:
       - optional:classpath:/application-actuator.yaml
 
 server:
-  port: 8081
+  port: ${ADMIN_UI_PORT:8081}
 
 api:
   backend-url: ${BACKEND_URL:http://localhost:8080/api}

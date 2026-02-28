@@ -53,12 +53,6 @@ The project evolved through several patterns to improve maintainability and scal
 
 ---
 
-Ниже финализированная версия раздела `🛠️ Observability` с учётом ваших правок: единый путь к Actuator
-`/actuator/prometheus`, удалён блок про “Removed explicitly”, добавлена пометка о Docker endpoint для Tempo. Остальной
-README не тронут.
-
----
-
 ## 🛠️ Observability
 
 [OBSERVABILITY.md](OBSERVABILITY.md)
@@ -84,7 +78,9 @@ Real-time monitoring of metrics, logs, and traces:
 
 ### Metrics
 
-- Metrics path: `/actuator/prometheus`
+- Actuator base path: `/api/actuator`
+
+- Prometheus scrape endpoint: `/api/actuator/prometheus`
 
 - Example metrics: `http_server_requests_seconds_count`, `jvm_memory_used_bytes`
 
@@ -92,7 +88,7 @@ Metrics include:
 
 - JVM, HTTP, system metrics
 
-- **Database metrics via `datasource-micrometer-spring-boot`**  
+- **Database metrics via `datasource-micrometer-spring-boot`**
   (SQL execution time, pool usage, JDBC statistics)
 
 ### Logs
@@ -122,6 +118,9 @@ Metrics include:
 - End-to-end tracing includes: HTTP requests, Controllers → services, Security filter chain, Database interactions
 
 - Full correlation with logs and metrics via `traceId` / `spanId`
+
+- **Tracing naming convention:** `<domain>/<action>[/<detail>]` format (e.g., `order/create`, `wine/find`,
+  `user/register`)
 
 ---
 

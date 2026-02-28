@@ -34,3 +34,7 @@ yarn-error.log*
 /winery-admin-ui/.idea/
 /winery-admin-ui/.obsidian/
 /stoic-winery-api/.obsidian/
+/.vscode/
+/.cursor/
+/.cursorignore
+.github/copilot-instructions.md

@@ -1,6 +1,6 @@
 bot:
-  name: ${BOT_NAME:input Wine Store bot name}
-  token: ${BOT_TOKEN:input Wine Store bot token}
+  name: ${BOT_NAME:WineStoreBotDev}
+  token: ${BOT_TOKEN:CHANGE_ME}
 
 telegram:
   bot:

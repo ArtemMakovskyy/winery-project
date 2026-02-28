@@ -22,6 +22,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
@@ -156,7 +157,7 @@ class WineControllerTest {
     @DisplayName("POST /wines - Invalid Data (Blank Name)")
     void createWine_InvalidData_ShouldReturnBadRequest() throws Exception {
         WineCreateRequestDto invalidDto = new WineCreateRequestDto();
-        invalidDto.setName(""); // @NotBlank
+        invalidDto.setName("");
 
         mockMvc.perform(post("/wines")
                         .with(csrf())

@@ -6,6 +6,7 @@ import com.winestoreapp.wineryadminui.core.security.SessionTokenStorage;
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
 import jakarta.annotation.PostConstruct;
+import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -14,8 +15,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-
-import java.util.List;
 
 @Slf4j
 @Component

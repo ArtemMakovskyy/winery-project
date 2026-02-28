@@ -1,6 +1,5 @@
 package com.winestoreapp.wineryadminui.features.health;
 
-import com.winestoreapp.wineryadminui.core.observability.ObservationContextualNames;
 import com.winestoreapp.wineryadminui.core.observability.ObservationNames;
 import com.winestoreapp.wineryadminui.core.observability.ObservationTags;
 import com.winestoreapp.wineryadminui.core.observability.SpanTagger;
@@ -19,14 +18,12 @@ public class WineHealthService {
     private final SpanTagger spanTagger;
 
     @PostConstruct
-    @Observed(name = ObservationNames.HEALTH_SERVICE,
-            contextualName = ObservationContextualNames.INIT)
+    @Observed(name = ObservationNames.HEALTH_INIT)
     public void init() {
         check();
     }
 
-    @Observed(name = ObservationNames.HEALTH_SERVICE,
-            contextualName = ObservationContextualNames.CHECK)
+    @Observed(name = ObservationNames.HEALTH_CHECK)
     public void check() {
         try {
             wineHealthCheckFeignClient.healthCheck();

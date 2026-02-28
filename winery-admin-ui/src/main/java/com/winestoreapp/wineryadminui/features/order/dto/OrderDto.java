@@ -1,8 +1,7 @@
 package com.winestoreapp.wineryadminui.features.order.dto;
 
-import lombok.Getter;
-
 import java.time.LocalDateTime;
+import lombok.Getter;
 
 @Getter
 public class OrderDto {

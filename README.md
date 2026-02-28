@@ -137,10 +137,23 @@ It provides:
 
 Centralized monitoring and tracing documentation for all services, covering metrics, logs, and distributed tracing tools.
 
-- **Backend API (stoic-winery-api)**  
-    [OBSERVABILITY.md](stoic-winery-api/OBSERVABILITY.md)
-    
-- **Admin Panel UI (winery-admin-ui)**  
-    [OBSERVABILITY.md](winery-admin-ui/OBSERVABILITY.md)
+- **Backend API (stoic-winery-api)**
+    - [OBSERVABILITY.md](stoic-winery-api/OBSERVABILITY.md) — observability setup and usage
+
+- **Admin Panel UI (winery-admin-ui)**
+    - [OBSERVABILITY.md](winery-admin-ui/OBSERVABILITY.md) — observability setup and usage
 
 These documents describe the metrics, tags, events, and spans used, along with instructions for integrating Prometheus, Grafana, Loki, and Tempo/Zipkin for each service.
+
+### Tracing Naming Convention
+
+Both services use the unified tracing naming format: `<domain>/<action>[/<detail>]`
+
+Examples:
+- Backend: `order/create`, `wine/find`, `user/register`, `telegram/send-notification`
+- Admin UI: `wine/create`, `order/find-all`, `user/update-role`, `ui/wine-form`
+
+This format provides:
+- Consistent naming across services
+- Clear trace visualization in Grafana/Tempo
+- Easy correlation between logs, metrics, and traces

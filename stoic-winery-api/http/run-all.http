@@ -67,16 +67,16 @@ Content-Type: application/json
 GET {{base_url}}/wines?page=0&size=10
 
 ###
-GET {{base_url}}/wines?page=0&size=10
+GET {{base_url}}/wines?page=0&size=20
 
 
 ### =========================
 ### GET WINE BY ID (x2)
 ### =========================
-GET {{base_url}}/wines/1
+GET {{base_url}}/wines/2
 
 ###
-GET {{base_url}}/wines/1
+GET {{base_url}}/wines/3
 
 
 ### =========================
@@ -162,7 +162,7 @@ POST {{base_url}}/reviews
 Content-Type: application/json
 
 {
-  "wineId": 1,
+  "wineId": 2,
   "userFirstAndLastName": "Ivan Ivanov",
   "message": "Great wine!",
   "rating": 5
@@ -175,7 +175,7 @@ Content-Type: application/json
 GET {{base_url}}/reviews/wines/1?page=0&size=4
 
 ###
-GET {{base_url}}/reviews/wines/1?page=0&size=4
+GET {{base_url}}/reviews/wines/1?page=0&size=3
 
 
 ### =========================

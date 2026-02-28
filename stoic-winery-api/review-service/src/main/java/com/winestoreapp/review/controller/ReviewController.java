@@ -1,13 +1,20 @@
 package com.winestoreapp.review.controller;
 
 import com.winestoreapp.common.dto.ResponseErrorDto;
-import com.winestoreapp.common.observability.ObservationContextualNames;
 import com.winestoreapp.common.observability.ObservationNames;
 import com.winestoreapp.common.observability.ObservationTags;
 import com.winestoreapp.common.observability.SpanTagger;
 import com.winestoreapp.review.api.ReviewService;
 import com.winestoreapp.review.api.dto.CreateReviewDto;
 import com.winestoreapp.review.api.dto.ReviewWithUserDescriptionDto;
+import io.micrometer.observation.annotation.Observed;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -25,14 +32,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-import io.micrometer.observation.annotation.Observed;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Tag(name = "Review management", description = "Endpoints to managing reviews")
 @RestController
@@ -62,8 +61,7 @@ public class ReviewController {
     })
     @PostMapping
     @Observed(
-            name = ObservationNames.REVIEW_CONTROLLER,
-            contextualName = ObservationContextualNames.CREATE,
+            name = ObservationNames.REVIEW_CREATE,
             lowCardinalityKeyValues = {ObservationTags.OPERATION, ObservationTags.WRITE}
     )
     public ResponseEntity<ReviewWithUserDescriptionDto> addReview(
@@ -91,8 +89,7 @@ public class ReviewController {
     })
     @GetMapping("/wines/{wineId}")
     @Observed(
-            name = ObservationNames.REVIEW_CONTROLLER,
-            contextualName = ObservationContextualNames.FIND_ALL_BY_WINE_ID,
+            name = ObservationNames.REVIEW_FIND_BY_WINE,
             lowCardinalityKeyValues = {ObservationTags.OPERATION, ObservationTags.READ}
     )
     public ResponseEntity<List<ReviewWithUserDescriptionDto>> findAllReviewsByWineId(

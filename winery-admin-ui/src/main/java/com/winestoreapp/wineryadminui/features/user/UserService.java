@@ -1,6 +1,5 @@
 package com.winestoreapp.wineryadminui.features.user;
 
-import com.winestoreapp.wineryadminui.core.observability.ObservationContextualNames;
 import com.winestoreapp.wineryadminui.core.observability.ObservationNames;
 import com.winestoreapp.wineryadminui.core.observability.ObservationTags;
 import com.winestoreapp.wineryadminui.core.observability.SpanTagger;
@@ -22,8 +21,7 @@ public class UserService {
     private final FeignErrorParser errorParser;
     private final SpanTagger spanTagger;
 
-    @Observed(name = ObservationNames.USER_SERVICE,
-            contextualName = ObservationContextualNames.UPDATE_ROLE)
+    @Observed(name = ObservationNames.USER_UPDATE_ROLE)
     public UserResponseDto updateUserRole(Long userId, String role) {
         log.info("Action: Updating role for UserID: {} to {}", userId, role);
         spanTagger.tag(ObservationTags.USER_ID, userId);

@@ -2,7 +2,6 @@ package com.winestoreapp.review.impl;
 
 import com.winestoreapp.common.exception.EntityNotFoundException;
 import com.winestoreapp.common.exception.RegistrationException;
-import com.winestoreapp.common.observability.ObservationContextualNames;
 import com.winestoreapp.common.observability.ObservationNames;
 import com.winestoreapp.common.observability.ObservationTags;
 import com.winestoreapp.common.observability.SpanTagger;
@@ -15,6 +14,7 @@ import com.winestoreapp.review.repository.ReviewRepository;
 import com.winestoreapp.user.api.UserService;
 import com.winestoreapp.user.api.dto.UserResponseDto;
 import com.winestoreapp.wine.api.WineService;
+import io.micrometer.observation.annotation.Observed;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,7 +24,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import io.micrometer.observation.annotation.Observed;
 
 @Service
 @RequiredArgsConstructor
@@ -41,8 +40,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     @Transactional(readOnly = true)
-    @Observed(name = ObservationNames.REVIEW_SERVICE,
-            contextualName = ObservationContextualNames.FIND_ALL_BY_WINE_ID)
+    @Observed(name = ObservationNames.REVIEW_FIND_BY_WINE)
     public List<ReviewWithUserDescriptionDto> findAllByWineId(Long wineId, Pageable pageable) {
         spanTagger.tag(ObservationTags.WINE_ID, wineId);
 
@@ -62,8 +60,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     @Transactional
-    @Observed(name = ObservationNames.REVIEW_SERVICE,
-            contextualName = ObservationContextualNames.CREATE)
+    @Observed(name = ObservationNames.REVIEW_CREATE)
     public ReviewWithUserDescriptionDto addReview(CreateReviewDto dto) {
         log.info("Adding new review for wineId: {}", dto.getWineId());
         spanTagger.tag(ObservationTags.WINE_ID, dto.getWineId());

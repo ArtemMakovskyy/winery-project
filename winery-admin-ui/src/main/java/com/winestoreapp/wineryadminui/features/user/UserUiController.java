@@ -1,6 +1,5 @@
 package com.winestoreapp.wineryadminui.features.user;
 
-import com.winestoreapp.wineryadminui.core.observability.ObservationContextualNames;
 import com.winestoreapp.wineryadminui.core.observability.ObservationNames;
 import com.winestoreapp.wineryadminui.core.observability.ObservationTags;
 import com.winestoreapp.wineryadminui.core.observability.SpanTagger;
@@ -28,8 +27,7 @@ public class UserUiController {
     private final SpanTagger spanTagger;
 
     @GetMapping("/role")
-    @Observed(name = ObservationNames.USER_CONTROLLER,
-            contextualName = ObservationContextualNames.ROLE_FORM,
+    @Observed(name = ObservationNames.UI_USER_ROLE_FORM,
             lowCardinalityKeyValues = {ObservationTags.FORM, ObservationTags.USER_ROLE}
     )
     public String roleForm(Model model) {
@@ -38,8 +36,7 @@ public class UserUiController {
     }
 
     @PostMapping("/role")
-    @Observed(name = ObservationNames.USER_CONTROLLER,
-            contextualName = ObservationContextualNames.UPDATE_ROLE,
+    @Observed(name = ObservationNames.USER_UPDATE_ROLE,
             lowCardinalityKeyValues = {
                     ObservationTags.FORM, ObservationTags.USER_ROLE,
                     ObservationTags.OPERATION, ObservationTags.WRITE}

@@ -6,13 +6,13 @@ import com.winestoreapp.wineryadminui.features.user.dto.BackendErrorResponse;
 import feign.FeignException;
 import feign.Request;
 import feign.Response;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.never;

@@ -1,0 +1,116 @@
+groups:
+  - name: red_metrics_wine_store
+    interval: 30s
+    rules:
+      # --- Rate ---
+      - record: wine_store:http_requests:rate
+        expr: sum(rate(http_server_requests_seconds_count{application="wine-store", uri!~".*actuator.*"}[1m])) by (uri, method)
+
+      - record: wine_store:http_requests:rate_total
+        expr: sum(rate(http_server_requests_seconds_count{application="wine-store"}[1m]))
+
+      # --- Errors ---
+      - record: wine_store:http_requests:error_ratio
+        expr: (
+          sum(rate(http_server_requests_seconds_count{application="wine-store", status=~"4..|5.."}[5m]))
+          /
+          sum(rate(http_server_requests_seconds_count{application="wine-store"}[5m]))  ) * 100
+
+      # --- Latency ---
+      - record: wine_store:http_requests:latency_p50
+        expr: histogram_quantile(
+          0.50,
+          sum(rate(http_server_requests_seconds_bucket{application="wine-store"}[5m])) by (le)  )
+
+      - record: wine_store:http_requests:latency_p95
+        expr: histogram_quantile(
+          0.95,
+          sum(rate(http_server_requests_seconds_bucket{application="wine-store"}[5m])) by (le)  )
+
+      - record: wine_store:http_requests:latency_p99
+        expr: histogram_quantile(
+          0.99,
+          sum(rate(http_server_requests_seconds_bucket{application="wine-store"}[5m])) by (le)  )
+
+  - name: jvm_metrics_wine_store
+    interval: 30s
+    rules:
+      - record: wine_store:jvm_memory:heap_used_percent
+        expr: sum(jvm_memory_used_bytes{application="wine-store", area="heap"})
+          /
+          sum(jvm_memory_max_bytes{application="wine-store", area="heap"}) * 100
+
+      - record: wine_store:jvm_memory:nonheap_used_percent
+        expr: sum(jvm_memory_used_bytes{application="wine-store", area="nonheap"})
+          /
+          sum(jvm_memory_max_bytes{application="wine-store", area="nonheap"}) * 100
+
+      - record: wine_store:jvm_gc:pause_rate
+        expr: sum(rate(jvm_gc_pause_seconds_sum{application="wine-store"}[1m]))
+
+      - record: wine_store:jvm_threads:live
+        expr: jvm_threads_live_threads{application="wine-store"}
+
+      - record: wine_store:jvm_threads:daemon
+        expr: jvm_threads_daemon_threads{application="wine-store"}
+
+  - name: hikaricp_metrics_wine_store
+    interval: 30s
+    rules:
+      - record: wine_store:hikaricp:connections_usage_avg
+        expr: sum(
+          hikaricp_connections_usage_seconds_sum{application="wine-store"}) 
+          / 
+          sum( hikaricp_connections_usage_seconds_count{application="wine-store"} )
+
+      - record: wine_store:hikaricp:connections_acquire_avg
+        expr: sum(
+          hikaricp_connections_acquire_seconds_sum{application="wine-store"} )  
+          / 
+          sum( hikaricp_connections_acquire_seconds_count{application="wine-store"} )
+
+      - record: wine_store:hikaricp:active_ratio
+        expr: sum(hikaricp_connections_active{application="wine-store"})
+          /
+          sum(hikaricp_connections_max{application="wine-store"})
+
+      - record: wine_store:hikaricp:pending
+        expr: sum(hikaricp_connections_pending{application="wine-store"})
+
+      - record: wine_store:hikaricp:timeouts_rate
+        expr: sum(rate(hikaricp_connections_timeout_total{application="wine-store"}[5m]))
+
+  - name: system_process_metrics_wine_store
+    interval: 30s
+    rules:
+      - record: wine_store:process:cpu_usage
+        expr: process_cpu_usage{application="wine-store"}
+
+      - record: wine_store:system:cpu_usage
+        expr: system_cpu_usage{application="wine-store"}
+
+      - record: wine_store:system:load_1m
+        expr: system_load_average_1m{application="wine-store"}
+
+      - record: wine_store:process:uptime_seconds
+        expr: process_uptime_seconds{application="wine-store"}
+
+      - record: wine_store:process:open_files_ratio
+        expr: process_files_open_files{application="wine-store"}
+          /
+          process_files_max_files{application="wine-store"} * 100
+
+  - name: business_metrics_wine_store
+    interval: 30s
+    rules:
+      - record: wine_store:wine:average_rating
+        expr: wine_average_rating
+
+      - record: wine_store:wine:total_count
+        expr: wine_total_count
+
+      - record: wine_store:wine:error_ratio
+        expr: (
+          sum(rate({__name__=~"wine_.*_seconds_count", status!~"2.."}[1m]))
+          /
+          sum(rate({__name__=~"wine_.*_seconds_count"}[1m])) ) * 100

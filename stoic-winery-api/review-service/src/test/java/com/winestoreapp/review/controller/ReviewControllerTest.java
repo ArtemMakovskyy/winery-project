@@ -20,6 +20,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -83,7 +84,7 @@ class ReviewControllerTest {
         CreateReviewDto invalidDto = new CreateReviewDto();
         invalidDto.setWineId(1L);
         invalidDto.setUserFirstAndLastName("Ivan Petrov");
-        invalidDto.setMessage("Bad"); // Менше 5 символів
+        invalidDto.setMessage("Bad"); // Less than 5 characters
         invalidDto.setRating(5);
 
         mockMvc.perform(post("/reviews")

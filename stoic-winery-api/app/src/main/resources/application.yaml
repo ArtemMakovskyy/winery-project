@@ -25,8 +25,8 @@ spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: ${DATASOURCE_URL:jdbc:mysql://localhost:3309/wine_store_db?serverTimezone=UTC&allowPublicKeyRetrieval=true&useSSL=false}
-    username: ${DATASOURCE_USER:userName}
-    password: ${DATASOURCE_PASSWORD:secret}
+    username: ${DATASOURCE_USER:wine_user}
+    password: ${DATASOURCE_PASSWORD:dev_db_password_change_me}
   config:
     import:
       - optional:classpath:/application-telegram.yaml

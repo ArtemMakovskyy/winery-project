@@ -1,8 +1,7 @@
 package com.winestoreapp.wineryadminui.features.user.dto;
 
-import lombok.Getter;
-
 import java.util.Set;
+import lombok.Getter;
 
 @Getter
 public class UserResponseDto {

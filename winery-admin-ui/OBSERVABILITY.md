@@ -140,7 +140,7 @@ Trace context propagates to backend services via HTTP headers.
 
 This enables:
 
-- End-to-end request flow visualization:  
+- End-to-end request flow visualization:
   UI → Backend API → Database
 
 - Latency breakdown per layer
@@ -154,6 +154,31 @@ Tempo ingestion endpoint (internal Docker network):
 `http://tempo:9411/api/v2/spans`
 
 Trace visualization is performed via Grafana dashboards.
+
+### Tracing Naming Convention
+
+The Admin UI uses the unified tracing naming format: `<domain>/<action>`
+
+**Examples of trace names:**
+
+| Domain | Operation      | Trace Name          |
+|--------|----------------|---------------------|
+| Wine   | Create         | `wine/create`       |
+| Wine   | Find all       | `wine/find-all`     |
+| Wine   | Delete         | `wine/delete`       |
+| Wine   | Update image   | `wine/update-image` |
+| Order  | Find all       | `order/find-all`    |
+| Order  | Set paid       | `order/set-paid`    |
+| Order  | Delete         | `order/delete`      |
+| User   | Update role    | `user/update-role`  |
+| Auth   | Login          | `auth/login`        |
+| Auth   | Logout         | `auth/logout`       |
+| Health | Init           | `health/init`       |
+| Health | Check          | `health/check`      |
+| UI     | Wine form      | `ui/wine-form`      |
+| UI     | Order form     | `ui/order-form`     |
+| UI     | User role form | `ui/user-role-form` |
+| UI     | Dashboard view | `ui/dashboard-view` |
 
 ---
 

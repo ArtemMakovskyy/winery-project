@@ -2,7 +2,6 @@ package com.winestoreapp.order.impl;
 
 import com.winestoreapp.common.exception.EntityNotFoundException;
 import com.winestoreapp.common.exception.RegistrationException;
-import com.winestoreapp.common.observability.ObservationContextualNames;
 import com.winestoreapp.common.observability.ObservationNames;
 import com.winestoreapp.common.observability.ObservationTags;
 import com.winestoreapp.common.observability.SpanTagger;
@@ -26,6 +25,7 @@ import com.winestoreapp.user.api.UserService;
 import com.winestoreapp.user.api.dto.UserResponseDto;
 import com.winestoreapp.wine.api.WineService;
 import com.winestoreapp.wine.api.dto.WineDto;
+import io.micrometer.observation.annotation.Observed;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +34,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import io.micrometer.observation.annotation.Observed;
 
 @Service
 @RequiredArgsConstructor
@@ -61,7 +60,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    @Observed(name = ObservationNames.ORDER_SERVICE, contextualName = ObservationContextualNames.CREATE)
+    @Observed(name = ObservationNames.ORDER_CREATE)
     public OrderDto createOrder(CreateOrderDto dto) {
         log.info("Creating new order for email: {}", dto.getEmail());
         String[] nameParts = validateAndParseName(dto.getUserFirstAndLastName());
@@ -99,7 +98,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    @Observed(name = ObservationNames.ORDER_SERVICE, contextualName = ObservationContextualNames.SET_PAID)
+    @Observed(name = ObservationNames.ORDER_SET_PAID)
     public boolean markAsPaid(Long orderId) {
         log.info("Marking order as paid, id: {}", orderId);
 
@@ -118,7 +117,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    @Observed(name = ObservationNames.ORDER_SERVICE, contextualName = ObservationContextualNames.DELETE_BY_ID)
+    @Observed(name = ObservationNames.ORDER_DELETE)
     public boolean deleteById(Long id) {
         log.info("Deleting order with id: {}", id);
 
@@ -136,7 +135,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(readOnly = true)
-    @Observed(name = ObservationNames.ORDER_SERVICE, contextualName = ObservationContextualNames.FIND_BY_ID)
+    @Observed(name = ObservationNames.ORDER_FIND_BY_ID)
     public OrderDto getById(Long id) {
 
         spanTagger.tag(ObservationTags.ORDER_ID, id);
@@ -158,7 +157,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(readOnly = true)
-    @Observed(name = ObservationNames.ORDER_SERVICE, contextualName = ObservationContextualNames.FIND_ALL)
+    @Observed(name = ObservationNames.ORDER_FIND_ALL)
     public List<OrderDto> findAll(Pageable pageable) {
         return orderRepository.findAll(pageable).stream()
                 .map(orderMapper::toDto)
@@ -167,8 +166,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(readOnly = true)
-    @Observed(name = ObservationNames.ORDER_SERVICE,
-            contextualName = ObservationContextualNames.FIND_ALL_BY_USER_ID)
+    @Observed(name = ObservationNames.ORDER_FIND_BY_USER)
     public List<OrderDto> findAllByUserId(Long userId, Pageable pageable) {
 
         spanTagger.tag(ObservationTags.USER_ID, userId);
@@ -181,8 +179,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(readOnly = true)
-    @Observed(name = ObservationNames.ORDER_SERVICE,
-            contextualName = ObservationContextualNames.FIND_BY_NUMBER)
+    @Observed(name = ObservationNames.ORDER_FIND_BY_NUMBER)
     public Optional<OrderDto> findByOrderNumber(String orderNumber) {
 
         spanTagger.tag(ObservationTags.ORDER_NUMBER, orderNumber);
