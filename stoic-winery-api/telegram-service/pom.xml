@@ -12,19 +12,10 @@
     <artifactId>telegram-service</artifactId>
 
     <dependencies>
+        <!-- Internal modules -->
         <dependency>
             <groupId>com.winestoreapp</groupId>
             <artifactId>telegram-service-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.winestoreapp</groupId>
-            <artifactId>common</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.winestoreapp</groupId>
-            <artifactId>order-service-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -34,14 +25,27 @@
         </dependency>
         <dependency>
             <groupId>com.winestoreapp</groupId>
+            <artifactId>order-service-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.winestoreapp</groupId>
             <artifactId>user-service-api</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.winestoreapp</groupId>
+            <artifactId>common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
+
         <!-- Telegram -->
         <dependency>
             <groupId>org.telegram</groupId>
