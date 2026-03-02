@@ -17,6 +17,7 @@ import io.micrometer.observation.annotation.Observed;
 import java.math.BigDecimal;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,13 +27,14 @@ import org.springframework.web.multipart.MultipartFile;
 @Slf4j
 public class WineServiceImpl implements WineService {
 
-    private static final String IMAGE_API_PATH = "api/images/wine/";
-
     private final WineRepository wineRepository;
     private final WineMapper wineMapper;
     private final ImageStorageService imageStorageService;
     private final SpanTagger spanTagger;
     private final MeterRegistry registry;
+
+    @Value("${image.link.path}")
+    private  String imageLinkPath;
 
     public WineServiceImpl(
             WineRepository wineRepository,
@@ -82,8 +84,8 @@ public class WineServiceImpl implements WineService {
         String nameA = imageStorageService.saveImage(imageA.getOriginalFilename(), "a", imageA);
         String nameB = imageStorageService.saveImage(imageB.getOriginalFilename(), "b", imageB);
 
-        wine.setPictureLink(IMAGE_API_PATH + nameA);
-        wine.setPictureLink2(IMAGE_API_PATH + nameB);
+        wine.setPictureLink(imageLinkPath + nameA);
+        wine.setPictureLink2(imageLinkPath + nameB);
 
         return wineMapper.toDto(wineRepository.save(wine));
     }

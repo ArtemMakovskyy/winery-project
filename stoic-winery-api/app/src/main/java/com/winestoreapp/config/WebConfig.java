@@ -9,6 +9,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebConfig implements WebMvcConfigurer {
 
     private static final String IMAGES_PATTERN = "/images/**";
+    private static final String API_IMAGES_PATTERN = "/api/images/**";
 
     @Value("${image.config.path}")
     private String imageConfigPath;
@@ -16,6 +17,8 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler(IMAGES_PATTERN)
+                .addResourceLocations(imageConfigPath);
+        registry.addResourceHandler(API_IMAGES_PATTERN)
                 .addResourceLocations(imageConfigPath);
     }
 }

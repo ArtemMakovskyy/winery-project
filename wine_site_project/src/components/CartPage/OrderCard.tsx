@@ -11,7 +11,7 @@ export const OrderCard: React.FC<Props> = ({ product }) => {
   return (
     <div className="order__card">
       <div className="order__card-img-container">
-        <img src={`${BASE_URL}/${product.pictureLink?.slice(4)}`} className="cart__card-img" />
+        <img src={`${BASE_URL}/${product.pictureLink}`} className="cart__card-img" />
         <h1 className="order__card__title">{product.name}</h1>
       </div>
       <div className="order__card__price-container">

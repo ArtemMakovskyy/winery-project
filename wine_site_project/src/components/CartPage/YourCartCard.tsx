@@ -40,7 +40,7 @@ export const YourCartCard: React.FC<Props> = ({ product }) => {
         <img src="images2/close.svg" />
       </button>
       <div className="order__card-img-container">
-        <img src={`${BASE_URL}/${product.pictureLink?.slice(4)}`} className="cart__card-img"/>
+        <img src={`${BASE_URL}/${product.pictureLink}`} className="cart__card-img"/>
         <h1 className="order__card__title">{product.name}</h1>
       </div>
       <div className="order__card__price-container">

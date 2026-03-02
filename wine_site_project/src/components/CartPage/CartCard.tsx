@@ -28,7 +28,7 @@ export const CartCard: React.FC<Props> = React.memo(({ product }) => {
   return (
     <div className="cart__card">
       <div className="cart__card-img-container">
-        <img src={`${BASE_URL}/${product.pictureLink?.slice(4)}`} className="cart__card-img" alt={product.name} />
+        <img src={`${BASE_URL}/${product.pictureLink}`} className="cart__card-img" alt={product.name} />
         <h1 className="cart__card__title">{product.name}</h1>
       </div>
       <div className='cart__card__button-container'>

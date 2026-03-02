@@ -18,6 +18,7 @@ import java.math.BigDecimal;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -25,13 +26,15 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @RequiredArgsConstructor
 public class DataLoader implements CommandLineRunner {
-    private static final String IMAGE_PATH = "api/images/wine/";
+
     private final WineRepository wineRepository;
     private final WineService wineService;
-
     private final UserService userAuthApi;
     private final ReviewService reviewService;
     private final OrderService orderService;
+
+    @Value("${image.link.path}")
+    private  String imageLinkPath;
 
     @Override
     public void run(String... args) throws Exception {
@@ -135,8 +138,8 @@ public class DataLoader implements CommandLineRunner {
                                 and aromatic. Pleasant fruity and honey shades will give
                                 a truly vivid impression. Everyone likes this wine and
                                 is absolutely universal""",
-                        IMAGE_PATH + "Riesling-White-Dry.png",
-                        IMAGE_PATH + "Riesling-White-Dry3.png"
+                        imageLinkPath + "Riesling-White-Dry.png",
+                        imageLinkPath + "Riesling-White-Dry3.png"
                 ));
         wineService.add(
                 new WineCreateRequestDto(
@@ -174,8 +177,8 @@ public class DataLoader implements CommandLineRunner {
                                  deep taste delights with velvety tannins. The wine will
                                  be an excellent accompaniment to meat dishes and grilled
                                  dishes""",
-                        IMAGE_PATH + "Cabernet-Sauvignon-Red-Dry.png",
-                        IMAGE_PATH + "Cabernet-Sauvignon-Red-Dry3.png"
+                        imageLinkPath + "Cabernet-Sauvignon-Red-Dry.png",
+                        imageLinkPath + "Cabernet-Sauvignon-Red-Dry3.png"
                 ));
         wineService.add(
                 new WineCreateRequestDto(
@@ -214,8 +217,8 @@ public class DataLoader implements CommandLineRunner {
                                 red berries, raspberries, blackberries, blueberries,
                                 plums. This wine will be an excellent accompaniment
                                 to meat dishes, as well as for solo consumption""",
-                        IMAGE_PATH + "malbec-Red-Dry.png",
-                        IMAGE_PATH + "malbec-Red-Dry3.png"
+                        imageLinkPath + "malbec-Red-Dry.png",
+                        imageLinkPath + "malbec-Red-Dry3.png"
                 ));
         wineService.add(
                 new WineCreateRequestDto(
@@ -249,8 +252,8 @@ public class DataLoader implements CommandLineRunner {
                                 has a fresh aromatic character. This wine will be an
                                 excellent choice for a hot summer day and get-togethers
                                 with friends.""",
-                        IMAGE_PATH + "Sauvignon-White-Dry.png",
-                        IMAGE_PATH + "Sauvignon-White-Dry3.png"
+                        imageLinkPath + "Sauvignon-White-Dry.png",
+                        imageLinkPath + "Sauvignon-White-Dry3.png"
                 ));
         wineService.add(
                 new WineCreateRequestDto(
@@ -286,8 +289,8 @@ public class DataLoader implements CommandLineRunner {
                                 a deep, rich wine with a vibrant berry profile as well
                                 as rich spice and animalic tones. This wine goes well
                                 with meat dishes and grilled dishes""",
-                        IMAGE_PATH + "Shiraz-RedDry.png",
-                        IMAGE_PATH + "Shiraz-RedDry3.png"
+                        imageLinkPath + "Shiraz-RedDry.png",
+                        imageLinkPath + "Shiraz-RedDry3.png"
                 ));
         wineService.add(
                 new WineCreateRequestDto(
@@ -323,8 +326,8 @@ public class DataLoader implements CommandLineRunner {
                                 bouquet reveals notes of fruit, citrus, and peach.
                                 This is a universal wine, both for a large company
                                 and for solo consumption""",
-                        IMAGE_PATH + "Pinot-Blanc-White-Dry.png",
-                        IMAGE_PATH + "Pinot-Blanc-White-Dry3.png"
+                        imageLinkPath + "Pinot-Blanc-White-Dry.png",
+                        imageLinkPath + "Pinot-Blanc-White-Dry3.png"
                 ));
         wineService.add(
                 new WineCreateRequestDto(
@@ -360,8 +363,8 @@ public class DataLoader implements CommandLineRunner {
                                 additional year in the bottle before going on sale.
                                 Oksamite Ukraine is a truly magnificent, refined
                                 and deep wine""",
-                        IMAGE_PATH + "Velvet-of-Ukraine-Red-Dry.png",
-                        IMAGE_PATH + "Velvet-of-Ukraine-Red-Dry3.png"
+                        imageLinkPath + "Velvet-of-Ukraine-Red-Dry.png",
+                        imageLinkPath + "Velvet-of-Ukraine-Red-Dry3.png"
                 ));
         wineService.add(
                 new WineCreateRequestDto(
@@ -398,8 +401,8 @@ public class DataLoader implements CommandLineRunner {
                                 cold bottling. Chardonnay has a rich character and
                                 richness of flavor. This wine can make an incredible
                                 impression on you.""",
-                        IMAGE_PATH + "Chardonnay-Reserve-White-Dry.png",
-                        IMAGE_PATH + "Chardonnay-Reserve-White-Dry3.png"
+                        imageLinkPath + "Chardonnay-Reserve-White-Dry.png",
+                        imageLinkPath + "Chardonnay-Reserve-White-Dry3.png"
                 ));
         wineService.add(
                 new WineCreateRequestDto(
@@ -437,8 +440,8 @@ public class DataLoader implements CommandLineRunner {
                                 and kept in the bottle for another year. Merlot wine
                                 has a rich and deep character. It will appeal to
                                 connoisseurs of generous and juicy wines""",
-                        IMAGE_PATH + "Merlot-Red-Dry.png",
-                        IMAGE_PATH + "Merlot-Red-Dry3.png"
+                        imageLinkPath + "Merlot-Red-Dry.png",
+                        imageLinkPath + "Merlot-Red-Dry3.png"
                 ));
         wineService.add(
                 new WineCreateRequestDto(
@@ -473,8 +476,8 @@ public class DataLoader implements CommandLineRunner {
                                 this creates rich wines of the highest quality. You will
                                 like the white wine Aligote for its lightness and pleasant
                                 bouquet with hints of meadow herbs and flowers""",
-                        IMAGE_PATH + "Aligote-White-Dry.png",
-                        IMAGE_PATH + "Aligote-White-Dry3.png"
+                        imageLinkPath + "Aligote-White-Dry.png",
+                        imageLinkPath + "Aligote-White-Dry3.png"
                 ));
         wineService.add(
                 new WineCreateRequestDto(
@@ -510,8 +513,8 @@ public class DataLoader implements CommandLineRunner {
                                 velvety tannins and an expressive structure will not
                                 leave you indifferent. This wine will be an amazing
                                 complement to meat dishes and aged cheeses""",
-                        IMAGE_PATH + "Chateau-Trubetskoi-Red-Dry.png",
-                        IMAGE_PATH + "Chateau-Trubetskoi-Red-Dry3.png"
+                        imageLinkPath + "Chateau-Trubetskoi-Red-Dry.png",
+                        imageLinkPath + "Chateau-Trubetskoi-Red-Dry3.png"
                 ));
         wineService.add(
                 new WineCreateRequestDto(
@@ -546,8 +549,8 @@ public class DataLoader implements CommandLineRunner {
                                 takes place in neutral containers with full temperature
                                 control. This wine is ideal for lunch or dinner with
                                 family or friends""",
-                        IMAGE_PATH + "Chardonnay-White-Dry.png",
-                        IMAGE_PATH + "Chardonnay-White-Dry3.png"
+                        imageLinkPath + "Chardonnay-White-Dry.png",
+                        imageLinkPath + "Chardonnay-White-Dry3.png"
                 ));
         wineService.add(
                 new WineCreateRequestDto(
@@ -585,8 +588,8 @@ public class DataLoader implements CommandLineRunner {
                                 decanting of the wine. The wine is aged for 1.5 years
                                 in new French barrels. Perlina Stepu is an ideal gift
                                 for Aligote lovers""",
-                        IMAGE_PATH + "Steppe-Pearl-White-Dry.png",
-                        IMAGE_PATH + "Steppe-Pearl-White-Dry3.png"
+                        imageLinkPath + "Steppe-Pearl-White-Dry.png",
+                        imageLinkPath + "Steppe-Pearl-White-Dry3.png"
                 ));
         wineService.add(
                 new WineCreateRequestDto(
@@ -628,8 +631,8 @@ public class DataLoader implements CommandLineRunner {
                                 controlled temperatures in neutral tanks. The wine is aged
                                 in the winery cellars in oak barrels for a minimum
                                 of 9 months""",
-                        IMAGE_PATH + "Pinot-Noir-Red-Dry.png",
-                        IMAGE_PATH + "Pinot-Noir-Red-Dry3.png"
+                        imageLinkPath + "Pinot-Noir-Red-Dry.png",
+                        imageLinkPath + "Pinot-Noir-Red-Dry3.png"
                 ));
     }
 }

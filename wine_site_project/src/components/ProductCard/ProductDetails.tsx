@@ -102,7 +102,7 @@ export const ProductDetails = () => {
         </div>
         <h2 className='product-details__edition'>{currentProduct?.reserveType !== null ? currentProduct?.reserveType : ' '}</h2>
         <div className='product-details-img-container'>
-          <img src={`${BASE_URL}/${currentProduct?.pictureLink?.slice(4)}`} className='product-details-img' />
+          <img src={`${BASE_URL}/${currentProduct?.pictureLink}`} className='product-details-img' />
           <div>
             <div className='product-details__grade__main-container'>
               <div>

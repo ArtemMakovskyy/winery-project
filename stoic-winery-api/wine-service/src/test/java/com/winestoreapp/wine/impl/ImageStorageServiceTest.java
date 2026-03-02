@@ -47,13 +47,13 @@ class ImageStorageServiceTest {
         Path filePath = tempDir.resolve(fileName);
         Files.write(filePath, "data".getBytes());
 
-        imageStorageService.deleteImage("api/images/wine/" + fileName);
+        imageStorageService.deleteImage("images/wine/" + fileName);
 
         assertThat(Files.exists(filePath)).isFalse();
     }
 
     @Test
     void deleteImage_NonExistingFile_ShouldNotThrowException() {
-        imageStorageService.deleteImage("api/images/wine/non_existent.jpg");
+        imageStorageService.deleteImage("images/wine/non_existent.jpg");
     }
 }

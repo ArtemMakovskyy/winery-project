@@ -33,7 +33,7 @@ export const FavouriteCard
   return (
     <div className='product__card'>
       <NavLink to={`/products/${product.id}`}>
-        <img src={`${BASE_URL}/${product.pictureLink?.slice(4)}`} className='product-img'/>
+        <img src={`${BASE_URL}/${product.pictureLink}`} className='product-img'/>
       </NavLink>
       <div className='product-container'>
         <div className='product__title-container'>

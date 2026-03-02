@@ -34,7 +34,7 @@ export const ProductCard
         to={`/products/${product.id}`}
         onClick={() => setIsActive && setIsActive(false)}
       >
-        <img src={`${BASE_URL}/${product.pictureLink2?.slice(4)}`} className='product-img' />
+        <img src={`${BASE_URL}/${product.pictureLink2}`} className='product-img' />
       </NavLink>
       <div className='product-container'>
         <div className='product__title-container'>

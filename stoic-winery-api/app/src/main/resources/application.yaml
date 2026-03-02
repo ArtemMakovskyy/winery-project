@@ -16,7 +16,7 @@ spring:
     show-sql: false
     open-in-view: false
     hibernate:
-      ddl-auto: none
+      ddl-auto: validate
   servlet:
     multipart:
       max-file-size: 10MB
@@ -41,6 +41,8 @@ image:
     path: ${IMAGE_SAVE_PATH:stoic-winery-api/uploads/images/wine/}
   config:
     path: ${UPLOAD_CONFIG_BASE_PATH:file:stoic-winery-api/uploads/images/}
+  link:
+    path: images/wine/
 
 limiter:
   number:
