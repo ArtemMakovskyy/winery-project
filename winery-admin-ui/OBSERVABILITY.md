@@ -173,8 +173,8 @@ The Admin UI uses the unified tracing naming format: `<domain>/<action>`
 | User   | Update role    | `user/update-role`  |
 | Auth   | Login          | `auth/login`        |
 | Auth   | Logout         | `auth/logout`       |
-| Health | Init           | `health/init`       |
 | Health | Check          | `health/check`      |
+| Health | Init           | `health/init`       |
 | UI     | Wine form      | `ui/wine-form`      |
 | UI     | Order form     | `ui/order-form`     |
 | UI     | User role form | `ui/user-role-form` |

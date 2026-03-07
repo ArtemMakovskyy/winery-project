@@ -157,34 +157,50 @@ UI (`http://localhost:9090`). They can be reused when integrating with Alertmana
 
 ### Tracing Naming Convention
 
-The service uses the unified tracing naming format: `<domain>/<action>[/<detail>]`
+The service uses the unified tracing naming format: `<domain>/<action>`
 
 **Examples of trace names:**
 
-| Domain   | Operation         | Trace Name                   |
-|----------|-------------------|------------------------------|
-| Order    | Create            | `order/create`               |
-| Order    | Find by ID        | `order/find/by-id`           |
-| Order    | Find all          | `order/find-all`             |
-| Order    | Set paid          | `order/set-paid`             |
-| Wine     | Create            | `wine/create`                |
-| Wine     | Find              | `wine/find`                  |
-| Wine     | Find all          | `wine/find-all`              |
-| Wine     | Update image      | `wine/update-image`          |
-| Wine     | Delete            | `wine/delete`                |
-| Review   | Create            | `review/create`              |
-| Review   | Find by wine      | `review/find/by-wine`        |
-| User     | Find by email     | `user/find/by-email`         |
-| User     | Get or create     | `user/get-or-create`         |
-| User     | Register          | `user/register`              |
-| User     | Update role       | `user/update-role`           |
-| Auth     | Authenticate      | `auth/authenticate`          |
-| Auth     | Login             | `auth/login`                 |
-| Auth     | Logout            | `auth/logout`                |
-| Telegram | Start             | `telegram/start`             |
-| Telegram | Send notification | `telegram/send-notification` |
-| Image    | Update            | `image/update`               |
-| Image    | Delete            | `image/delete`               |
+| Domain   | Operation           | Trace Name                 |
+|----------|---------------------|----------------------------|
+| Wine     | Create              | `wine/create`              |
+| Wine     | Find                | `wine/find`                |
+| Wine     | Find all            | `wine/find-all`            |
+| Wine     | Delete              | `wine/delete`              |
+| Wine     | Exists              | `wine/exists`              |
+| Wine     | Update image        | `wine/update-image`        |
+| Wine     | Update rating       | `wine/update-rating`       |
+| Review   | Create              | `review/create`            |
+| Review   | Find by wine        | `review/find/by-wine`      |
+| Order    | Create              | `order/create`             |
+| Order    | Find all            | `order/find-all`           |
+| Order    | Delete              | `order/delete`             |
+| Order    | Set paid            | `order/set-paid`           |
+| Order    | Find by ID          | `order/find/by-id`         |
+| Order    | Find by number      | `order/find/by-number`     |
+| Order    | Find by user        | `order/find/by-user`       |
+| User     | Get or create       | `user/get-or-create`       |
+| User     | Register            | `user/register`            |
+| User     | Sync data           | `user/sync-data`           |
+| User     | Update role         | `user/update-role`         |
+| User     | Update Telegram ID  | `user/update-tg-id`        |
+| User     | Find by ID          | `user/find/by-id`          |
+| User     | Find by email       | `user/find/by-email`       |
+| User     | Find by Telegram ID | `user/find/by-tg-id`       |
+| User     | Find by role        | `user/find/by-role`        |
+| Auth     | Authenticate        | `auth/authenticate`        |
+| Auth     | Login               | `auth/login`               |
+| Auth     | Logout              | `auth/logout`              |
+| Auth     | Register            | `auth/register`            |
+| Auth     | Validate token      | `auth/validate-token`      |
+| Auth     | Load user           | `auth/load-user`           |
+| Telegram | Start               | `telegram/start`           |
+| Telegram | Receive update      | `telegram/receive-update`  |
+| Telegram | Send notification   | `telegram/send-notification` |
+| Telegram | Send picture        | `telegram/send-picture`    |
+| Telegram | Register by order   | `telegram/register-by-order` |
+| Image    | Delete              | `image/delete`             |
+| Image    | Update              | `image/update`             |
 
 **Database spans:**
 

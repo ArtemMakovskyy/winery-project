@@ -2,7 +2,7 @@ package com.winestoreapp.wineryadminui.core.observability;
 
 public class ObservationTags {
     public static final String AUTH_HEADERS_PRESENT = "auth.header.present";
-    public static final String AUTH_STAUS = "auth.status";
+    public static final String AUTH_STATUS = "auth.status";
     public static final String BUSINESS_LOGIC = "business.logic";
     public static final String ERROR_MESSAGE = "error.message";
     public static final String ERROR_STATUS = "error.status";

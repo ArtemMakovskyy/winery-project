@@ -74,7 +74,7 @@ class AuthServiceTest {
         authService.logout(session);
 
         verify(storage).clear(session);
-        verify(spanTagger).tag(ObservationTags.AUTH_STAUS, "logout_success");
+        verify(spanTagger).tag(ObservationTags.AUTH_STATUS, "logout_success");
     }
 
     @Test

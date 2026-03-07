@@ -27,13 +27,13 @@ public class AuthService {
         UserLoginResponseDto response = authFeignClient.login(dto);
         storage.save(session, response.token());
 
-        spanTagger.tag(ObservationTags.AUTH_STAUS, ObservationTags.SUCCESS);
+        spanTagger.tag(ObservationTags.AUTH_STATUS, ObservationTags.SUCCESS);
         log.info("User successfully logged in");
     }
 
     @Observed(name = ObservationNames.AUTH_LOGOUT)
     public void logout(HttpSession session) {
         storage.clear(session);
-        spanTagger.tag(ObservationTags.AUTH_STAUS, "logout_success");
+        spanTagger.tag(ObservationTags.AUTH_STATUS, "logout_success");
     }
 }
