@@ -44,7 +44,7 @@ The project evolved through several patterns to improve maintainability and scal
 | REST API                       | Communication layer                 |
 | JWT                            | Authentication & authorization      |
 | Spring Data JPA                | Database ORM                        |
-| MySQL & H2                     | Databases                           |
+| MySQL                          | Databases                           |
 | Liquibase                      | Database migrations                 |
 | Lombok & MapStruct             | DTO mapping & boilerplate reduction |
 | Telegram Bots                  | Notifications                       |

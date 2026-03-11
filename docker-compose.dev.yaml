@@ -13,6 +13,7 @@ services:
     build: ./stoic-winery-api
     ports:
       - "${BACKEND_PORT}:8080"
+      - "${DEBUG_PORT}:5005"
     environment:
       SPRING_DATASOURCE_URL: ${DATASOURCE_URL}
       SPRING_DATASOURCE_USERNAME: ${DATASOURCE_USER}
@@ -23,6 +24,8 @@ services:
       LOKI_URL: ${LOKI_URL}
       IMAGE_SAVE_PATH: ${IMAGE_SAVE_PATH}
       UPLOAD_BASE_PATH: ${UPLOAD_BASE_PATH}
+      JAVA_TOOL_OPTIONS: >
+        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
     volumes:
       - wine_images:/app/uploads/images/wine
     networks:
@@ -67,6 +70,8 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "${DB_PORT}:3306"
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p$MYSQL_ROOT_PASSWORD"]
       interval: 10s
@@ -90,6 +95,8 @@ services:
       - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - ./docker/prometheus/rules.yml:/etc/prometheus/rules.yml:ro
       - prometheus_data:/prometheus
+    ports:
+      - "${PROMETHEUS_PORT}:9090"
     depends_on:
       - api-backend
     networks:
@@ -102,6 +109,8 @@ services:
     volumes:
       - ./docker/loki/local-config.yaml:/etc/loki/local-config.yaml:ro
       - loki_data:/loki
+    ports:
+      - "${LOKI_PORT}:3100"
     networks:
       - backend
 
@@ -112,6 +121,9 @@ services:
     volumes:
       - ./docker/tempo/tempo.yml:/etc/tempo.yaml:ro
       - tempo_data:/tmp/tempo
+    ports:
+      - "${TEMPO_PORT}:3200"
+      - "${ZIPKIN_PORT}:9411"
     networks:
       - backend
 
@@ -124,7 +136,7 @@ services:
       - grafana_data:/var/lib/grafana
     environment:
       - GF_AUTH_ANONYMOUS_ENABLED=true
-      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
       - GF_AUTH_DISABLE_LOGIN_FORM=true
     ports:
       - "${GRAFANA_PORT}:3000"

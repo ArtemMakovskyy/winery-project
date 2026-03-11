@@ -6,11 +6,11 @@ Welcome to the **Stoic Winery** project — a full-stack wine store application 
 ### Soft requirements
 
 - Docker
-    
+
 - Postman
-    
+
 - Git
-    
+
 - Browser
 
 ---
@@ -22,8 +22,8 @@ Clone the repository from GitHub:
 
 Start Docker.
 
-If necessary, configure the database and Telegram Bot parameters in the `.env` file.  
-By default, the Telegram bot is disabled and all required parameters are already set.  
+If necessary, configure the database and Telegram Bot parameters in the `.env` file.
+By default, the Telegram bot is disabled and all required required parameters are already set.
 No additional configuration is required.
 
 Navigate to the root directory of the project and run:
@@ -35,6 +35,65 @@ Navigate to the root directory of the project and run:
 **Next starts:**
 
 `docker-compose up --no-build`
+
+---
+
+### 🐳 Docker Compose Profiles
+
+The project provides three Docker Compose configurations for different use cases:
+
+| File | Purpose | Services Included |
+|------|---------|-------------------|
+| `docker-compose.yaml` | **Default** — Basic application stack | Backend, Frontend, Admin UI, MySQL, Prometheus, Loki, Tempo, Grafana |
+| `docker-compose.dev.yaml` | **Full Observability** — Development with complete monitoring | All default services + **exposed ports for Loki, Tempo, Zipkin** + **Debug port for backend** |
+| `docker-compose.inv.yaml` | **Infrastructure Only** — Spring apps environment | MySQL, Prometheus, Loki, Tempo, Grafana (no application containers) |
+
+**Usage:**
+
+```bash
+# Default stack (basic observability)
+docker-compose up
+
+# Full observability stack (recommended for development)
+docker-compose -f docker-compose.dev.yaml up
+
+# Infrastructure only (for running Spring apps locally)
+docker-compose -f docker-compose.inv.yaml up
+```
+
+> **⚠️ Default Configuration Limitations:**
+> 
+> When using `docker-compose.yaml` (default), the following observability features are **limited**:
+> - **Loki** — no exposed port (logs aggregation works internally, but external access unavailable)
+> - **Tempo** — no exposed port (tracing works internally, but Zipkin UI unavailable)
+> - **Backend Debug Port** — not exposed (JDWP debugging unavailable)
+> 
+> For **full observability access** (Grafana, Prometheus, Loki, Tempo/Zipkin UI, backend debugging), use:
+> ```bash
+> docker-compose -f docker-compose.dev.yaml up
+> ```
+
+---
+
+### 🌐 Deployment Configuration
+
+> **Important for Frontend Deployment:**
+> 
+> If you are deploying the application to a server, you must update the API base URL in the frontend configuration.
+> 
+> **File:** `wine_site_project/src/utils/fetchClient.ts`
+> 
+> **Change:**
+> ```typescript
+> export const BASE_URL = 'http://localhost:8080/api';
+> ```
+>
+> **To your server's API URL (format: `http://IP-address:port/api`):**
+> ```typescript
+> // Example (replace this 204.204.204.33 with your actual server IP and port)
+> export const BASE_URL = 'http://204.204.204.33:8080/api';
+> ```
+> This ensures the frontend can correctly communicate with the backend API after deployment.
 
 ## 🚀 How to use the application
 
@@ -93,7 +152,7 @@ It provides:
 - **winery-admin-ui** — separate admin UI microservice
     
 - **observability stack** — Prometheus, Grafana, Loki, Tempo
-	- **Grafana:** `http://localhost:3030`
+	- **Grafana:** `http://localhost:3030/dashboards`
 	- **Prometheus:** `http://localhost:9090`
 	- **Loki:** `http://localhost:3100`
 	- **Tempo / Zipkin:** `http://localhost:9411`   
@@ -120,7 +179,7 @@ It provides:
     
 - **Architecture:** REST, Modular Monolith
     
-- **Database:** MySQL, H2 (dev), Liquibase migrations
+- **Database:** MySQL, Liquibase migrations
     
 - **Security:** Spring Security, JWT
     

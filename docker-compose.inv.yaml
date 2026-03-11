@@ -1,62 +1,4 @@
 services:
-  api-backend:
-    env_file: .env
-    container_name: be-api
-    depends_on:
-      db-sql:
-        condition: service_healthy
-      loki:
-        condition: service_started
-      tempo:
-        condition: service_started
-    restart: on-failure
-    build: ./stoic-winery-api
-    ports:
-      - "${BACKEND_PORT}:8080"
-    environment:
-      SPRING_DATASOURCE_URL: ${DATASOURCE_URL}
-      SPRING_DATASOURCE_USERNAME: ${DATASOURCE_USER}
-      SPRING_DATASOURCE_PASSWORD: ${DATASOURCE_PASSWORD}
-      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
-      BACKEND_URL: ${BACKEND_URL_DOCKER}
-      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: ${MANAGEMENT_ZIPKIN_TRACING_ENDPOINT}
-      LOKI_URL: ${LOKI_URL}
-      IMAGE_SAVE_PATH: ${IMAGE_SAVE_PATH}
-      UPLOAD_BASE_PATH: ${UPLOAD_BASE_PATH}
-    volumes:
-      - wine_images:/app/uploads/images/wine
-    networks:
-      - backend
-
-  winery-admin-ui:
-    env_file: .env
-    container_name: fe-ui-admin
-    build: ./winery-admin-ui
-    ports:
-      - "${ADMIN_UI_PORT}:8081"
-    environment:
-      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: ${MANAGEMENT_ZIPKIN_TRACING_ENDPOINT}
-      LOKI_URL: ${LOKI_URL}
-      BACKEND_URL: ${BACKEND_URL_DOCKER}
-    networks:
-      - backend
-    depends_on:
-      - loki
-      - tempo
-      - api-backend
-
-  frontend-wine-site:
-    container_name: fe-ui
-    env_file: .env
-    build: ./wine_site_project
-    ports:
-      - "${FRONTEND_PORT}:3000"
-    stdin_open: true
-    tty: true
-    networks:
-      - frontend
-      - backend
-
   db-sql:
     env_file: .env
     container_name: db-mysql
@@ -67,6 +9,8 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "${DB_PORT}:3306"
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p$MYSQL_ROOT_PASSWORD"]
       interval: 10s
@@ -90,8 +34,8 @@ services:
       - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - ./docker/prometheus/rules.yml:/etc/prometheus/rules.yml:ro
       - prometheus_data:/prometheus
-    depends_on:
-      - api-backend
+    ports:
+      - "${PROMETHEUS_PORT}:9090"
     networks:
       - backend
 
@@ -102,6 +46,8 @@ services:
     volumes:
       - ./docker/loki/local-config.yaml:/etc/loki/local-config.yaml:ro
       - loki_data:/loki
+    ports:
+      - "${LOKI_PORT}:3100"
     networks:
       - backend
 
@@ -112,6 +58,9 @@ services:
     volumes:
       - ./docker/tempo/tempo.yml:/etc/tempo.yaml:ro
       - tempo_data:/tmp/tempo
+    ports:
+      - "${TEMPO_PORT}:3200"
+      - "${ZIPKIN_PORT}:9411"
     networks:
       - backend
 
@@ -124,7 +73,7 @@ services:
       - grafana_data:/var/lib/grafana
     environment:
       - GF_AUTH_ANONYMOUS_ENABLED=true
-      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
       - GF_AUTH_DISABLE_LOGIN_FORM=true
     ports:
       - "${GRAFANA_PORT}:3000"
@@ -132,7 +81,6 @@ services:
       - prometheus
       - loki
       - tempo
-      - api-backend
     networks:
       - backend
 
