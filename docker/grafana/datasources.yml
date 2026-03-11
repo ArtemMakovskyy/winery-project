@@ -45,3 +45,19 @@ datasources:
           matcherRegex: '\[.+,(.+?),'
           name: TraceID
           url: '$${__value.raw}'
+  - name: MySQL
+    type: mysql
+    uid: mysql
+    access: proxy
+    url: db-sql:3306
+    database: wine_store_db
+    user: wine_user
+    secureJsonData:
+      password: dev_db_password_change_me
+    editable: true
+    isDefault: false
+    jsonData:
+      maxOpenConns: 10
+      maxIdleConns: 5
+      connMaxLifetime: 14400
+      timezone: UTC

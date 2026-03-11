@@ -1,29 +1,7 @@
 services:
-  db-sql:
-    env_file: .env
-    container_name: mysql-winery-db-container
-    image: mysql:8
-    restart: unless-stopped
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-    ports:
-      - "${DB_PORT}:3306"
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p$MYSQL_ROOT_PASSWORD"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    volumes:
-      - mysql_data:/var/lib/mysql
-    networks:
-      - backend
-
   api-backend:
     env_file: .env
-    container_name: backend-winery-api-container
+    container_name: be-api
     depends_on:
       db-sql:
         condition: service_healthy
@@ -55,7 +33,7 @@ services:
 
   winery-admin-ui:
     env_file: .env
-    container_name: frontend-admin-ui-container
+    container_name: fe-ui-admin
     build: ./winery-admin-ui
     ports:
       - "${ADMIN_UI_PORT}:8081"
@@ -70,11 +48,49 @@ services:
       - tempo
       - api-backend
 
+  frontend-wine-site:
+    container_name: fe-ui
+    env_file: .env
+    build: ./wine_site_project
+    ports:
+      - "${FRONTEND_PORT}:3000"
+    stdin_open: true
+    tty: true
+    networks:
+      - frontend
+      - backend
+
+  db-sql:
+    env_file: .env
+    container_name: db-mysql
+    image: mysql:8
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "${DB_PORT}:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - backend
+
   prometheus:
+    container_name: prometheus
     image: prom/prometheus:v2.46.0
     command:
-      - --enable-feature=exemplar-storage
       - --config.file=/etc/prometheus/prometheus.yml
+      - --web.enable-lifecycle
+      - --enable-feature=exemplar-storage
+      - --storage.tsdb.retention.time=7d
+      - --storage.tsdb.retention.size=5GB
     volumes:
       - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - ./docker/prometheus/rules.yml:/etc/prometheus/rules.yml:ro
@@ -87,6 +103,7 @@ services:
       - backend
 
   loki:
+    container_name: loki
     image: grafana/loki:main
     command: [ '-config.file=/etc/loki/local-config.yaml' ]
     volumes:
@@ -98,6 +115,7 @@ services:
       - backend
 
   tempo:
+    container_name: tempo
     image: grafana/tempo:2.2.2
     command: [ '-config.file=/etc/tempo.yaml' ]
     volumes:
@@ -110,6 +128,7 @@ services:
       - backend
 
   grafana:
+    container_name: grafana
     image: grafana/grafana:12.0.0
     volumes:
       - ./docker/grafana/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
@@ -127,18 +146,6 @@ services:
       - tempo
       - api-backend
     networks:
-      - backend
-
-  frontend-wine-site:
-    container_name: frontend-wine-site-ui-container
-    env_file: .env
-    build: ./wine_site_project
-    ports:
-      - "${FRONTEND_PORT}:3000"
-    stdin_open: true
-    tty: true
-    networks:
-      - frontend
       - backend
 
 networks:
