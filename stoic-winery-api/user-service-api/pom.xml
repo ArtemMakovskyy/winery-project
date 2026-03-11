@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.winestoreapp</groupId>
-        <artifactId>wine-store-app</artifactId>
+        <artifactId>stoic-winery-api</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
