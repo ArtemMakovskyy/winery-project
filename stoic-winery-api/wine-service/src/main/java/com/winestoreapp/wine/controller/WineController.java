@@ -11,6 +11,7 @@ import io.micrometer.observation.annotation.Observed;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -112,6 +113,40 @@ public class WineController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResponseErrorDto.class)))
     })
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Data for creating a wine",
+            content = @Content(
+                    schema = @Schema(implementation = WineCreateRequestDto.class),
+                    examples = @ExampleObject(
+                            name = "Wine example",
+                            value = """
+                            {
+                              "vendorCode": "MSD 2019",
+                              "qualityLevel": "Select",
+                              "reserveType": "Limited Edition Wine",
+                              "name": "Prince Trubetskoi Select Riesling",
+                              "shortName": "Prince Trubetskoi",
+                              "year": 2017,
+                              "tasteWine": "fish",
+                              "price": 25.59,
+                              "grape": "Riesling",
+                              "isDecantation": true,
+                              "wineType": "DRY",
+                              "strengthFrom": 10.9,
+                              "strengthTo": 11.8,
+                              "wineColor": "WHITE",
+                              "colorDescribing": "Deep red",
+                              "taste": "delicate, balanced, round, with a fruity and honey aftertaste.",
+                              "aroma": "soft, generous, multifaceted, with hints of tropical",
+                              "gastronomy": "goes well with meat dishes, mature cheeses and stews",
+                              "description": "description",
+                              "pictureLink": "images/wine/default.jpg",
+                              "pictureLink2": "images/wine/default_back.jpg"
+                            }
+                            """
+                    )
+            )
+    )
     @PreAuthorize("hasRole('MANAGER')")
     @PostMapping
     @Observed(name = ObservationNames.WINE_CREATE,

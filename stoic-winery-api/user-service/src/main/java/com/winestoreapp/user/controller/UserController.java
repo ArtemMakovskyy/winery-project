@@ -10,6 +10,7 @@ import com.winestoreapp.user.api.dto.UserResponseDto;
 import io.micrometer.observation.annotation.Observed;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -56,6 +57,20 @@ public class UserController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResponseErrorDto.class)))
     })
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Data for updating user role",
+            content = @Content(
+                    schema = @Schema(implementation = UpdateUserRoleDto.class),
+                    examples = @ExampleObject(
+                            name = "Role update example",
+                            value = """
+                            {
+                              "role": "ROLE_MANAGER"
+                            }
+                            """
+                    )
+            )
+    )
     @PutMapping("/{id}/role")
     @PreAuthorize("hasRole('ADMIN')")
     @Observed(name = ObservationNames.USER_UPDATE_ROLE,

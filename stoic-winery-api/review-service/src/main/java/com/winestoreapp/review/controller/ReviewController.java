@@ -11,6 +11,7 @@ import io.micrometer.observation.annotation.Observed;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -59,6 +60,23 @@ public class ReviewController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResponseErrorDto.class)))
     })
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Data for creating a review",
+            content = @Content(
+                    schema = @Schema(implementation = CreateReviewDto.class),
+                    examples = @ExampleObject(
+                            name = "Review example",
+                            value = """
+                            {
+                              "wineId": 1,
+                              "userFirstAndLastName": "Ivan Petrov",
+                              "message": "This is a great wine!",
+                              "rating": 5
+                            }
+                            """
+                    )
+            )
+    )
     @PostMapping
     @Observed(
             name = ObservationNames.REVIEW_CREATE,

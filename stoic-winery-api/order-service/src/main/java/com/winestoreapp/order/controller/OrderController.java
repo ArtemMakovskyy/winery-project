@@ -12,6 +12,7 @@ import io.micrometer.observation.annotation.Observed;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -92,12 +93,12 @@ public class OrderController {
 
     @Operation(summary = "Add new order",
             description = """
-                    Adds an order for wine from a specific User. Users are identified by first 
-                    name, last name, and telephone number. If there is already a user in the 
-                    database with first name, last name, and phone number, this user is linked 
-                    to the order. Otherwise, the database is searched for a user by first and 
-                    last name, and if one is found, a phone number is added to the found user 
-                    and linked to the order. If in this case there is no user in the database, 
+                    Adds an order for wine from a specific User. Users are identified by first
+                    name, last name, and telephone number. If there is already a user in the
+                    database with first name, last name, and phone number, this user is linked
+                    to the order. Otherwise, the database is searched for a user by first and
+                    last name, and if one is found, a phone number is added to the found user
+                    and linked to the order. If in this case there is no user in the database,
                     it is created anew. Available to all users.""")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Order created",
@@ -107,6 +108,35 @@ public class OrderController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResponseErrorDto.class)))
     })
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Data for creating an order",
+            content = @Content(
+                    schema = @Schema(implementation = CreateOrderDto.class),
+                    examples = @ExampleObject(
+                            name = "Order example",
+                            value = """
+                            {
+                              "userFirstAndLastName": "Ivan Petrov",
+                              "email": "customer@email.com",
+                              "phoneNumber": "+380509876543",
+                              "createShoppingCardDto": {
+                                "purchaseObjects": [
+                                  {"wineId": 5, "quantity": 2},
+                                  {"wineId": 10, "quantity": 1}
+                                ]
+                              },
+                              "createOrderDeliveryInformationDto": {
+                                "zipCode": "00000",
+                                "region": "Kyiv region",
+                                "city": "Kyiv",
+                                "street": "Lobanovskogo str, 13/1, ap. 16",
+                                "comment": "Call before delivery"
+                              }
+                            }
+                            """
+                    )
+            )
+    )
     @PostMapping
     @Observed(
             name = ObservationNames.ORDER_CREATE,

@@ -13,6 +13,7 @@ import com.winestoreapp.user.api.dto.UserResponseDto;
 import io.micrometer.observation.annotation.Observed;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -53,6 +54,21 @@ public class AuthenticationController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResponseErrorDto.class)))
     })
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Data for user login",
+            content = @Content(
+                    schema = @Schema(implementation = UserLoginRequestDto.class),
+                    examples = @ExampleObject(
+                            name = "Login example",
+                            value = """
+                            {
+                              "email": "customer@email.com",
+                              "password": "password123"
+                            }
+                            """
+                    )
+            )
+    )
     @PostMapping("/login")
     @Observed(
             name = ObservationNames.AUTH_LOGIN,
@@ -100,6 +116,25 @@ public class AuthenticationController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResponseErrorDto.class)))
     })
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Data for user registration",
+            content = @Content(
+                    schema = @Schema(implementation = UserRegistrationRequestDto.class),
+                    examples = @ExampleObject(
+                            name = "Registration example",
+                            value = """
+                            {
+                              "email": "customer@email.com",
+                              "firstName": "Ivan",
+                              "lastName": "Petrov",
+                              "phoneNumber": "+380509876543",
+                              "password": "password123",
+                              "repeatPassword": "password123"
+                            }
+                            """
+                    )
+            )
+    )
     @PostMapping("/register")
     @Observed(name = ObservationNames.AUTH_REGISTER,
             lowCardinalityKeyValues = {
