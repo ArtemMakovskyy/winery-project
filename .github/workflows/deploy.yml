@@ -1,0 +1,66 @@
+# Deployment workflow for Hetzner VPS
+# This workflow deploys the application to the production server.
+#
+# Triggers:
+# 1. Manual trigger via GitHub Actions UI (workflow_dispatch)
+# 2. Automatic trigger from CI pipeline when pushing to 'deploy' branch with '[deploy]' in commit message (workflow_call)
+#
+# Usage:
+# - Manual: Go to Actions → Deploy to Hetzner → Run workflow
+# - Automatic: Push to 'deploy' branch with commit message containing '[deploy]'
+#   Example: git commit -m "fix: update config [deploy]"
+
+name: Deploy to Hetzner
+
+on:
+  # Manual trigger from GitHub Actions UI
+  workflow_dispatch:
+  # Called by ci.yml workflow (trigger-deploy job) with inherited secrets
+  workflow_call:
+
+jobs:
+  # Main deployment job that connects to Hetzner VPS via SSH
+  deploy:
+    name: Deploy to Hetzner VPS
+    runs-on: ubuntu-latest
+    steps:
+      # Connect to Hetzner VPS via SSH and execute deployment script
+      - name: SSH and Deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          # SSH connection parameters (from GitHub Secrets)
+          host: ${{ secrets.HETZNER_HOST }}
+          username: ${{ secrets.HETZNER_USERNAME }}
+          password: ${{ secrets.HETZNER_PASSWORD }}
+          port: ${{ secrets.HETZNER_SSH_PORT }}
+          script_stop: true  # Stop deployment if any command fails
+          script: |
+            # Navigate to project directory
+            cd winery-project
+            
+            # Sync with remote deploy branch (discard local changes)
+            git fetch origin deploy
+            git checkout deploy
+            git reset --hard origin/deploy
+            
+            # Stop and remove existing containers
+            docker compose down
+            
+            # Build fresh Docker images (pull latest base images)
+            docker compose build --pull
+            
+            # Start containers in detached mode
+            docker compose up -d
+            
+            # Wait for services to start and become healthy
+            echo "Waiting for health check..."
+            sleep 30
+            
+            # Health check - verify API is responding
+            curl -f http://localhost:8080/api/actuator/health || exit 1
+            
+            # Clean up unused Docker images to save disk space
+            docker image prune -f
+            
+            # Show running containers for verification
+            docker ps

@@ -1,0 +1,131 @@
+# CI/CD Pipeline for Winery Project
+# This workflow builds and tests the application on every push/PR to main branches.
+# It also triggers automatic deployment to Hetzner VPS when pushing to 'deploy' branch
+# with a commit message containing '[deploy]'.
+
+name: Build & Test
+
+on:
+  push:
+    branches: [ master, main, dev, deploy ]
+  pull_request:
+    branches: [ master, main, dev, deploy ]
+
+# Cancel in-progress runs for the same branch to save CI minutes
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Build and test the backend Spring Boot application
+  build-backend:
+    name: Build Backend
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      # 1. Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      # 2. Set up Java 21
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      # 3. Cache Maven dependencies (speeds up subsequent builds)
+      - name: Cache Maven dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.m2/repository
+            !~/.m2/repository/com/winestoreapp
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      # 4. Build backend with Maven (compile + run tests)
+      - name: Build backend with Maven
+        run: mvn clean verify -B -DskipTests=false
+        working-directory: ./stoic-winery-api
+
+      # 5. Upload test results for debugging
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-backend
+          path: stoic-winery-api/**/target/surefire-reports/
+          retention-days: 5
+
+  # Build the admin UI module
+  build-admin-ui:
+    name: Build Admin UI
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      # 1. Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      # 2. Set up Java 21
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      # 3. Build admin UI with Maven
+      - name: Build admin UI
+        run: mvn clean verify -B
+        working-directory: ./winery-admin-ui
+
+  #      # 4. Build frontend (wine_site_project)
+  #      - name: Setup Node.js
+  #        uses: actions/setup-node@v4
+  #        with:
+  #          node-version: '18'
+  #          cache: 'npm'
+  #          cache-dependency-path: wine_site_project/package-lock.json
+  #
+  #      - name: Install frontend dependencies
+  #        run: npm ci
+  #        working-directory: ./wine_site_project
+  #
+  #      - name: Build frontend
+  #        run: npm run build
+  #        working-directory: ./wine_site_project
+
+  # Build Docker images (runs after backend and admin UI are successful)
+  docker-build:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [ build-backend, build-admin-ui ]
+
+    steps:
+      # 1. Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      # 2. Set up Docker Buildx (enables docker compose)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      # 3. Build Docker images (pull latest base images, no cache for fresh build)
+      - name: Build Docker images
+        run: docker compose -f docker-compose.yaml build --pull --no-cache
+
+  # Trigger deployment to Hetzner VPS
+  # Only runs on 'deploy' branch with '[deploy]' in commit message
+  trigger-deploy:
+    name: Trigger Deploy
+    needs: [ build-backend, build-admin-ui, docker-build ]
+    if: github.ref == 'refs/heads/deploy' && contains(github.event.head_commit.message, '[deploy]')
+    uses: ./.github/workflows/deploy.yml
+    secrets: inherit

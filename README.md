@@ -216,3 +216,100 @@ This format provides:
 - Consistent naming across services
 - Clear trace visualization in Grafana/Tempo
 - Easy correlation between logs, metrics, and traces
+
+---
+
+## 🔁 CI/CD Workflows
+
+The project uses **GitHub Actions** for automated testing and deployment.
+
+### Workflow Files
+
+| File | Purpose | Trigger |
+|------|---------|---------|
+| `.github/workflows/ci.yml` | Build & Test | Push/PR to `master`, `main`, `dev` |
+| `.github/workflows/deploy.yml` | Deploy to Hetzner VPS | After successful CI (with `[deploy]` tag) or manual trigger |
+
+### CI Pipeline (`ci.yml`)
+
+**Jobs:**
+1. **build-backend** — Compile, test, and verify backend (`stoic-winery-api`)
+2. **build-admin-ui** — Compile and verify admin panel (`winery-admin-ui`)
+3. **docker-build** — Build Docker images (depends on both build jobs)
+
+**Features:**
+- ✅ Maven dependency caching for faster builds
+- ✅ Test results upload as artifacts
+- ✅ Fail-fast: all jobs must pass
+- ✅ Concurrent build cancellation
+
+### CD Pipeline (`deploy.yml`)
+
+**Deployment strategy:**
+- 🚀 **Automatic** — After successful CI push to `master` with `[deploy]` tag in commit message
+- 🎯 **Manual** — Via GitHub Actions UI (workflow_dispatch)
+
+**Features:**
+- ✅ Waits for CI pipeline to complete successfully
+- ✅ Concurrency control (prevents parallel deploys)
+- ✅ Health check after deployment
+- ✅ Automatic cleanup of unused Docker images
+
+**How to trigger deployment:**
+
+```bash
+# Regular push (NO deploy)
+git commit -m "Fix bug in order service"
+git push
+
+# Push with automatic deploy
+git commit -m "Release v1.2.0 [deploy]"
+git push
+
+# Or use GitHub UI: Actions → Deploy to Hetzner → Run workflow
+```
+
+### Server Requirements
+
+> **Note:** CI/CD pipeline is configured and ready for deployment. 
+> Currently configured for Hetzner VPS, but can be adapted for any SSH-accessible server.
+> GitHub secrets must be configured for automatic deployment to work.
+
+The deployment targets a **Hetzner VPS** with:
+- Docker & Docker Compose installed
+- SSH access configured
+- Project cloned via Git
+
+**Required GitHub Secrets:**
+
+| Secret | Description |
+|--------|-------------|
+| `HETZNER_HOST` | Server IP address |
+| `HETZNER_USERNAME` | SSH username (e.g., `root`) |
+| `HETZNER_SSH_KEY` | Private SSH key for authentication |
+| `HETZNER_SSH_PORT` | SSH port (default: `22`) |
+
+### Workflow Diagram
+
+```
+┌─────────────┐
+│ Push to master │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────────┐
+│ CI: Build & Test │
+│ - Backend        │
+│ - Admin UI       │
+│ - Docker images  │
+└──────┬──────────┘
+       │
+       │ ✅ Success + [deploy] tag
+       ▼
+┌─────────────────────┐
+│ CD: Deploy to Hetzner │
+│ - Git pull           │
+│ - Docker compose up  │
+│ - Health check       │
+└─────────────────────┘
+```
