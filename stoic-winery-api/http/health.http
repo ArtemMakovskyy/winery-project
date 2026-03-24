@@ -1,0 +1,12 @@
+### --- Health Check Endpoints ---
+
+### Health Check
+GET {{base_url}}/health
+Accept: application/json
+
+###
+
+### Rate limiting check (5 requests per minute)
+### Send 6 requests quickly - the 6th should return 429 Too Many Requests
+GET {{base_url}}/health/rate-limited
+Accept: application/json

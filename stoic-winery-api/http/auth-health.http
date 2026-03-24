@@ -1,8 +1,11 @@
 ### Health Check
 GET {{base_url}}/health
 
+### Rate limiting сheck
+GET {{base_url}}/health/rate-limited
+
 ### 1. Register New User
-POST {{auth_url}}/register
+POST {{auth_url}}/health/register
 Content-Type: application/json
 
 {

@@ -1,5 +1,6 @@
 package com.winestoreapp.controller;
 
+import com.winestoreapp.common.ratelimit.RateLimit;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -22,4 +23,14 @@ public class HealthCheckController {
         return ResponseEntity.ok("Health check passed. "
                 + "Application is running smoothly.");
     }
+
+    @GetMapping("/rate-limited")
+    @RateLimit(maxRequests = 5, timeWindowSeconds = 60)
+    @Tag(name = "Rate Limit Test",
+            description = "Test endpoint for rate limiting")
+    public ResponseEntity<String> rateLimitedEndpoint() {
+        return ResponseEntity.ok("Rate limit test passed! "
+                + "You have remaining requests.");
+    }
+
 }
