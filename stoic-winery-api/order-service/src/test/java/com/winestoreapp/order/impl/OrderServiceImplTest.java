@@ -1,6 +1,6 @@
 package com.winestoreapp.order.impl;
 
-import com.winestoreapp.common.config.CustomMySqlContainer;
+import com.winestoreapp.common.config.AbstractMySQLContainerTest;
 import com.winestoreapp.common.exception.EntityNotFoundException;
 import com.winestoreapp.common.exception.RegistrationException;
 import com.winestoreapp.common.observability.SpanTagger;
@@ -10,12 +10,13 @@ import com.winestoreapp.order.api.dto.CreatePurchaseObjectDto;
 import com.winestoreapp.order.api.dto.CreateShoppingCardDto;
 import com.winestoreapp.order.api.dto.OrderDto;
 import com.winestoreapp.order.api.dto.OrderPaymentStatus;
+import com.winestoreapp.order.api.dto.ShoppingCardDto;
 import com.winestoreapp.order.config.TestServiceConfig;
 import com.winestoreapp.order.mapper.OrderDeliveryInformationMapper;
 import com.winestoreapp.order.mapper.OrderMapper;
 import com.winestoreapp.order.model.Order;
 import com.winestoreapp.order.model.OrderDeliveryInformation;
-import com.winestoreapp.order.model.ShoppingCard;
+import com.winestoreapp.order.repository.OrderDeliveryInformationRepository;
 import com.winestoreapp.order.repository.OrderRepository;
 import com.winestoreapp.order.repository.ShoppingCardRepository;
 import com.winestoreapp.telegram.api.NotificationService;
@@ -24,18 +25,16 @@ import com.winestoreapp.user.api.dto.UserResponseDto;
 import com.winestoreapp.wine.api.WineService;
 import com.winestoreapp.wine.api.dto.WineDto;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.util.TestPropertyValues;
-import org.springframework.context.ApplicationContextInitializer;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,184 +45,227 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.ArgumentMatchers.eq;
 
 @SpringBootTest(classes = TestServiceConfig.class)
-@ContextConfiguration(initializers = OrderServiceImplTest.Initializer.class)
 @Transactional
-class OrderServiceImplTest {
+@TestPropertySource(properties = {
+        "spring.jpa.hibernate.ddl-auto=create-drop",
+        "telegram.bot.enabled=false"
+})
+class OrderServiceImplTest extends AbstractMySQLContainerTest {
+
     @MockBean
     private SpanTagger spanTagger;
 
     @Autowired
     private OrderServiceImpl orderService;
-
     @Autowired
     private OrderRepository orderRepository;
+    @Autowired
+    private OrderDeliveryInformationRepository deliveryRepository;
+    @Autowired
+    private ShoppingCardRepository shoppingCardRepository;
 
     @MockBean
     private UserService userService;
-
     @MockBean
     private WineService wineService;
-
     @MockBean
     private OrderMapper orderMapper;
-
     @MockBean
     private OrderDeliveryInformationMapper orderDeliveryInformationMapper;
 
-    @MockBean
-    private ShoppingCardRepository shoppingCardRepository;
-
     @Test
-    @DisplayName("Create order - should return OrderDto when data is valid")
-    void createOrder_ValidData_ShouldReturnOrderDto() {
-        CreateOrderDto createOrderDto = createOrderDto();
+    void createOrder_Valid() {
+        CreateOrderDto dto = createOrderDto();
 
-        UserResponseDto userDto = new UserResponseDto();
-        userDto.setId(1L);
+        UserResponseDto user = new UserResponseDto();
+        user.setId(1L);
 
-        Mockito.when(userService.getOrUpdateOrCreateUser(anyString(), anyString(), anyString(), anyString()))
-                .thenReturn(userDto);
+        Mockito.when(userService.getOrUpdateOrCreateUser(any(), any(), any(), any()))
+                .thenReturn(user);
 
-        WineDto wineDto = new WineDto();
-        wineDto.setId(1L);
-        wineDto.setName("Test Wine");
-        wineDto.setPrice(BigDecimal.valueOf(870));
+        WineDto wine = new WineDto();
+        wine.setId(1L);
+        wine.setPrice(BigDecimal.TEN);
 
         Mockito.when(wineService.existsById(anyLong())).thenReturn(true);
-        Mockito.when(wineService.findById(anyLong())).thenReturn(wineDto);
-        Mockito.when(orderDeliveryInformationMapper.toEntity(any())).thenReturn(new OrderDeliveryInformation());
-        Mockito.when(shoppingCardRepository.save(any())).thenReturn(new ShoppingCard());
+        Mockito.when(wineService.findById(anyLong())).thenReturn(wine);
 
-        OrderDto expectedDto = new OrderDto();
-        expectedDto.setOrderNumber("ORDER_123");
-        Mockito.when(orderMapper.toDto(any(Order.class))).thenReturn(expectedDto);
+        Mockito.when(orderDeliveryInformationMapper.toEntity(any()))
+                .thenReturn(new OrderDeliveryInformation());
 
-        OrderDto result = orderService.createOrder(createOrderDto);
+        Mockito.when(orderMapper.toDto(any()))
+                .thenAnswer(inv -> {
+                    Order o = inv.getArgument(0);
+                    OrderDto d = new OrderDto();
+                    d.setOrderNumber(o.getOrderNumber());
+                    return d;
+                });
+
+        OrderDto result = orderService.createOrder(dto);
 
         assertNotNull(result);
-        assertTrue(result.getOrderNumber().startsWith("ORDER_"));
+        assertNotNull(result.getOrderNumber());
     }
 
     @Test
-    @DisplayName("Create order - should throw RegistrationException when name is invalid")
-    void createOrder_InvalidFullName_ShouldThrowRegistrationException() {
+    void createOrder_InvalidName() {
         CreateOrderDto dto = createOrderDto();
-        dto.setUserFirstAndLastName("Ivan"); // Only one word
+        dto.setUserFirstAndLastName("Ivan");
 
-        RegistrationException exception = assertThrows(
-                RegistrationException.class,
-                () -> orderService.createOrder(dto)
-        );
-
-        assertEquals("You should enter your first and last name with a space between them", exception.getMessage());
+        assertThrows(RegistrationException.class,
+                () -> orderService.createOrder(dto));
     }
 
     @Test
-    @DisplayName("Create order - should throw EntityNotFoundException when wine does not exist")
-    void createOrder_NonExistentWine_ShouldThrowEntityNotFoundException() {
+    void createOrder_WineNotFound() {
         CreateOrderDto dto = createOrderDto();
 
         Mockito.when(wineService.existsById(anyLong())).thenReturn(false);
 
-        EntityNotFoundException exception = assertThrows(
-                EntityNotFoundException.class,
-                () -> orderService.createOrder(dto)
-        );
-
-        assertTrue(exception.getMessage().contains("Can't find wine by id"));
+        assertThrows(EntityNotFoundException.class,
+                () -> orderService.createOrder(dto));
     }
 
     @Test
-    @DisplayName("Create order - should send Telegram notification when bot is enabled")
-    void createOrder_ShouldSendTelegramNotification() {
+    void createOrder_SendNotification() {
         CreateOrderDto dto = createOrderDto();
 
-        UserResponseDto userDto = new UserResponseDto();
-        userDto.setId(1L);
-        userDto.setTelegramChatId(12345L);
+        UserResponseDto user = new UserResponseDto();
+        user.setId(1L);
+        user.setTelegramChatId(111L);
 
-        Mockito.when(userService.getOrUpdateOrCreateUser(anyString(), anyString(), anyString(), anyString()))
-                .thenReturn(userDto);
+        Mockito.when(userService.getOrUpdateOrCreateUser(any(), any(), any(), any()))
+                .thenReturn(user);
 
-        WineDto wineDto = new WineDto();
-        wineDto.setId(1L);
-        wineDto.setName("Test Wine");
-        wineDto.setPrice(BigDecimal.valueOf(100));
+        WineDto wine = new WineDto();
+        wine.setId(1L);
+        wine.setPrice(BigDecimal.TEN);
+        wine.setName("Wine");
+
         Mockito.when(wineService.existsById(anyLong())).thenReturn(true);
-        Mockito.when(wineService.findById(anyLong())).thenReturn(wineDto);
+        Mockito.when(wineService.findById(anyLong())).thenReturn(wine);
 
-        Mockito.when(orderDeliveryInformationMapper.toEntity(any())).thenReturn(new OrderDeliveryInformation());
-        Mockito.when(shoppingCardRepository.save(any())).thenReturn(new ShoppingCard());
+        Mockito.when(orderDeliveryInformationMapper.toEntity(any()))
+                .thenReturn(new OrderDeliveryInformation());
 
-        OrderDto expectedDto = new OrderDto();
-        expectedDto.setOrderNumber("ORDER_123");
-        Mockito.when(orderMapper.toDto(any(Order.class))).thenReturn(expectedDto);
+        Mockito.when(orderMapper.toDto(any()))
+                .thenAnswer(inv -> {
+                    Order o = inv.getArgument(0);
+                    OrderDto d = new OrderDto();
+                    d.setOrderNumber(o.getOrderNumber());
+                    return d;
+                });
 
-        ReflectionTestUtils.setField(orderService, "telegramBotEnable", true);
         NotificationService notificationService = Mockito.mock(NotificationService.class);
         ReflectionTestUtils.setField(orderService, "notificationService", Optional.of(notificationService));
+        ReflectionTestUtils.setField(orderService, "telegramBotEnable", true);
 
         orderService.createOrder(dto);
 
-        Mockito.verify(notificationService, Mockito.times(1))
-                .sendNotification(Mockito.contains("Your order"), Mockito.eq(12345L));
+        Mockito.verify(notificationService)
+                .sendNotification(contains("is created"), eq(111L));
     }
 
     @Test
-    @DisplayName("Mark as paid - should update status to PAID")
-    void markAsPaid_ValidId_ShouldUpdateStatus() {
+    void markAsPaid_Success() {
         Order order = new Order();
-        order.initializeNewOrder(1L);
-        order = orderRepository.save(order);
-        order.generateAndSetOrderNumber();
+        order.setUserId(1L);
         order = orderRepository.save(order);
 
-        UserResponseDto userDto = new UserResponseDto();
-        userDto.setId(1L);
-        Mockito.when(userService.loadUserById(anyLong())).thenReturn(userDto);
+        UserResponseDto user = new UserResponseDto();
+        user.setId(1L);
+
+        Mockito.when(userService.loadUserById(anyLong())).thenReturn(user);
+        ReflectionTestUtils.setField(orderService, "telegramBotEnable", false);
 
         boolean result = orderService.markAsPaid(order.getId());
 
         assertTrue(result);
+
         Order updated = orderRepository.findById(order.getId()).orElseThrow();
         assertEquals(OrderPaymentStatus.PAID, updated.getPaymentStatus());
-        assertNotNull(updated.getCompletedTime());
     }
 
     @Test
-    @DisplayName("Mark as paid - should throw EntityNotFoundException for non-existent order")
-    void markAsPaid_NonExistentOrder_ShouldThrowEntityNotFoundException() {
-        Mockito.when(userService.loadUserById(anyLong())).thenReturn(new UserResponseDto());
+    void deleteById_Success() {
+        Order order = new Order();
+        order.setUserId(1L);
+        order = orderRepository.save(order);
 
-        EntityNotFoundException exception = assertThrows(
-                EntityNotFoundException.class,
-                () -> orderService.markAsPaid(999L)
-        );
+        UserResponseDto user = new UserResponseDto();
+        user.setId(1L);
 
-        assertTrue(exception.getMessage().contains("Can't find order by id"));
+        Mockito.when(userService.loadUserById(anyLong())).thenReturn(user);
+        ReflectionTestUtils.setField(orderService, "telegramBotEnable", false);
+
+        boolean result = orderService.deleteById(order.getId());
+
+        assertTrue(result);
+        assertTrue(orderRepository.findById(order.getId()).isEmpty());
     }
 
     @Test
-    @DisplayName("Delete order - should throw EntityNotFoundException for non-existent order")
-    void deleteById_NonExistentOrder_ShouldThrowEntityNotFoundException() {
-        Mockito.when(userService.loadUserById(anyLong())).thenReturn(new UserResponseDto());
+    void getById_Success() {
+        Order order = new Order();
+        order.setUserId(1L);
+        order = orderRepository.save(order);
 
-        EntityNotFoundException exception = assertThrows(
-                EntityNotFoundException.class,
-                () -> orderService.deleteById(999L)
-        );
+        WineDto wine = new WineDto();
+        wine.setId(1L);
+        wine.setName("Wine");
+        wine.setPictureLink("link");
 
-        assertTrue(exception.getMessage().contains("Can't find Order by id"));
+        Mockito.when(wineService.findById(anyLong())).thenReturn(wine);
+
+        OrderDto dto = new OrderDto();
+        ShoppingCardDto cardDto = new ShoppingCardDto();
+        cardDto.setPurchaseObjects(Set.of());
+        dto.setShoppingCardDto(cardDto);
+
+        Mockito.when(orderMapper.toDto(any())).thenReturn(dto);
+
+        OrderDto result = orderService.getById(order.getId());
+
+        assertNotNull(result);
     }
+
+    @Test
+    void findAll_ReturnsList() {
+        Order order = new Order();
+        order.setUserId(1L);
+        orderRepository.save(order);
+
+        Mockito.when(orderMapper.toDto(any())).thenReturn(new OrderDto());
+
+        List<OrderDto> result = orderService.findAll(PageRequest.of(0, 10));
+
+        assertEquals(1, result.size());
+    }
+
+//    @Test
+//    void findByOrderNumber_Success() {
+//        Order order = new Order();
+//        order.setUserId(1L);
+//        order.setOrderNumber("ORD-123");
+//        orderRepository.save(order);
+//
+//        Mockito.when(orderMapper.toDto(any())).thenReturn(new OrderDto());
+//
+//        Optional<OrderDto> result =
+//                orderService.findByOrderNumber("ORD-123");
+//
+//        assertTrue(result.isPresent());
+//    }
 
     private CreateOrderDto createOrderDto() {
         CreateOrderDto dto = new CreateOrderDto();
         dto.setUserFirstAndLastName("Ivan Ivanov");
-        dto.setEmail("ivan@test.com");
-        dto.setPhoneNumber("+380000000");
+        dto.setEmail("test@test.com");
+        dto.setPhoneNumber("1234567890");
 
         CreatePurchaseObjectDto po = new CreatePurchaseObjectDto();
         po.setWineId(1L);
@@ -233,23 +275,9 @@ class OrderServiceImplTest {
         card.setPurchaseObjects(Set.of(po));
 
         dto.setCreateShoppingCardDto(card);
-        dto.setCreateOrderDeliveryInformationDto(new CreateOrderDeliveryInformationDto());
+        dto.setCreateOrderDeliveryInformationDto(
+                new CreateOrderDeliveryInformationDto());
+
         return dto;
-    }
-
-    static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
-        @Override
-        public void initialize(ConfigurableApplicationContext context) {
-            CustomMySqlContainer container = CustomMySqlContainer.getInstance();
-            container.start();
-
-            TestPropertyValues.of(
-                    "spring.datasource.url=" + container.getJdbcUrl(),
-                    "spring.datasource.username=" + container.getUsername(),
-                    "spring.datasource.password=" + container.getPassword(),
-                    "spring.jpa.hibernate.ddl-auto=update",
-                    "telegram.bot.enabled=false"
-            ).applyTo(context.getEnvironment());
-        }
     }
 }

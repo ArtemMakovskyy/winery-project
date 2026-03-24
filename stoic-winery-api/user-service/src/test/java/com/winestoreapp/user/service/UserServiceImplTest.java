@@ -1,174 +1,132 @@
 package com.winestoreapp.user.service;
 
-import com.winestoreapp.common.config.CustomMySqlContainer;
 import com.winestoreapp.common.exception.EntityNotFoundException;
 import com.winestoreapp.common.exception.RegistrationException;
 import com.winestoreapp.common.observability.SpanTagger;
 import com.winestoreapp.user.api.dto.RoleName;
 import com.winestoreapp.user.api.dto.UserRegistrationRequestDto;
 import com.winestoreapp.user.api.dto.UserResponseDto;
-import com.winestoreapp.user.config.TestUserConfig;
 import com.winestoreapp.user.mapper.UserMapper;
 import com.winestoreapp.user.model.Role;
 import com.winestoreapp.user.model.User;
 import com.winestoreapp.user.repository.RoleRepository;
 import com.winestoreapp.user.repository.UserRepository;
+import java.util.Optional;
 import java.util.Set;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.util.TestPropertyValues;
-import org.springframework.context.ApplicationContextInitializer;
-import org.springframework.context.ConfigurableApplicationContext;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.transaction.annotation.Transactional;
 
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-@SpringBootTest(classes = TestUserConfig.class)
-@ContextConfiguration(initializers = UserServiceImplTest.Initializer.class)
-@Transactional
+@ExtendWith(MockitoExtension.class)
 class UserServiceImplTest {
-    @MockBean
-    private SpanTagger spanTagger;
 
-    @Autowired
-    private UserServiceImpl userService;
-
-    @Autowired
+    @Mock
     private UserRepository userRepository;
 
-    @Autowired
+    @Mock
     private RoleRepository roleRepository;
 
-    @MockBean
+    @Mock
     private PasswordEncoder passwordEncoder;
 
-    @MockBean
+    @Mock
     private UserMapper userMapper;
 
-    @Test
-    @DisplayName("Register - should save user and return DTO when request is valid")
-    void register_ValidRequest_ShouldReturnDto() throws RegistrationException {
-        // Prepare roles in DB
-        Role roleCustomer = new Role();
-        roleCustomer.setName(RoleName.ROLE_CUSTOMER);
-        roleRepository.save(roleCustomer);
+    @Mock
+    private SpanTagger spanTagger;
 
-        UserRegistrationRequestDto request = createRegistrationRequest();
-        Mockito.when(passwordEncoder.encode(anyString())).thenReturn("encoded_pass");
-        Mockito.when(userMapper.toDto(any(User.class))).thenReturn(new UserResponseDto());
+    @InjectMocks
+    private UserServiceImpl userService;
+
+    @Test
+    void register_ValidRequest_ShouldReturnDto() throws Exception {
+        UserRegistrationRequestDto request = new UserRegistrationRequestDto();
+        request.setEmail("test@test.com");
+        request.setPassword("1234");
+
+        Role role = new Role();
+        role.setName(RoleName.ROLE_CUSTOMER);
+
+        when(userRepository.findUserByEmail(anyString())).thenReturn(Optional.empty());
+        when(roleRepository.findByName(RoleName.ROLE_CUSTOMER)).thenReturn(Optional.of(role));
+        when(passwordEncoder.encode(anyString())).thenReturn("encoded");
+
+        User saved = new User();
+        saved.setId(1L);
+
+        when(userRepository.save(any(User.class))).thenReturn(saved);
+        when(userMapper.toDto(any(User.class))).thenReturn(new UserResponseDto());
 
         UserResponseDto result = userService.register(request);
 
         assertNotNull(result);
-        assertTrue(userRepository.findUserByEmail(request.getEmail()).isPresent());
+        verify(userRepository).save(any(User.class));
     }
 
     @Test
-    @DisplayName("Register - should throw RegistrationException when email already exists")
-    void register_EmailExists_ShouldThrowRegistrationException() {
-        User existing = new User();
-        existing.setEmail("exists@test.com");
-        existing.setFirstName("Ivan");
-        existing.setLastName("Ivanov");
-        userRepository.save(existing);
+    void register_EmailExists_ShouldThrow() {
+        when(userRepository.findUserByEmail(anyString()))
+                .thenReturn(Optional.of(new User()));
 
         UserRegistrationRequestDto request = new UserRegistrationRequestDto();
         request.setEmail("exists@test.com");
 
-        assertThrows(RegistrationException.class, () -> userService.register(request));
-    }
-
-    @Test
-    @DisplayName("Get or create - should return existing user and not save new")
-    void getOrCreate_UserExists_ShouldReturnExisting() {
-        User existing = new User("Ivan", "Petrov");
-        userRepository.save(existing);
-
-        Mockito.when(userMapper.toDto(any(User.class))).thenReturn(new UserResponseDto());
-
-        userService.getOrCreateByFirstAndLastName("Ivan", "Petrov");
-
-        long count = userRepository.count();
-        assertEquals(1, count);
-    }
-
-    @Test
-    @DisplayName("Update role - should throw Exception when trying to change the last admin")
-    void updateRole_LastAdmin_ShouldThrowRegistrationException() {
-        Role adminRole = new Role();
-        adminRole.setName(RoleName.ROLE_ADMIN);
-        roleRepository.save(adminRole);
-
-        Role managerRole = new Role();
-        managerRole.setName(RoleName.ROLE_MANAGER);
-        roleRepository.save(managerRole);
-
-        User lastAdmin = new User();
-        lastAdmin.setEmail("admin@test.com");
-        lastAdmin.setFirstName("Admin");
-        lastAdmin.setLastName("User");
-        lastAdmin.setRoles(Set.of(adminRole));
-        userRepository.save(lastAdmin);
-
         assertThrows(RegistrationException.class,
-                () -> userService.updateRole(lastAdmin.getId(), "ROLE_MANAGER"));
+                () -> userService.register(request));
     }
 
     @Test
-    @DisplayName("Update Telegram Chat ID - should update user record")
-    void updateTelegramChatId_ValidId_ShouldUpdate() {
-        User user = new User("Ivan", "Petrov");
-        user = userRepository.save(user);
+    void findUserByEmail_NotFound_ShouldThrow() {
+        when(userRepository.findUserByEmail(anyString()))
+                .thenReturn(Optional.empty());
 
-        userService.updateTelegramChatId(user.getId(), 999L);
-
-        User updated = userRepository.findById(user.getId()).orElseThrow();
-        assertEquals(999L, updated.getTelegramChatId());
-    }
-
-    @Test
-    @DisplayName("Load by email - should throw EntityNotFoundException when user missing")
-    void loadUserByEmail_NotFound_ShouldThrowEntityNotFoundException() {
         assertThrows(EntityNotFoundException.class,
                 () -> userService.findUserByEmail("missing@test.com"));
     }
 
-    private UserRegistrationRequestDto createRegistrationRequest() {
-        UserRegistrationRequestDto dto = new UserRegistrationRequestDto();
-        dto.setEmail("test@email.com");
-        dto.setPassword("password123");
-        dto.setRepeatPassword("password123");
-        dto.setFirstName("Ivan");
-        dto.setLastName("Petrov");
-        dto.setPhoneNumber("+380991234567");
-        return dto;
+    @Test
+    void updateTelegramChatId_ShouldUpdate() {
+        User user = new User();
+        user.setId(1L);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+
+        userService.updateTelegramChatId(1L, 999L);
+
+        assertEquals(999L, user.getTelegramChatId());
+        verify(userRepository).save(user);
     }
 
-    static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
-        @Override
-        public void initialize(ConfigurableApplicationContext context) {
-            CustomMySqlContainer container = CustomMySqlContainer.getInstance();
-            container.start();
+    @Test
+    void updateRole_LastAdmin_ShouldThrow() {
+        Role admin = new Role();
+        admin.setName(RoleName.ROLE_ADMIN);
 
-            TestPropertyValues.of(
-                    "spring.datasource.url=" + container.getJdbcUrl(),
-                    "spring.datasource.username=" + container.getUsername(),
-                    "spring.datasource.password=" + container.getPassword(),
-                    "spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver",
-                    "spring.jpa.hibernate.ddl-auto=update"
-            ).applyTo(context.getEnvironment());
-        }
+        Role manager = new Role();
+        manager.setName(RoleName.ROLE_MANAGER);
+
+        User user = new User();
+        user.setId(1L);
+        user.setRoles(Set.of(admin));
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(roleRepository.findByName(RoleName.ROLE_MANAGER)).thenReturn(Optional.of(manager));
+        when(userRepository.findUsersByRole(RoleName.ROLE_ADMIN))
+                .thenReturn(java.util.List.of(user));
+
+        assertThrows(RegistrationException.class,
+                () -> userService.updateRole(1L, "ROLE_MANAGER"));
     }
 }

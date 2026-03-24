@@ -1,6 +1,6 @@
 package com.winestoreapp.review.impl;
 
-import com.winestoreapp.common.config.CustomMySqlContainer;
+import com.winestoreapp.common.config.AbstractMySQLContainerTest;
 import com.winestoreapp.common.exception.EntityNotFoundException;
 import com.winestoreapp.common.exception.RegistrationException;
 import com.winestoreapp.common.observability.SpanTagger;
@@ -20,10 +20,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.util.TestPropertyValues;
-import org.springframework.context.ApplicationContextInitializer;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,9 +35,12 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 
 @SpringBootTest(classes = TestReviewConfig.class)
-@ContextConfiguration(initializers = ReviewServiceImplTest.Initializer.class)
 @Transactional
-class ReviewServiceImplTest {
+@TestPropertySource(properties = {
+        "spring.jpa.hibernate.ddl-auto=update",
+        "limiter.number.of.recorded.ratings=5"
+})
+class ReviewServiceImplTest extends AbstractMySQLContainerTest {
 
     @Autowired
     private ReviewServiceImpl reviewService;
@@ -142,21 +142,5 @@ class ReviewServiceImplTest {
         dto.setMessage("This is a great wine!");
         dto.setRating(5);
         return dto;
-    }
-
-    static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
-        @Override
-        public void initialize(ConfigurableApplicationContext context) {
-            CustomMySqlContainer container = CustomMySqlContainer.getInstance();
-            container.start();
-
-            TestPropertyValues.of(
-                    "spring.datasource.url=" + container.getJdbcUrl(),
-                    "spring.datasource.username=" + container.getUsername(),
-                    "spring.datasource.password=" + container.getPassword(),
-                    "spring.jpa.hibernate.ddl-auto=update",
-                    "limiter.number.of.recorded.ratings=5"
-            ).applyTo(context.getEnvironment());
-        }
     }
 }
