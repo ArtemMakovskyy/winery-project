@@ -4,6 +4,7 @@ import com.winestoreapp.common.dto.ResponseErrorDto;
 import com.winestoreapp.common.observability.ObservationNames;
 import com.winestoreapp.common.observability.ObservationTags;
 import com.winestoreapp.common.observability.SpanTagger;
+import com.winestoreapp.common.ratelimit.RateLimit;
 import com.winestoreapp.user.api.UserService;
 import com.winestoreapp.user.api.dto.UpdateUserRoleDto;
 import com.winestoreapp.user.api.dto.UserResponseDto;
@@ -73,6 +74,7 @@ public class UserController {
     )
     @PutMapping("/{id}/role")
     @PreAuthorize("hasRole('ADMIN')")
+    @RateLimit(maxRequests = 10, timeWindowSeconds = 60)
     @Observed(name = ObservationNames.USER_UPDATE_ROLE,
             lowCardinalityKeyValues = {ObservationTags.OPERATION, ObservationTags.WRITE}
     )

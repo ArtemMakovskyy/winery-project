@@ -4,6 +4,7 @@ import com.winestoreapp.common.dto.ResponseErrorDto;
 import com.winestoreapp.common.observability.ObservationNames;
 import com.winestoreapp.common.observability.ObservationTags;
 import com.winestoreapp.common.observability.SpanTagger;
+import com.winestoreapp.common.ratelimit.RateLimit;
 import com.winestoreapp.security.security.AuthenticationService;
 import com.winestoreapp.user.api.UserService;
 import com.winestoreapp.user.api.dto.UserLoginRequestDto;
@@ -70,6 +71,7 @@ public class AuthenticationController {
             )
     )
     @PostMapping("/login")
+    @RateLimit(maxRequests = 5, timeWindowSeconds = 60)
     @Observed(
             name = ObservationNames.AUTH_LOGIN,
             lowCardinalityKeyValues = {
@@ -92,6 +94,7 @@ public class AuthenticationController {
                             schema = @Schema(implementation = ResponseErrorDto.class)))
     })
     @PostMapping("/logout")
+    @RateLimit(maxRequests = 10, timeWindowSeconds = 60)
     @Observed(name = ObservationNames.AUTH_LOGOUT,
             lowCardinalityKeyValues = {
                     ObservationTags.OPERATION, ObservationTags.READ}
@@ -136,6 +139,7 @@ public class AuthenticationController {
             )
     )
     @PostMapping("/register")
+    @RateLimit(maxRequests = 3, timeWindowSeconds = 60)
     @Observed(name = ObservationNames.AUTH_REGISTER,
             lowCardinalityKeyValues = {
                     ObservationTags.OPERATION, ObservationTags.READ}

@@ -4,6 +4,7 @@ import com.winestoreapp.common.dto.ResponseErrorDto;
 import com.winestoreapp.common.observability.ObservationNames;
 import com.winestoreapp.common.observability.ObservationTags;
 import com.winestoreapp.common.observability.SpanTagger;
+import com.winestoreapp.common.ratelimit.RateLimit;
 import com.winestoreapp.review.api.ReviewService;
 import com.winestoreapp.review.api.dto.CreateReviewDto;
 import com.winestoreapp.review.api.dto.ReviewWithUserDescriptionDto;
@@ -78,6 +79,7 @@ public class ReviewController {
             )
     )
     @PostMapping
+    @RateLimit(maxRequests = 5, timeWindowSeconds = 60)
     @Observed(
             name = ObservationNames.REVIEW_CREATE,
             lowCardinalityKeyValues = {ObservationTags.OPERATION, ObservationTags.WRITE}

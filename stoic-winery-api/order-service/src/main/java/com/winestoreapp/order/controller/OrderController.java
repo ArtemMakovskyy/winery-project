@@ -5,6 +5,7 @@ import com.winestoreapp.common.exception.EntityNotFoundException;
 import com.winestoreapp.common.observability.ObservationNames;
 import com.winestoreapp.common.observability.ObservationTags;
 import com.winestoreapp.common.observability.SpanTagger;
+import com.winestoreapp.common.ratelimit.RateLimit;
 import com.winestoreapp.order.api.OrderService;
 import com.winestoreapp.order.api.dto.CreateOrderDto;
 import com.winestoreapp.order.api.dto.OrderDto;
@@ -138,6 +139,7 @@ public class OrderController {
             )
     )
     @PostMapping
+    @RateLimit(maxRequests = 10, timeWindowSeconds = 60)
     @Observed(
             name = ObservationNames.ORDER_CREATE,
             lowCardinalityKeyValues = {ObservationTags.OPERATION, ObservationTags.WRITE}
