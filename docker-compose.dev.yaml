@@ -9,6 +9,8 @@ services:
         condition: service_started
       tempo:
         condition: service_started
+      redis:
+        condition: service_started
     restart: on-failure
     build: ./stoic-winery-api
     ports:
@@ -19,6 +21,9 @@ services:
       SPRING_DATASOURCE_USERNAME: ${DATASOURCE_USER}
       SPRING_DATASOURCE_PASSWORD: ${DATASOURCE_PASSWORD}
       SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: ${REDIS_PORT}
+      SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD}
       BACKEND_URL: ${BACKEND_URL_DOCKER}
       MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: ${MANAGEMENT_ZIPKIN_TRACING_ENDPOINT}
       LOKI_URL: ${LOKI_URL}
@@ -148,6 +153,18 @@ services:
     networks:
       - backend
 
+  redis:
+    container_name: redis
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass "${REDIS_PASSWORD}"
+    ports:
+      - "${REDIS_PORT}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - backend
+
 networks:
   backend:
     driver: bridge
@@ -161,3 +178,4 @@ volumes:
   tempo_data:
   prometheus_data:
   grafana_data:
+  redis_data:
