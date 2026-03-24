@@ -48,6 +48,7 @@ The project evolved through several patterns to improve maintainability and scal
 | Liquibase                      | Database migrations                 |
 | Lombok & MapStruct             | DTO mapping & boilerplate reduction |
 | Telegram Bots                  | Notifications                       |
+| Redis                          | Cache & Rate Limiting               |
 | JUnit, Mockito, Testcontainers | Testing                             |
 | Springdoc OpenAPI              | API documentation                   |
 
@@ -121,6 +122,20 @@ Metrics include:
 
 - **Tracing naming convention:** `<domain>/<action>[/<detail>]` format (e.g., `order/create`, `wine/find`,
   `user/register`)
+
+---
+
+## 🔴 Redis Integration
+
+[REDIS.md](REDIS.md)
+
+Redis is used for:
+
+- **Caching** — wines (`@Cacheable`, `@CacheEvict`)
+- **Rate Limiting** — request throttling for critical endpoints
+- **JWT Blacklist** — revoked token storage
+
+**Debug endpoints:** `/api/redis-debug/*`
 
 ---
 

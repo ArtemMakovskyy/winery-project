@@ -160,35 +160,40 @@ It provides:
 ---
 ## 📚 Detailed project documentation
 
-👓 **Stoic Winery site frontend**  
+👓 **Stoic Winery site frontend**
 [https://github.com/ArtemMakovskyy/winery-project/blob/master/wine_site_project/README.md](https://github.com/ArtemMakovskyy/winery-project/blob/master/wine_site_project/README.md)
 
-👓 **Stoic Winery API backend**  
+👓 **Stoic Winery API backend**
 [https://github.com/ArtemMakovskyy/winery-project/blob/master/stoic-winery-api/README.md](https://github.com/ArtemMakovskyy/winery-project/blob/master/stoic-winery-api/README.md)
 
-👓 **Stoic Winery ADMIN PANEL**  
+👓 **Stoic Winery ADMIN PANEL**
 [https://github.com/ArtemMakovskyy/winery-project/blob/winery-admin-ui/winery-admin-ui/README.md](https://github.com/ArtemMakovskyy/winery-project/blob/winery-admin-ui/winery-admin-ui/README.md)
+
+👓 **Redis Integration** (stoic-winery-api)
+[REDIS.md](stoic-winery-api/REDIS.md) — caching, rate limiting, JWT blacklist
 
 ---
 
 ## 🛠 Tech Stack
 
 - **Language:** Java 21
-    
+
 - **Framework:** Spring Boot 3.2.1
-    
+
 - **Architecture:** REST, Modular Monolith
-    
+
 - **Database:** MySQL, Liquibase migrations
-    
+
 - **Security:** Spring Security, JWT
-    
+
 - **Integration:** Telegram Bots
-    
+
+- **Cache & Rate Limiting:** Redis
+
 - **Observability:** Prometheus, Grafana, Loki, Tempo
-    
+
 - **Frontend:** React
-    
+
 - **Testing:** JUnit, Mockito, Testcontainers
 
 ---
