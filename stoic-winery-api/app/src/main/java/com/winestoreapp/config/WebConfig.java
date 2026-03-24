@@ -29,7 +29,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .addResourceLocations(imageConfigPath);
         registry.addResourceHandler(API_IMAGES_PATTERN)
                 .addResourceLocations(imageConfigPath);
-        
+
         // IMPORTANT: Do NOT add /api/redis/** handler - let it go to controllers
     }
 

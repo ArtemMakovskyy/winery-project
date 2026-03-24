@@ -65,10 +65,10 @@ public class UserController {
                     examples = @ExampleObject(
                             name = "Role update example",
                             value = """
-                            {
-                              "role": "ROLE_MANAGER"
-                            }
-                            """
+                                    {
+                                      "role": "ROLE_MANAGER"
+                                    }
+                                    """
                     )
             )
     )

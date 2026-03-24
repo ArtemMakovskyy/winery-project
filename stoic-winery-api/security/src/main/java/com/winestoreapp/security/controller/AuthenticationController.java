@@ -62,11 +62,11 @@ public class AuthenticationController {
                     examples = @ExampleObject(
                             name = "Login example",
                             value = """
-                            {
-                              "email": "customer@email.com",
-                              "password": "password123"
-                            }
-                            """
+                                    {
+                                      "email": "customer@email.com",
+                                      "password": "password123"
+                                    }
+                                    """
                     )
             )
     )
@@ -126,15 +126,15 @@ public class AuthenticationController {
                     examples = @ExampleObject(
                             name = "Registration example",
                             value = """
-                            {
-                              "email": "customer@email.com",
-                              "firstName": "Ivan",
-                              "lastName": "Petrov",
-                              "phoneNumber": "+380509876543",
-                              "password": "password123",
-                              "repeatPassword": "password123"
-                            }
-                            """
+                                    {
+                                      "email": "customer@email.com",
+                                      "firstName": "Ivan",
+                                      "lastName": "Petrov",
+                                      "phoneNumber": "+380509876543",
+                                      "password": "password123",
+                                      "repeatPassword": "password123"
+                                    }
+                                    """
                     )
             )
     )

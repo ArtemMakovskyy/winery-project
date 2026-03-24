@@ -1,12 +1,11 @@
 package com.winestoreapp.security.security;
 
 import com.winestoreapp.security.config.RedisBlacklistProperties;
+import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
-
-import java.util.concurrent.TimeUnit;
 
 /**
  * Service for managing JWT token blacklist using Redis.
@@ -23,14 +22,14 @@ public class TokenBlacklistService {
     /**
      * Adds a token to the blacklist with TTL.
      *
-     * @param token the JWT token to blacklist
+     * @param token      the JWT token to blacklist
      * @param ttlSeconds time to live in seconds (should match JWT expiration)
      */
     public void blacklist(String token, long ttlSeconds) {
         String key = properties.getPrefix() + token;
-        
+
         redisTemplate.opsForValue().set(key, "revoked", ttlSeconds, TimeUnit.SECONDS);
-        
+
         log.debug("Token blacklisted: key={}, ttl={}s", key, ttlSeconds);
     }
 
@@ -42,9 +41,9 @@ public class TokenBlacklistService {
      */
     public boolean isBlacklisted(String token) {
         String key = properties.getPrefix() + token;
-        
+
         Boolean exists = redisTemplate.hasKey(key);
-        
+
         return Boolean.TRUE.equals(exists);
     }
 
@@ -55,9 +54,9 @@ public class TokenBlacklistService {
      */
     public void removeFromBlacklist(String token) {
         String key = properties.getPrefix() + token;
-        
+
         redisTemplate.delete(key);
-        
+
         log.debug("Token removed from blacklist: key={}", key);
     }
 }

@@ -54,20 +54,20 @@ public class RateLimitInterceptor implements HandlerInterceptor {
                 config.timeWindowSeconds()
         );
 
-        log.debug("[RATE-LIMIT] Result for key '{}': allowed={}, count={}", 
+        log.debug("[RATE-LIMIT] Result for key '{}': allowed={}, count={}",
                 key, result.allowed(), result.currentCount());
 
         applyBaseHeaders(response, config);
 
         if (!result.allowed()) {
-            log.warn("Rate limit exceeded for key: {}. Limit: {} requests per {} seconds", 
+            log.warn("Rate limit exceeded for key: {}. Limit: {} requests per {} seconds",
                     key, config.maxRequests(), config.timeWindowSeconds());
             applyExceededHeaders(response, config);
             throw createRateLimitException(config);
         }
 
         applySuccessHeaders(response, config, result.currentCount());
-        log.debug("[RATE-LIMIT] Request allowed. Remaining: {} requests", 
+        log.debug("[RATE-LIMIT] Request allowed. Remaining: {} requests",
                 config.maxRequests() - (int) result.currentCount());
 
         return true;

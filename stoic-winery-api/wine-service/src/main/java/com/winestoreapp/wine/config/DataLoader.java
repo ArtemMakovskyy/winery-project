@@ -34,7 +34,7 @@ public class DataLoader implements CommandLineRunner {
     private final OrderService orderService;
 
     @Value("${image.link.path}")
-    private  String imageLinkPath;
+    private String imageLinkPath;
 
     @Override
     public void run(String... args) throws Exception {

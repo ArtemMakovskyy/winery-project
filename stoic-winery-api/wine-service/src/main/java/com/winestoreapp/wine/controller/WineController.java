@@ -120,30 +120,30 @@ public class WineController {
                     examples = @ExampleObject(
                             name = "Wine example",
                             value = """
-                            {
-                              "vendorCode": "MSD 2019",
-                              "qualityLevel": "Select",
-                              "reserveType": "Limited Edition Wine",
-                              "name": "Prince Trubetskoi Select Riesling",
-                              "shortName": "Prince Trubetskoi",
-                              "year": 2017,
-                              "tasteWine": "fish",
-                              "price": 25.59,
-                              "grape": "Riesling",
-                              "isDecantation": true,
-                              "wineType": "DRY",
-                              "strengthFrom": 10.9,
-                              "strengthTo": 11.8,
-                              "wineColor": "WHITE",
-                              "colorDescribing": "Deep red",
-                              "taste": "delicate, balanced, round, with a fruity and honey aftertaste.",
-                              "aroma": "soft, generous, multifaceted, with hints of tropical",
-                              "gastronomy": "goes well with meat dishes, mature cheeses and stews",
-                              "description": "description",
-                              "pictureLink": "images/wine/default.jpg",
-                              "pictureLink2": "images/wine/default_back.jpg"
-                            }
-                            """
+                                    {
+                                      "vendorCode": "MSD 2019",
+                                      "qualityLevel": "Select",
+                                      "reserveType": "Limited Edition Wine",
+                                      "name": "Prince Trubetskoi Select Riesling",
+                                      "shortName": "Prince Trubetskoi",
+                                      "year": 2017,
+                                      "tasteWine": "fish",
+                                      "price": 25.59,
+                                      "grape": "Riesling",
+                                      "isDecantation": true,
+                                      "wineType": "DRY",
+                                      "strengthFrom": 10.9,
+                                      "strengthTo": 11.8,
+                                      "wineColor": "WHITE",
+                                      "colorDescribing": "Deep red",
+                                      "taste": "delicate, balanced, round, with a fruity and honey aftertaste.",
+                                      "aroma": "soft, generous, multifaceted, with hints of tropical",
+                                      "gastronomy": "goes well with meat dishes, mature cheeses and stews",
+                                      "description": "description",
+                                      "pictureLink": "images/wine/default.jpg",
+                                      "pictureLink2": "images/wine/default_back.jpg"
+                                    }
+                                    """
                     )
             )
     )

@@ -1,12 +1,11 @@
 package com.winestoreapp.common.ratelimit;
 
+import java.util.Collections;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
-
-import java.util.Collections;
 
 @Service
 @Slf4j
@@ -21,23 +20,23 @@ public class RateLimitServiceImpl implements RateLimitService {
             local key = KEYS[1]
             local maxRequests = tonumber(ARGV[1])
             local timeWindow = tonumber(ARGV[2])
-
+            
             local current = redis.call('INCR', key)
-
+            
             if current == 1 then
                 redis.call('EXPIRE', key, timeWindow)
                 return current
             end
-
+            
             local ttl = redis.call('TTL', key)
             if ttl == -1 then
                 redis.call('EXPIRE', key, timeWindow)
             end
-
+            
             if current > maxRequests then
                 return -2
             end
-
+            
             return current
             """;
 
@@ -65,7 +64,7 @@ public class RateLimitServiceImpl implements RateLimitService {
             return new RateLimitResult(true, result);
 
         } catch (Exception e) {
-            log.error("[RATE-LIMIT] Redis error for key '{}'. Allowing request by default (fail-open).", 
+            log.error("[RATE-LIMIT] Redis error for key '{}'. Allowing request by default (fail-open).",
                     redisKey, e);
             return new RateLimitResult(true, 0); // Fail open
         }

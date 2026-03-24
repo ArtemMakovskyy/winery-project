@@ -116,25 +116,25 @@ public class OrderController {
                     examples = @ExampleObject(
                             name = "Order example",
                             value = """
-                            {
-                              "userFirstAndLastName": "Ivan Petrov",
-                              "email": "customer@email.com",
-                              "phoneNumber": "+380509876543",
-                              "createShoppingCardDto": {
-                                "purchaseObjects": [
-                                  {"wineId": 5, "quantity": 2},
-                                  {"wineId": 10, "quantity": 1}
-                                ]
-                              },
-                              "createOrderDeliveryInformationDto": {
-                                "zipCode": "00000",
-                                "region": "Kyiv region",
-                                "city": "Kyiv",
-                                "street": "Lobanovskogo str, 13/1, ap. 16",
-                                "comment": "Call before delivery"
-                              }
-                            }
-                            """
+                                    {
+                                      "userFirstAndLastName": "Ivan Petrov",
+                                      "email": "customer@email.com",
+                                      "phoneNumber": "+380509876543",
+                                      "createShoppingCardDto": {
+                                        "purchaseObjects": [
+                                          {"wineId": 5, "quantity": 2},
+                                          {"wineId": 10, "quantity": 1}
+                                        ]
+                                      },
+                                      "createOrderDeliveryInformationDto": {
+                                        "zipCode": "00000",
+                                        "region": "Kyiv region",
+                                        "city": "Kyiv",
+                                        "street": "Lobanovskogo str, 13/1, ap. 16",
+                                        "comment": "Call before delivery"
+                                      }
+                                    }
+                                    """
                     )
             )
     )

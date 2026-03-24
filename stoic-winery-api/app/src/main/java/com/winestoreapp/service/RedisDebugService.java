@@ -30,24 +30,24 @@ public class RedisDebugService {
     public Set<String> getKeys(String pattern) {
         log.debug("[REDIS-DEBUG] Getting keys with pattern: {}", pattern);
         Set<String> keys = new HashSet<>();
-        
+
         try {
             ScanOptions scanOptions = ScanOptions.scanOptions()
                     .match(pattern)
                     .count(1000)
                     .build();
-            
+
             try (var cursor = redisTemplate.scan(scanOptions)) {
                 while (cursor.hasNext()) {
                     keys.add(cursor.next());
                 }
             }
-            
+
             log.debug("[REDIS-DEBUG] Found {} keys matching pattern '{}'", keys.size(), pattern);
         } catch (Exception e) {
             log.error("[REDIS-DEBUG] Error scanning keys with pattern '{}': {}", pattern, e.getMessage(), e);
         }
-        
+
         return keys;
     }
 
@@ -105,7 +105,7 @@ public class RedisDebugService {
     public Map<String, Object> getKeyInfo(String key) {
         log.debug("[REDIS-DEBUG] Getting info for key: {}", key);
         Map<String, Object> info = new LinkedHashMap<>();
-        
+
         try {
             info.put("key", key);
             info.put("value", getValue(key));
@@ -115,7 +115,7 @@ public class RedisDebugService {
             log.error("[REDIS-DEBUG] Error getting info for key '{}': {}", key, e.getMessage(), e);
             info.put("error", e.getMessage());
         }
-        
+
         return info;
     }
 
@@ -162,13 +162,13 @@ public class RedisDebugService {
         log.debug("[REDIS-DEBUG] Deleting keys with pattern: {}", pattern);
         Set<String> keys = getKeys(pattern);
         long count = 0;
-        
+
         for (String key : keys) {
             if (deleteKey(key)) {
                 count++;
             }
         }
-        
+
         log.debug("[REDIS-DEBUG] Deleted {} keys matching pattern '{}'", count, pattern);
         return count;
     }
@@ -181,25 +181,25 @@ public class RedisDebugService {
     public Map<String, Object> getCacheStats() {
         log.debug("[REDIS-DEBUG] Getting cache statistics");
         Map<String, Object> stats = new LinkedHashMap<>();
-        
+
         try {
             Set<String> allKeys = getAllKeys();
             stats.put("totalKeys", allKeys.size());
-            
+
             // Count keys by pattern
             stats.put("winesCacheKeys", getKeys("wines::*").size());
             stats.put("rateLimitKeys", getKeys("rate_limit::*").size());
             stats.put("blacklistKeys", getKeys("blacklist::*").size());
-            
+
             // Sample keys
             stats.put("sampleWineKeys", getKeys("wines::*").stream().limit(5).toList());
             stats.put("sampleRateLimitKeys", getKeys("rate_limit::*").stream().limit(5).toList());
-            
+
         } catch (Exception e) {
             log.error("[REDIS-DEBUG] Error getting cache stats: {}", e.getMessage(), e);
             stats.put("error", e.getMessage());
         }
-        
+
         return stats;
     }
 

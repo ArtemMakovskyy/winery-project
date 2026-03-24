@@ -142,12 +142,12 @@ public class RedisDebugController {
     ) {
         log.info("[REDIS-DEBUG] Request to delete key: {}", key);
         boolean deleted = redisDebugService.deleteKey(key);
-        
+
         Map<String, Object> response = Map.of(
                 "key", key,
                 "deleted", deleted
         );
-        
+
         return ResponseEntity.ok(response);
     }
 
@@ -159,12 +159,12 @@ public class RedisDebugController {
     public ResponseEntity<Map<String, Object>> clearWineCache() {
         log.info("[REDIS-DEBUG] Request to clear wine cache");
         redisDebugService.clearWinesCache();
-        
+
         Map<String, Object> response = Map.of(
                 "message", "Wine cache cleared",
                 "pattern", "wines::*"
         );
-        
+
         return ResponseEntity.ok(response);
     }
 
@@ -176,12 +176,12 @@ public class RedisDebugController {
     public ResponseEntity<Map<String, Object>> clearRateLimitCache() {
         log.info("[REDIS-DEBUG] Request to clear rate limit cache");
         redisDebugService.clearRateLimitCache();
-        
+
         Map<String, Object> response = Map.of(
                 "message", "Rate limit cache cleared",
                 "pattern", "rate_limit::*"
         );
-        
+
         return ResponseEntity.ok(response);
     }
 
@@ -192,13 +192,13 @@ public class RedisDebugController {
     @Operation(summary = "Get sample wine cache", description = "Returns up to 5 wine cache entries with their values")
     public ResponseEntity<List<Map<String, Object>>> getSampleWineCache() {
         log.info("[REDIS-DEBUG] Request to get sample wine cache entries");
-        
+
         Set<String> wineKeys = redisDebugService.getKeys("wines::*");
         List<Map<String, Object>> samples = wineKeys.stream()
                 .limit(5)
                 .map(redisDebugService::getKeyInfo)
                 .toList();
-        
+
         return ResponseEntity.ok(samples);
     }
 
@@ -209,13 +209,13 @@ public class RedisDebugController {
     @Operation(summary = "Get sample rate limit cache", description = "Returns up to 5 rate limit entries with their values and TTL")
     public ResponseEntity<List<Map<String, Object>>> getSampleRateLimitCache() {
         log.info("[REDIS-DEBUG] Request to get sample rate limit entries");
-        
+
         Set<String> rateLimitKeys = redisDebugService.getKeys("rate_limit::*");
         List<Map<String, Object>> samples = rateLimitKeys.stream()
                 .limit(5)
                 .map(redisDebugService::getKeyInfo)
                 .toList();
-        
+
         return ResponseEntity.ok(samples);
     }
 }

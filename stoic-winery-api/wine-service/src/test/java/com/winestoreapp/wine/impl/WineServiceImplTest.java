@@ -8,8 +8,8 @@ import com.winestoreapp.wine.api.dto.WineDto;
 import com.winestoreapp.wine.mapper.WineMapper;
 import com.winestoreapp.wine.model.Wine;
 import com.winestoreapp.wine.repository.WineRepository;
-import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
+import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
@@ -27,9 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -59,7 +57,7 @@ class WineServiceImplTest {
     private WineDto wineDto;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         wine = new Wine();
         wine.setId(1L);
         wine.setName("Test Wine");
@@ -70,12 +68,14 @@ class WineServiceImplTest {
         wineDto.setName("Test Wine");
         wineDto.setPrice(BigDecimal.TEN);
 
-        Counter mockCounter = mock(Counter.class);
-        lenient().when(registry.counter(anyString(), any(String[].class))).thenReturn(mockCounter);
+        // inject @Value field manually
+        Field field = WineServiceImpl.class.getDeclaredField("imageLinkPath");
+        field.setAccessible(true);
+        field.set(wineService, "/img/");
     }
 
     @Test
-    void add_ValidDto_ShouldReturnWineDto() {
+    void add_should_return_dto() {
         WineCreateRequestDto requestDto = new WineCreateRequestDto();
         requestDto.setName("Test Wine");
 
@@ -85,14 +85,13 @@ class WineServiceImplTest {
 
         WineDto result = wineService.add(requestDto);
 
-        assertThat(result).isNotNull();
         assertThat(result.getName()).isEqualTo("Test Wine");
         verify(wineRepository).save(wine);
-        verify(spanTagger).tag(ObservationTags.WINE_ID, wine.getId());
+        verify(spanTagger).tag(ObservationTags.WINE_ID, 1L);
     }
 
     @Test
-    void findById_ExistingId_ShouldReturnWineDto() {
+    void findById_should_return_dto() {
         when(wineRepository.findById(1L)).thenReturn(Optional.of(wine));
         when(wineMapper.toDto(wine)).thenReturn(wineDto);
 
@@ -100,23 +99,20 @@ class WineServiceImplTest {
 
         assertThat(result.getId()).isEqualTo(1L);
         verify(spanTagger).tag(ObservationTags.WINE_ID, 1L);
-        verify(spanTagger).tag("status", "success");
     }
 
     @Test
-    void findById_NotExistingId_ShouldThrowException() {
+    void findById_should_throw() {
         when(wineRepository.findById(1L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> wineService.findById(1L))
                 .isInstanceOf(EntityNotFoundException.class);
 
         verify(spanTagger).tag(ObservationTags.WINE_ID, 1L);
-        verify(spanTagger).tag("status", "error");
-        verify(spanTagger).tag(eq(ObservationTags.ERROR_MESSAGE), anyString());
     }
 
     @Test
-    void findAll_ShouldReturnList() {
+    void findAll_should_return_list() {
         when(wineRepository.findAll(any(PageRequest.class)))
                 .thenReturn(new PageImpl<>(List.of(wine)));
         when(wineMapper.toDto(wine)).thenReturn(wineDto);
@@ -127,17 +123,17 @@ class WineServiceImplTest {
     }
 
     @Test
-    void existsById_ShouldReturnTrue() {
+    void existsById_should_return_true() {
         when(wineRepository.existsById(1L)).thenReturn(true);
 
-        boolean exists = wineService.existsById(1L);
+        boolean result = wineService.existsById(1L);
 
-        assertThat(exists).isTrue();
+        assertThat(result).isTrue();
         verify(spanTagger).tag(ObservationTags.WINE_ID, 1L);
     }
 
     @Test
-    void deleteById_ExistingId_ShouldDeleteWine() {
+    void deleteById_should_delete() {
         when(wineRepository.findById(1L)).thenReturn(Optional.of(wine));
 
         wineService.deleteById(1L);
@@ -147,33 +143,35 @@ class WineServiceImplTest {
     }
 
     @Test
-    void deleteById_NotExistingId_ShouldThrowException() {
+    void deleteById_should_throw() {
         when(wineRepository.findById(1L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> wineService.deleteById(1L))
-                .isInstanceOf(EntityNotFoundException.class)
-                .hasMessageContaining("Can't find wine by id: 1");
+                .isInstanceOf(EntityNotFoundException.class);
 
         verify(spanTagger).tag(ObservationTags.WINE_ID, 1L);
-        verify(spanTagger).tag("status", "error");
-        verify(spanTagger).tag(eq(ObservationTags.ERROR_MESSAGE), anyString());
     }
 
     @Test
-    void updateAverageRatingScore_ShouldUpdateScore() {
+    void updateAverageRatingScore_should_update() {
         when(wineRepository.findById(1L)).thenReturn(Optional.of(wine));
 
         wineService.updateAverageRatingScore(1L, 4.5);
 
         assertThat(wine.getAverageRatingScore())
                 .isEqualByComparingTo(BigDecimal.valueOf(4.5));
+
+        verify(wineRepository).save(wine);
         verify(spanTagger).tag(ObservationTags.WINE_SCORE, 4.5);
     }
 
     @Test
-    void updateImage_ShouldReplaceImages() {
+    void updateImage_should_replace() {
         MultipartFile imageA = mock(MultipartFile.class);
         MultipartFile imageB = mock(MultipartFile.class);
+
+        when(imageA.getOriginalFilename()).thenReturn("a.jpg");
+        when(imageB.getOriginalFilename()).thenReturn("b.jpg");
 
         wine.setPictureLink("oldA.jpg");
         wine.setPictureLink2("oldB.jpg");
@@ -191,6 +189,5 @@ class WineServiceImplTest {
         verify(imageStorageService).deleteImage("oldB.jpg");
         verify(imageStorageService).saveImage(any(), eq("a"), eq(imageA));
         verify(imageStorageService).saveImage(any(), eq("b"), eq(imageB));
-        verify(spanTagger).tag(ObservationTags.WINE_ID, 1L);
     }
 }

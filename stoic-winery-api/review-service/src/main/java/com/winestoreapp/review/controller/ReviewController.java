@@ -68,13 +68,13 @@ public class ReviewController {
                     examples = @ExampleObject(
                             name = "Review example",
                             value = """
-                            {
-                              "wineId": 1,
-                              "userFirstAndLastName": "Ivan Petrov",
-                              "message": "This is a great wine!",
-                              "rating": 5
-                            }
-                            """
+                                    {
+                                      "wineId": 1,
+                                      "userFirstAndLastName": "Ivan Petrov",
+                                      "message": "This is a great wine!",
+                                      "rating": 5
+                                    }
+                                    """
                     )
             )
     )
