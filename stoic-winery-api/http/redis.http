@@ -1,0 +1,286 @@
+### ==========================================
+### Redis Debug & Testing Endpoints
+### ==========================================
+### AUTO-LOGIN BEFORE EACH REQUEST
+### ==========================================
+
+### ==========================================
+### QUICK REDIS INFO (Auto-login)
+### ==========================================
+
+# @name redis_login
+### Login and get token
+POST {{auth_url}}/login
+Content-Type: application/json
+
+{
+  "email": "{{admin_email}}",
+  "password": "{{password}}"
+}
+
+> {%
+    client.global.set("auth_token", response.body.token);
+%}
+
+###
+
+# @name redis_stats
+### Get Redis Cache Statistics
+GET {{base_url}}/redis/stats
+Authorization: Bearer {{auth_token}}
+Accept: application/json
+
+###
+
+# @name redis_all_keys
+### Get All Redis Keys
+GET {{base_url}}/redis/keys
+Authorization: Bearer {{auth_token}}
+Accept: application/json
+
+###
+
+# @name redis_wine_keys
+### Get Wine Cache Keys (wines::*)
+GET {{base_url}}/redis/keys/wines
+Authorization: Bearer {{auth_token}}
+Accept: application/json
+
+###
+
+# @name redis_rate_limit_keys
+### Get Rate Limit Keys (rate_limit::*)
+GET {{base_url}}/redis/keys/rate-limits
+Authorization: Bearer {{auth_token}}
+Accept: application/json
+
+###
+
+# @name redis_blacklist_keys
+### Get JWT Blacklist Keys (blacklist::*)
+GET {{base_url}}/redis/keys/blacklist
+Authorization: Bearer {{auth_token}}
+Accept: application/json
+
+###
+
+# @name redis_sample_wine_cache
+### Get Sample Wine Cache Entries (up to 5 with values)
+GET {{base_url}}/redis/cache/wines/sample
+Authorization: Bearer {{auth_token}}
+Accept: application/json
+
+###
+
+# @name redis_sample_rate_limit_cache
+### Get Sample Rate Limit Entries (up to 5 with values and TTL)
+GET {{base_url}}/redis/cache/rate-limits/sample
+Authorization: Bearer {{auth_token}}
+Accept: application/json
+
+###
+
+# @name redis_clear_wine_cache
+### Clear All Wine Cache Entries
+DELETE {{base_url}}/redis/cache/wines
+Authorization: Bearer {{auth_token}}
+
+###
+
+# @name redis_clear_rate_limit_cache
+### Clear All Rate Limit Cache Entries
+DELETE {{base_url}}/redis/cache/rate-limits
+Authorization: Bearer {{auth_token}}
+
+### ==========================================
+### TESTING CACHE (Run requests in sequence)
+### ==========================================
+
+### Step 1: Login first
+# @name cache_login
+POST {{auth_url}}/login
+Content-Type: application/json
+
+{
+  "email": "{{admin_email}}",
+  "password": "{{password}}"
+}
+
+> {%
+    client.global.set("auth_token", response.body.token);
+%}
+
+###
+
+### Step 2: Get wines (cache MISS)
+# @name cache_step1
+GET {{base_url}}/wines
+Authorization: Bearer {{auth_token}}
+Accept: application/json
+
+###
+
+### Step 3: Get wines again (cache HIT)
+# @name cache_step2
+GET {{base_url}}/wines?page=0&size=10
+Authorization: Bearer {{auth_token}}
+Accept: application/json
+
+###
+
+### Step 4: Check Redis cache
+# @name cache_step3
+GET {{base_url}}/redis/cache/wines/sample
+Authorization: Bearer {{auth_token}}
+Accept: application/json
+
+###
+
+### Step 5: Clear cache
+# @name cache_step4
+DELETE {{base_url}}/redis/cache/wines
+Authorization: Bearer {{auth_token}}
+
+###
+
+### Step 6: Verify cache cleared
+# @name cache_step5
+GET {{base_url}}/redis/keys/wines
+Authorization: Bearer {{auth_token}}
+Accept: application/json
+
+### ==========================================
+### TESTING RATE LIMITING
+### ==========================================
+
+### Step 1: Login
+# @name ratelimit_login
+POST {{auth_url}}/login
+Content-Type: application/json
+
+{
+  "email": "{{admin_email}}",
+  "password": "{{password}}"
+}
+
+> {%
+    client.global.set("auth_token", response.body.token);
+%}
+
+###
+
+### Request 1-5: Should succeed
+# @name ratelimit_req1
+GET {{base_url}}/health/rate-limited
+Authorization: Bearer {{auth_token}}
+
+###
+
+# @name ratelimit_req2
+GET {{base_url}}/health/rate-limited
+Authorization: Bearer {{auth_token}}
+
+###
+
+# @name ratelimit_req3
+GET {{base_url}}/health/rate-limited
+Authorization: Bearer {{auth_token}}
+
+###
+
+# @name ratelimit_req4
+GET {{base_url}}/health/rate-limited
+Authorization: Bearer {{auth_token}}
+
+###
+
+# @name ratelimit_req5
+GET {{base_url}}/health/rate-limited
+Authorization: Bearer {{auth_token}}
+
+###
+
+### Request 6: Should return 429
+# @name ratelimit_req6
+GET {{base_url}}/health/rate-limited
+Authorization: Bearer {{auth_token}}
+
+###
+
+### Check rate limit keys
+# @name ratelimit_check
+GET {{base_url}}/redis/cache/rate-limits/sample
+Authorization: Bearer {{auth_token}}
+
+###
+
+### Reset rate limit
+# @name ratelimit_reset
+DELETE {{base_url}}/redis/cache/rate-limits
+Authorization: Bearer {{auth_token}}
+
+### ==========================================
+### TESTING JWT BLACKLIST
+### ==========================================
+
+### Step 1: Login to get token
+# @name blacklist_login
+POST {{auth_url}}/login
+Content-Type: application/json
+
+{
+  "email": "{{admin_email}}",
+  "password": "{{password}}"
+}
+
+> {%
+    client.global.set("auth_token", response.body.token);
+    client.global.set("old_token", response.body.token);
+%}
+
+###
+
+### Step 2: Logout (token goes to blacklist)
+# @name blacklist_logout
+POST {{auth_url}}/logout
+Authorization: Bearer {{old_token}}
+
+###
+
+### Step 3: Login again to check blacklist
+# @name blacklist_login2
+POST {{auth_url}}/login
+Content-Type: application/json
+
+{
+  "email": "{{admin_email}}",
+  "password": "{{password}}"
+}
+
+> {%
+    client.global.set("auth_token", response.body.token);
+%}
+
+###
+
+### Step 4: Check blacklist keys
+# @name blacklist_check
+GET {{base_url}}/redis/keys/blacklist
+Authorization: Bearer {{auth_token}}
+Accept: application/json
+
+### ==========================================
+### ACTUATOR (No auth needed)
+### ==========================================
+
+### Check health
+GET http://localhost:8080/actuator/health
+Accept: application/json
+
+###
+
+### Check Redis metrics
+GET http://localhost:8080/actuator/metrics/redis.command.duration
+Accept: application/json
+
+###
