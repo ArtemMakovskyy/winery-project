@@ -27,6 +27,9 @@ class AuthenticationServiceTest {
     private JwtUtil jwtUtil;
 
     @Mock
+    private TokenBlacklistService blacklistService;
+
+    @Mock
     private AuthenticationManager authenticationManager;
 
     @InjectMocks
