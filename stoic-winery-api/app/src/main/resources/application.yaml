@@ -27,6 +27,21 @@ spring:
     url: ${DATASOURCE_URL:jdbc:mysql://localhost:3309/wine_store_db?serverTimezone=UTC&allowPublicKeyRetrieval=true&useSSL=false}
     username: ${DATASOURCE_USER:wine_user}
     password: ${DATASOURCE_PASSWORD:dev_db_password_change_me}
+
+  # Redis configuration for caching and session management
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:dev_redis_password_change_me}
+      timeout: 2000ms  # Connection timeout
+      lettuce:
+        pool:
+          max-active: 8   # Max connections in pool
+          max-idle: 8     # Max idle connections
+          min-idle: 2     # Min idle connections to keep ready
+          max-wait: -1ms  # Wait indefinitely for connection
+
   config:
     import:
       - optional:classpath:/application-telegram.yaml

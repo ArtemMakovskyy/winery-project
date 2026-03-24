@@ -16,6 +16,7 @@ management:
           - metrics
           - prometheus
           - loggers
+          - redis
 
   prometheus:
     metrics:
@@ -30,6 +31,7 @@ management:
       system: true
       hikaricp: true
       tomcat: true
+      redis: true
 
     distribution:
       percentiles-histogram:
@@ -46,6 +48,15 @@ management:
 
   health:
     show-details: always
+    redis:
+      enabled: true
+
+  tracing:
+    sampling:
+      probability: 1.0
+    zipkin:
+      endpoint: ${MANAGEMENT_ZIPKIN_TRACING_ENDPOINT:http://localhost:9411/api/v2/spans}
+    enabled: true
 
   observations:
     key-values:
@@ -57,13 +68,6 @@ management:
         enabled: true
     jdbc:
       enabled: true
-
-  tracing:
-    sampling:
-      probability: 1.0
-    zipkin:
-      endpoint: ${MANAGEMENT_ZIPKIN_TRACING_ENDPOINT:http://localhost:9411/api/v2/spans}
-    enabled: true
 
 spring:
   datasource:
@@ -84,6 +88,7 @@ logging:
   level:
     org.hibernate.sql: info
     root: info
+    org.springframework.data.redis: DEBUG
 
 info:
   app:
