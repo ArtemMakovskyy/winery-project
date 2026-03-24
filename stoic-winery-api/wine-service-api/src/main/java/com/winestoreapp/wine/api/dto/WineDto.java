@@ -1,10 +1,15 @@
 package com.winestoreapp.wine.api.dto;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
-public class WineDto {
+@NoArgsConstructor
+public class WineDto implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     private Long id;
     private String vendorCode;
     private String qualityLevel;
