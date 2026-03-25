@@ -12,8 +12,12 @@ Redis is used in Stoic Winery API for caching, rate limiting, and JWT blacklist 
 - [Rate Limiting](#rate-limiting)
 - [JWT Blacklist](#jwt-blacklist)
 - [Debug Endpoints](#debug-endpoints)
+    - [Main Endpoints](#main-endpoints)
+    - [Example Requests](#example-requests)
 - [Testing](#testing)
 - [Redis CLI](#redis-cli)
+- [Monitoring](#monitoring)
+- [HTTP Requests](#http-requests)
 
 ---
 
@@ -21,11 +25,11 @@ Redis is used in Stoic Winery API for caching, rate limiting, and JWT blacklist 
 
 Redis is integrated into three main components:
 
-| Component | Purpose | Implementation |
-|-----------|---------|----------------|
-| **Cache** | Wine caching | `@Cacheable`, `@CacheEvict` |
-| **Rate Limit** | Request throttling | Lua scripts + Redis |
-| **JWT Blacklist** | Token revocation | Redis Set storage |
+| Component         | Purpose            | Implementation              |
+|-------------------|--------------------|-----------------------------|
+| **Cache**         | Wine caching       | `@Cacheable`, `@CacheEvict` |
+| **Rate Limit**    | Request throttling | Lua scripts + Redis         |
+| **JWT Blacklist** | Token revocation   | Redis Set storage           |
 
 ---
 
@@ -52,7 +56,7 @@ redis:
 # Redis Configuration
 REDIS_HOST=redis
 REDIS_PORT=6379
-REDIS_PASSWORD=
+REDIS_PASSWORD=dev_redis_password_change_me
 REDIS_DATABASE=0
 
 # Redis Blacklist
@@ -68,7 +72,7 @@ spring:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:}
+      password: ${REDIS_PASSWORD:dev_redis_password_change_me}
       database: ${REDIS_DATABASE:0}
   cache:
     type: redis
@@ -86,6 +90,7 @@ spring:
 Caching is used to reduce database load:
 
 ```java
+
 @Cacheable(value = "wines", key = "#id")
 public WineDto getWineById(Long id) {
     // Database query
@@ -106,7 +111,7 @@ public void deleteWine(Long id) {
 
 | Cache Name | TTL | Description |
 |------------|-----|-------------|
-| `wines` | 1h | Wine cache |
+| `wines`    | 1h  | Wine cache  |
 
 ### Clear Cache
 
@@ -152,17 +157,18 @@ return current
 
 ### Rate Limited Endpoints
 
-| Endpoint | Limit | Window |
-|----------|-------|--------|
-| `/api/auth/login` | 5 | 60s |
-| `/api/auth/register` | 3 | 60s |
-| `/api/orders` | 10 | 60s |
-| `/api/reviews` | 5 | 60s |
-| `/api/users/**` | 10 | 60s |
+| Endpoint             | Limit | Window |
+|----------------------|-------|--------|
+| `/api/auth/login`    | 5     | 60s    |
+| `/api/auth/register` | 3     | 60s    |
+| `/api/orders`        | 10    | 60s    |
+| `/api/reviews`       | 5     | 60s    |
+| `/api/users/**`      | 10    | 60s    |
 
 ### RateLimit Annotation
 
 ```java
+
 @RateLimit(requests = 5, windowSeconds = 60)
 @PostMapping("/login")
 public AuthResponse login(@RequestBody LoginRequest request) {
@@ -209,15 +215,23 @@ public boolean isBlacklisted(String token) {
 
 ## 🐛 Debug Endpoints
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/redis-debug/info` | GET | General Redis information |
-| `/api/redis-debug/keys` | GET | All keys in Redis |
-| `/api/redis-debug/blacklist/count` | GET | Number of tokens in blacklist |
-| `/api/redis-debug/cache/stats` | GET | Cache statistics |
-| `/api/redis-debug/cache/clear` | POST | Clear cache |
+### Main Endpoints
 
-### Example Response `/api/redis-debug/info`
+| Endpoint                           | Method | Description                                         |
+|------------------------------------|--------|-----------------------------------------------------|
+| `/api/redis/info`                  | GET    | General Redis information                           |
+| `/api/redis/keys`                  | GET    | All keys in Redis                                   |
+| `/api/redis/keys/pattern?pattern=` | GET    | Keys by pattern                                     |
+| `/api/redis/stats`                 | GET    | Cache statistics                                    |
+| `/api/redis/stats/extended`        | GET    | Extended statistics (memory, hit/miss rate, uptime) |
+| `/api/redis/value?key=`            | GET    | Get value by key                                    |
+| `/api/redis/key-info?key=`         | GET    | Get detailed key information                        |
+| `/api/redis/ttl?key=`              | GET    | Get key TTL                                         |
+| `/api/redis/key?key=`              | DELETE | Delete key                                          |
+| `/api/redis/blacklist/count`       | GET    | Number of tokens in blacklist                       |
+| `/api/redis/cache/clear`           | POST   | Clear cache                                         |
+
+### Example Response `/api/redis/info`
 
 ```json
 {
@@ -230,6 +244,98 @@ public boolean isBlacklisted(String token) {
 }
 ```
 
+### Example Request `/api/redis/stats/extended`
+
+```bash
+GET http://localhost:8080/api/redis/stats/extended
+Authorization: Bearer {{auth_token}}
+```
+
+### Example Response `/api/redis/stats/extended`
+
+```json
+{
+  "connectedClients": 5,
+  "usedMemory": "1.2M",
+  "usedMemoryPeak": "2.4M",
+  "usedMemoryHuman": "1.2M",
+  "uptimeSeconds": 3600,
+  "totalKeys": 150,
+  "hitRate": 0.85,
+  "missRate": 0.15,
+  "hitCount": 850,
+  "missCount": 150,
+  "keyspaceHits": 850,
+  "keyspaceMisses": 150
+}
+```
+
+### Example Request `/api/redis/keys/pattern`
+
+```bash
+GET http://localhost:8080/api/redis/keys/pattern?pattern=wines::*
+Authorization: Bearer {{auth_token}}
+```
+
+### Example Response `/api/redis/keys/pattern`
+
+```json
+[
+  "wines::1",
+  "wines::2",
+  "wines::3"
+]
+```
+
+### Example Request `/api/redis/value`
+
+```bash
+GET http://localhost:8080/api/redis/value?key=wines::1
+Authorization: Bearer {{auth_token}}
+```
+
+### Example Request `/api/redis/key-info`
+
+```bash
+GET http://localhost:8080/api/redis/key-info?key=wines::1
+Authorization: Bearer {{auth_token}}
+```
+
+### Example Response `/api/redis/key-info`
+
+```json
+{
+  "key": "wines::1",
+  "type": "string",
+  "encoding": "embstr",
+  "size": 256,
+  "ttl": -1
+}
+```
+
+### Example Request `/api/redis/ttl`
+
+```bash
+GET http://localhost:8080/api/redis/ttl?key=wines::1
+Authorization: Bearer {{auth_token}}
+```
+
+### Example Response `/api/redis/ttl`
+
+```json
+{
+  "key": "wines::1",
+  "ttl": -1
+}
+```
+
+### Example Request `/api/redis/key` (DELETE)
+
+```bash
+DELETE http://localhost:8080/api/redis/key?key=wines::1
+Authorization: Bearer {{auth_token}}
+```
+
 ---
 
 ## 🧪 Testing
@@ -239,12 +345,13 @@ public boolean isBlacklisted(String token) {
 Integration tests use Testcontainers for Redis:
 
 ```java
+
 @Testcontainers
 class RateLimitServiceIntegrationTest {
 
     @Container
     static GenericContainer<?> redis = new GenericContainer<>("redis:7-alpine")
-        .withExposedPorts(6379);
+            .withExposedPorts(6379);
 
     @DynamicPropertySource
     static void redisProperties(DynamicPropertyRegistry registry) {
@@ -256,11 +363,11 @@ class RateLimitServiceIntegrationTest {
 
 ### Test Classes
 
-| Class | Purpose |
-|-------|---------|
+| Class                             | Purpose             |
+|-----------------------------------|---------------------|
 | `RateLimitServiceIntegrationTest` | Rate limiting tests |
-| `TokenBlacklistServiceTest` | JWT blacklist tests |
-| `WineServiceCacheTest` | Caching tests |
+| `TokenBlacklistServiceTest`       | JWT blacklist tests |
+| `WineServiceCacheTest`            | Caching tests       |
 
 ### Running Tests
 
@@ -329,6 +436,9 @@ TTL jwt_blacklist
 # View all cache keys
 KEYS cache::*
 
+# View all wine keys
+KEYS wines::*
+
 # View all rate limit keys
 KEYS ratelimit::*
 
@@ -336,10 +446,22 @@ KEYS ratelimit::*
 SMEMBERS jwt_blacklist
 
 # Clear wine cache
-DEL cache::wines::1 cache::wines::2
+DEL wines::1 wines::2
 
 # Check rate limit statistics
 GET ratelimit:/api/auth/login:192.168.1.1
+
+# Get key type
+TYPE wines::1
+
+# Get key TTL
+TTL wines::1
+
+# Get memory info
+INFO memory
+
+# Get keys count
+DBSIZE
 ```
 
 ---
@@ -366,8 +488,24 @@ redis_miss_rate
 
 ---
 
-## 🔗 Links
+## 📝 HTTP Requests
 
-- [Redis Documentation](https://redis.io/documentation)
-- [Spring Data Redis](https://docs.spring.io/spring-data/redis/docs/current/reference/html/)
-- [Testcontainers Redis](https://www.testcontainers.org/modules/databases/redis/)
+For testing Redis endpoints, use the `http/redis.http` file in IntelliJ IDEA:
+
+1. Open `stoic-winery-api/http/redis.http`
+2. Select `development` environment (top right corner)
+3. Run `redis_login` request first to get the token
+4. Run any Redis debug endpoint
+
+Available requests:
+
+- `redis_login` — Login and get JWT token
+- `redis_stats` — Get basic cache statistics
+- `redis_stats_extended` — Get extended statistics (memory, hit/miss rate)
+- `redis_all_keys` — Get all Redis keys
+- `redis_keys_pattern` — Get keys by pattern (e.g., `wines::*`)
+- `redis_value` — Get value by key
+- `redis_key_info` — Get detailed key information
+- `redis_ttl` — Get key TTL
+- `redis_delete_key` — Delete a key
+

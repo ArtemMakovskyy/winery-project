@@ -1,3 +1,4 @@
+### @env http-client.env.json
 ### ==========================================
 ### Redis Debug & Testing Endpoints
 ### ==========================================
@@ -9,7 +10,6 @@
 ### ==========================================
 
 # @name redis_login
-### Login and get token
 POST {{auth_url}}/login
 Content-Type: application/json
 
@@ -32,9 +32,25 @@ Accept: application/json
 
 ###
 
+# @name redis_stats_extended
+### Get Extended Redis Cache Statistics (memory, hit/miss rate, uptime)
+GET {{base_url}}/redis/stats/extended
+Authorization: Bearer {{auth_token}}
+Accept: application/json
+
+###
+
 # @name redis_all_keys
 ### Get All Redis Keys
 GET {{base_url}}/redis/keys
+Authorization: Bearer {{auth_token}}
+Accept: application/json
+
+###
+
+# @name redis_keys_by_pattern
+### Get Redis Keys by Pattern
+GET {{base_url}}/redis/keys/pattern?pattern=wines::*
 Authorization: Bearer {{auth_token}}
 Accept: application/json
 
@@ -80,6 +96,37 @@ Accept: application/json
 
 ###
 
+# @name redis_get_value
+### Get Value by Key
+GET {{base_url}}/redis/value?key=wines::1
+Authorization: Bearer {{auth_token}}
+Accept: application/json
+
+###
+
+# @name redis_get_key_info
+### Get Detailed Key Info (value, TTL, type)
+GET {{base_url}}/redis/key-info?key=wines::1
+Authorization: Bearer {{auth_token}}
+Accept: application/json
+
+###
+
+# @name redis_get_ttl
+### Get TTL for a Key
+GET {{base_url}}/redis/ttl?key=wines::1
+Authorization: Bearer {{auth_token}}
+Accept: application/json
+
+###
+
+# @name redis_delete_key
+### Delete a Specific Key
+DELETE {{base_url}}/redis/key?key=wines::1
+Authorization: Bearer {{auth_token}}
+
+###
+
 # @name redis_clear_wine_cache
 ### Clear All Wine Cache Entries
 DELETE {{base_url}}/redis/cache/wines
@@ -120,7 +167,7 @@ Accept: application/json
 
 ###
 
-### Step 3: Get wines again (cache HIT)
+### Step 3: Get wines again (cache HIT) нет ли тут
 # @name cache_step2
 GET {{base_url}}/wines?page=0&size=10
 Authorization: Bearer {{auth_token}}
@@ -268,6 +315,77 @@ Content-Type: application/json
 GET {{base_url}}/redis/keys/blacklist
 Authorization: Bearer {{auth_token}}
 Accept: application/json
+
+### ==========================================
+### TESTING EXTENDED STATS
+### ==========================================
+
+### Step 1: Login
+# @name ext_stats_login
+POST {{auth_url}}/login
+Content-Type: application/json
+
+{
+  "email": "{{admin_email}}",
+  "password": "{{password}}"
+}
+
+> {%
+    client.global.set("auth_token", response.body.token);
+%}
+
+###
+
+### Step 2: Get extended statistics
+# @name ext_stats_get
+### @env http-client.env.json
+GET {{base_url}}/redis/stats/extended
+Authorization: Bearer {{auth_token}}
+Accept: application/json
+
+###
+
+### Step 3: Get wine keys by pattern
+# @name ext_stats_pattern
+### @env http-client.env.json
+GET {{base_url}}/redis/keys/pattern?pattern=wines::*
+Authorization: Bearer {{auth_token}}
+Accept: application/json
+
+###
+
+### Step 4: Get specific key value
+# @name ext_stats_value
+### @env http-client.env.json
+GET {{base_url}}/redis/value?key=wines::1
+Authorization: Bearer {{auth_token}}
+Accept: application/json
+
+###
+
+### Step 5: Get key info
+# @name ext_stats_keyinfo
+### @env http-client.env.json
+GET {{base_url}}/redis/key-info?key=wines::1
+Authorization: Bearer {{auth_token}}
+Accept: application/json
+
+###
+
+### Step 6: Get TTL
+# @name ext_stats_ttl
+### @env http-client.env.json
+GET {{base_url}}/redis/ttl?key=wines::1
+Authorization: Bearer {{auth_token}}
+Accept: application/json
+
+###
+
+### Step 7: Delete key
+# @name ext_stats_delete
+### @env http-client.env.json
+DELETE {{base_url}}/redis/key?key=wines::1
+Authorization: Bearer {{auth_token}}
 
 ### ==========================================
 ### ACTUATOR (No auth needed)

@@ -22,52 +22,52 @@ public class WineStoreApplication {
     @PostConstruct
     public void logUrls() {
         log.info("");
-        log.info("🍷 ================================================================");
-        log.info("🍷  Stoic Winery API - Backend");
-        log.info("🍷  Modular Monolith | Spring Boot 3 | Java 21");
-        log.info("🍷 ================================================================");
+        log.info("================================================================");
+        log.info("  Stoic Winery API - Backend");
+        log.info("  Modular Monolith | Spring Boot 3 | Java 21");
+        log.info("================================================================");
         log.info("");
 
-        log.info("🔎 Health check:");
-        log.info("   ➜ {}{}", mainFrontEndUrl, "/health");
+        log.info("Health check:");
+        log.info("   -> {}{}", mainFrontEndUrl, "/health");
 
         log.info("");
-        log.info("📚 API Documentation (Swagger):");
-        log.info("   ➜ {}/swagger-ui/index.html#/", mainFrontEndUrl);
+        log.info("API Documentation (Swagger):");
+        log.info("   -> {}/swagger-ui/index.html#/", mainFrontEndUrl);
 
         log.info("");
-        log.info("🖥️ Frontend:");
-        log.info("   ➜ http://localhost:3000/#/products");
+        log.info("Frontend:");
+        log.info("   -> http://localhost:3000/#/products");
 
         log.info("");
-        log.info("📊 Observability & Monitoring:");
+        log.info("Observability & Monitoring:");
 
-        log.info("   📈 Grafana Dashboards:");
-        log.info("      ➜ http://localhost:3030");
+        log.info("  Grafana Dashboards:");
+        log.info("     -> http://localhost:3030");
 
-        log.info("   📊 Prometheus Metrics:");
-        log.info("      ➜ http://localhost:9090");
+        log.info("  Prometheus Metrics:");
+        log.info("     -> http://localhost:9090");
 
-        log.info("   🧾 Logs (Loki via Grafana):");
-        log.info("      ➜ Grafana → Explore → Loki");
-        log.info("      ➜ Query example: {app=\"wine-store-api\"}");
+        log.info("  Logs (Loki via Grafana):");
+        log.info("     -> Grafana -> Explore -> Loki");
+        log.info("     -> Query example: {app=\"wine-store-api\"}");
 
-        log.info("   🧭 Traces (Tempo):");
-        log.info("      ➜ Grafana → Traces → Tempo");
-
-        log.info("");
-        log.info("👤 Default Users:");
-        log.info("   ➜ ADMIN    | admin12345@gmail.com / 12345");
-        log.info("   ➜ MANAGER  | manager12345@gmail.com / 12345");
+        log.info("  Traces (Tempo):");
+        log.info("     -> Grafana -> Traces -> Tempo");
 
         log.info("");
-        log.info("📦 Source code:");
-        log.info("   ➜ https://github.com/ArtemMakovskyy/winery-project");
+        log.info("Default Users:");
+        log.info("   -> ADMIN    | admin12345@gmail.com / 12345");
+        log.info("   -> MANAGER  | manager12345@gmail.com / 12345");
 
         log.info("");
-        log.info("🍷 ================================================================");
-        log.info("🍷  Application started successfully");
-        log.info("🍷 ================================================================");
+        log.info("Source code:");
+        log.info("   -> https://github.com/ArtemMakovskyy/winery-project");
+
+        log.info("");
+        log.info("================================================================");
+        log.info("  Application started successfully");
+        log.info("================================================================");
         log.info("");
     }
 }

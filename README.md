@@ -1,5 +1,5 @@
 # 🍷 "Stoic winery" 
-Welcome to the **Stoic Winery** project — a full-stack wine store application with **frontend**, backend, admin panel, and observability features.
+Welcome to the **Stoic Winery** project — a full-stack wine store application with frontend, backend, admin panel, and observability features.
 
 ## ▶️ How to set up and start the project
 
@@ -168,9 +168,6 @@ It provides:
 
 👓 **Stoic Winery ADMIN PANEL**
 [https://github.com/ArtemMakovskyy/winery-project/blob/winery-admin-ui/winery-admin-ui/README.md](https://github.com/ArtemMakovskyy/winery-project/blob/winery-admin-ui/winery-admin-ui/README.md)
-
-👓 **Redis Integration** (stoic-winery-api)
-[REDIS.md](stoic-winery-api/REDIS.md) — caching, rate limiting, JWT blacklist
 
 ---
 

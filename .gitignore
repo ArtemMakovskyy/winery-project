@@ -37,3 +37,4 @@ yarn-error.log*
 /.cursor/
 /.cursorignore
 /start-docker.txt
+/.qwen/
