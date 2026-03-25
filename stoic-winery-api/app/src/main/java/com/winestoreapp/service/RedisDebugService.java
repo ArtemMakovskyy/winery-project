@@ -2,6 +2,7 @@ package com.winestoreapp.service;
 
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -219,5 +220,119 @@ public class RedisDebugService {
         log.info("[REDIS-DEBUG] Clearing rate limit cache");
         long deleted = deleteKeysByPattern("rate_limit::*");
         log.info("[REDIS-DEBUG] Cleared {} rate limit entries", deleted);
+    }
+
+    /**
+     * Get extended cache statistics with hit/miss rates and memory info.
+     * Optimized to scan Redis only once and filter in memory.
+     *
+     * @return map with extended cache statistics
+     */
+    public Map<String, Object> getExtendedCacheStats() {
+        log.debug("[REDIS-DEBUG] Getting extended cache statistics");
+        Map<String, Object> stats = new LinkedHashMap<>();
+
+        try {
+            // Single SCAN to get all keys, then filter in memory
+            Set<String> allKeys = getAllKeys();
+            stats.put("totalKeys", allKeys.size());
+
+            // Filter keys by pattern in memory (avoid multiple SCAN operations)
+            Set<String> wineKeys = filterKeysByPattern(allKeys, "wines::*");
+            Set<String> rateLimitKeys = filterKeysByPattern(allKeys, "rate_limit::*");
+            Set<String> blacklistKeys = filterKeysByPattern(allKeys, "blacklist::*");
+
+            stats.put("winesCacheKeys", wineKeys.size());
+            stats.put("rateLimitKeys", rateLimitKeys.size());
+            stats.put("blacklistKeys", blacklistKeys.size());
+
+            // Memory info (from Redis INFO command)
+            var connection = redisTemplate.getConnectionFactory().getConnection();
+            try {
+                var info = connection.info("memory");
+                if (info != null) {
+                    stats.put("usedMemory", info.get("used_memory"));
+                    stats.put("usedMemoryHuman", info.get("used_memory_human"));
+                    stats.put("usedMemoryPeak", info.get("used_memory_peak_human"));
+                    stats.put("usedMemoryDataset", info.get("used_memory_dataset"));
+                }
+
+                var statsInfo = connection.info("stats");
+                if (statsInfo != null) {
+                    stats.put("keyspaceHits", statsInfo.get("keyspace_hits"));
+                    stats.put("keyspaceMisses", statsInfo.get("keyspace_misses"));
+
+                    Long hits = Long.parseLong(statsInfo.get("keyspace_hits").toString());
+                    Long misses = Long.parseLong(statsInfo.get("keyspace_misses").toString());
+                    Long total = hits + misses;
+                    Double hitRate = total > 0 ? (hits.doubleValue() / total.doubleValue()) * 100 : 0.0;
+                    stats.put("cacheHitRatePercent", String.format("%.2f", hitRate));
+                }
+
+                var serverInfo = connection.info("server");
+                if (serverInfo != null) {
+                    stats.put("redisVersion", serverInfo.get("redis_version"));
+                    stats.put("uptimeInSeconds", serverInfo.get("uptime_in_seconds"));
+                    stats.put("uptimeInDays", serverInfo.get("uptime_in_days"));
+                }
+
+                var clientsInfo = connection.info("clients");
+                if (clientsInfo != null) {
+                    stats.put("connectedClients", clientsInfo.get("connected_clients"));
+                    stats.put("blockedClients", clientsInfo.get("blocked_clients"));
+                }
+            } finally {
+                connection.close();
+            }
+
+            // Sample keys with details
+            stats.put("sampleWineKeys", wineKeys.stream().limit(5).toList());
+            stats.put("sampleRateLimitKeys", rateLimitKeys.stream().limit(5).toList());
+            stats.put("sampleBlacklistKeys", blacklistKeys.stream().limit(5).toList());
+
+            // Keys with TTL info (limit to first 10 wine keys)
+            List<Map<String, Object>> wineKeysWithTtl = wineKeys.stream()
+                    .limit(10)
+                    .map(key -> {
+                        Map<String, Object> keyInfo = new LinkedHashMap<>();
+                        keyInfo.put("key", key);
+                        Long ttl = getTTL(key);
+                        // Handle TTL edge cases: -1 = no TTL, -2 = key doesn't exist
+                        if (ttl == null || ttl < 0) {
+                            keyInfo.put("ttlSeconds", ttl == -1 ? "no TTL" : "expired");
+                        } else {
+                            keyInfo.put("ttlSeconds", ttl);
+                        }
+                        return keyInfo;
+                    })
+                    .toList();
+            stats.put("wineKeysWithTtl", wineKeysWithTtl);
+
+        } catch (Exception e) {
+            log.error("[REDIS-DEBUG] Error getting extended cache stats: {}", e.getMessage(), e);
+            stats.put("error", e.getMessage());
+        }
+
+        return stats;
+    }
+
+    /**
+     * Filter keys by pattern in memory (avoid multiple Redis SCAN operations).
+     * Supports simple glob patterns: * (any chars), ? (single char)
+     *
+     * @param allKeys all keys from Redis
+     * @param pattern pattern to filter by (e.g., "wines::*")
+     * @return filtered set of keys
+     */
+    private Set<String> filterKeysByPattern(Set<String> allKeys, String pattern) {
+        // Convert glob pattern to regex
+        String regex = pattern
+                .replace(".", "\\.")
+                .replace("*", ".*")
+                .replace("?", ".");
+
+        return allKeys.stream()
+                .filter(key -> key.matches(regex))
+                .collect(java.util.stream.Collectors.toSet());
     }
 }

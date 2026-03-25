@@ -218,4 +218,14 @@ public class RedisDebugController {
 
         return ResponseEntity.ok(samples);
     }
+
+    /**
+     * Get extended cache statistics.
+     */
+    @GetMapping("/stats/extended")
+    @Operation(summary = "Get extended cache statistics", description = "Returns detailed statistics about Redis cache including memory, hit/miss rates, uptime, and key details")
+    public ResponseEntity<Map<String, Object>> getExtendedCacheStats() {
+        log.info("[REDIS-DEBUG] Request to get extended cache statistics");
+        return ResponseEntity.ok(redisDebugService.getExtendedCacheStats());
+    }
 }
