@@ -17,5 +17,11 @@ scrape_configs:
         labels:
           application: 'admin-ui'
 
+  - job_name: 'redis-exporter'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+        labels:
+          application: 'redis'
+
 rule_files:
   - "/etc/prometheus/rules.yml"
