@@ -1,0 +1,9 @@
+# Ignore JMeter results and temporary files
+*.jtl
+*.jtl.*
+performance-tests/results/*
+performance-tests/report/*
+performance-tests/html-report/*
+
+# Keep the directory structure
+!.gitkeep

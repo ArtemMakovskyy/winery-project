@@ -170,7 +170,26 @@ Redis is used for:
 
 ---
 
-## 💬 Notes
+## Performance Testing
+
+See detailed load test results in **[PERFORMANCE_TESTS.md](PERFORMANCE_TESTS.md)**.
+
+**Key Results:**
+
+| Metric | Value |
+|--------|-------|
+| Average Response Time | 11-15ms |
+| Throughput | 865+ req/sec |
+| Max Response Time | 31ms |
+| Error Rate | < 1% |
+
+**Optimization Impact** (after adding 25 database indexes):
+- Average response time: 27% faster (15ms -> 11ms)
+- Max response time: 88% faster (255ms -> 31ms)
+
+---
+
+## Notes
 
 - Users are identified by first name, last name, and phone number.
 - Duplicate reviews or orders for the same user/wine are handled automatically.
