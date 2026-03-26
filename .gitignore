@@ -36,5 +36,6 @@ yarn-error.log*
 /.vscode/
 /.cursor/
 /.cursorignore
-/start-docker.txt
+/.rm/start-docker.txt
 /.qwen/
+/.rm/
