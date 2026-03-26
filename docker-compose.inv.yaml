@@ -1,4 +1,16 @@
 services:
+  frontend-wine-site:
+    container_name: fe-ui
+    env_file: .env
+    build: ./wine_site_project
+    ports:
+      - "${FRONTEND_PORT}:3000"
+    stdin_open: true
+    tty: true
+    networks:
+      - frontend
+      - backend
+
   db-sql:
     env_file: .env
     container_name: db-mysql
