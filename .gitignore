@@ -39,3 +39,4 @@ yarn-error.log*
 /.rm/start-docker.txt
 /.qwen/
 /.rm/
+/stoic-winery-api/app/src/main/resources/creds

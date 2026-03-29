@@ -66,6 +66,9 @@ limiter:
         ratings: 100
 
 main:
+  front:
+    end:
+      url: ${FRONTEND_URL:http://localhost:3000}
   back:
     end:
       url: ${BACKEND_URL:http://localhost:8080/api}

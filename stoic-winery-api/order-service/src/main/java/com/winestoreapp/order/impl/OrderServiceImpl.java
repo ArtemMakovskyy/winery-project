@@ -1,5 +1,8 @@
 package com.winestoreapp.order.impl;
 
+import com.winestoreapp.common.event.OrderCreatedEvent;
+import com.winestoreapp.common.event.OrderDeletedEvent;
+import com.winestoreapp.common.event.OrderPaidEvent;
 import com.winestoreapp.common.exception.EntityNotFoundException;
 import com.winestoreapp.common.exception.RegistrationException;
 import com.winestoreapp.common.observability.ObservationNames;
@@ -20,7 +23,6 @@ import com.winestoreapp.order.model.ShoppingCard;
 import com.winestoreapp.order.repository.OrderDeliveryInformationRepository;
 import com.winestoreapp.order.repository.OrderRepository;
 import com.winestoreapp.order.repository.ShoppingCardRepository;
-import com.winestoreapp.telegram.api.NotificationService;
 import com.winestoreapp.user.api.UserService;
 import com.winestoreapp.user.api.dto.UserResponseDto;
 import com.winestoreapp.wine.api.WineService;
@@ -31,6 +33,7 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,7 +48,8 @@ public class OrderServiceImpl implements OrderService {
     private static final String SPACE = " ";
     private static final int WORD_QUANTITY = 2;
 
-    private final Optional<NotificationService> notificationService;
+    @Value("${telegram.bot.enabled:false}")
+    private boolean telegramBotEnable;
     private final OrderRepository orderRepository;
     private final UserService userService;
     private final OrderDeliveryInformationMapper orderDeliveryInformationMapper;
@@ -54,9 +58,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderDeliveryInformationRepository orderDeliveryInformationRepository;
     private final ShoppingCardRepository shoppingCardRepository;
     private final SpanTagger spanTagger;
-
-    @Value("${telegram.bot.enabled:false}")
-    private boolean telegramBotEnable;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional
@@ -92,8 +94,12 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.save(order);
         log.info("Order created successfully with number: {}", order.getOrderNumber());
 
-        sendNotification(order, " is created.", userDto);
-        return orderMapper.toDto(order);
+        OrderDto orderDto = orderMapper.toDto(order);
+
+        if (telegramBotEnable) {
+            eventPublisher.publishEvent(new OrderCreatedEvent(this, order.getId(), order.getOrderNumber(), userDto.getId()));
+        }
+        return orderDto;
     }
 
     @Override
@@ -111,7 +117,9 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.save(order);
 
         UserResponseDto userDto = userService.loadUserById(order.getUserId());
-        sendNotification(order, " has been paid", userDto);
+        if (telegramBotEnable) {
+            eventPublisher.publishEvent(new OrderPaidEvent(this, order.getId(), order.getOrderNumber(), userDto.getId()));
+        }
         return true;
     }
 
@@ -129,7 +137,9 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.deleteById(id);
 
         UserResponseDto userDto = userService.loadUserById(order.getUserId());
-        sendNotification(order, " has been deleted.", userDto);
+        if (telegramBotEnable) {
+            eventPublisher.publishEvent(new OrderDeletedEvent(this, order.getId(), order.getOrderNumber(), userDto.getId()));
+        }
         return true;
     }
 
@@ -227,15 +237,6 @@ public class OrderServiceImpl implements OrderService {
                 log.error("Wine validation failed for id: {}", item.getWineId());
                 throw new EntityNotFoundException("Can't find wine by id " + item.getWineId());
             }
-        }
-    }
-
-    private void sendNotification(Order order, String actionMessage, UserResponseDto userDto) {
-        if (telegramBotEnable && userDto.getTelegramChatId() != null) {
-            notificationService.ifPresent(service -> service.sendNotification(
-                    "Your order: " + order.getOrderNumber() + actionMessage,
-                    userDto.getTelegramChatId()
-            ));
         }
     }
 

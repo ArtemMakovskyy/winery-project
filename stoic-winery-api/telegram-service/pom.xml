@@ -20,22 +20,17 @@
         </dependency>
         <dependency>
             <groupId>com.winestoreapp</groupId>
-            <artifactId>order-service</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.winestoreapp</groupId>
-            <artifactId>order-service-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.winestoreapp</groupId>
             <artifactId>user-service-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.winestoreapp</groupId>
             <artifactId>common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.winestoreapp</groupId>
+            <artifactId>order-service-api</artifactId>
             <version>${project.version}</version>
         </dependency>
 

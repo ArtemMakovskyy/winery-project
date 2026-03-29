@@ -1,5 +1,9 @@
 package com.winestoreapp.telegram.impl;
 
+import com.winestoreapp.common.event.OrderCreatedEvent;
+import com.winestoreapp.common.event.OrderDeletedEvent;
+import com.winestoreapp.common.event.OrderEvent;
+import com.winestoreapp.common.event.OrderPaidEvent;
 import com.winestoreapp.common.exception.EntityNotFoundException;
 import com.winestoreapp.common.observability.ObservationNames;
 import com.winestoreapp.order.api.OrderService;
@@ -18,8 +22,12 @@ import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
@@ -46,7 +54,7 @@ public class TelegramBotNotificationService
             , welcome to the Wine Store Bot😀❕
             
                  🔆Tips:🔆
-              ✔️ You can enter your order number to register. After you will get 
+              ✔️ You can enter your order number to register. After you will get
               information about the state of your orders.
               ✔️ You can ask a question to the manager and get an answer soon.
               ✔️ You can use the buttons to receive information from our telegram bot.
@@ -56,8 +64,6 @@ public class TelegramBotNotificationService
     private static final String PATH_TO_IMAGE
             = "src/main/resources/static/images/telegram/wine_avatar.jpg";
     private static final String WINE_AVATAR_FILE_NAME = "wine_avatar.jpg";
-    private static final String MAIN_FRONT_END_URL
-            = "https://wine-site-project.vercel.app/#";
     private static final String RED_DRY_WINES_LINK
             = "/products?color=RED&type=DRY";
     private static final String RED_SEMI_DRY_RED_WINES_LINK
@@ -66,10 +72,41 @@ public class TelegramBotNotificationService
             = "/products?color=WHITE&type=DRY";
     private static final String WHITE_SEMI_DRY_WHITE_WINES_LINK
             = "/products?color=WHITE&type=SEMI-DRY";
+
+    @Value("#{'${main.front.end.url}' + '/#'}")
+    private String mainFrontEndUrl;
     private final TelegramBotCredentialProvider telegramBotCredentialProvider;
     private final UserService userService;
     private final OrderService orderService;
     private final Tracer tracer;
+
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Observed(name = ObservationNames.TELEGRAM_SEND_NOTIFICATION)
+    public void handleOrderCreated(OrderCreatedEvent event) {
+        sendOrderNotification(event, " is created.");
+    }
+
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Observed(name = ObservationNames.TELEGRAM_SEND_NOTIFICATION)
+    public void handleOrderPaid(OrderPaidEvent event) {
+        sendOrderNotification(event, " has been paid.");
+    }
+
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Observed(name = ObservationNames.TELEGRAM_SEND_NOTIFICATION)
+    public void handleOrderDeleted(OrderDeletedEvent event) {
+        sendOrderNotification(event, " has been deleted.");
+    }
+
+    private void sendOrderNotification(OrderEvent event, String actionMessage) {
+        UserResponseDto user = userService.loadUserById(event.getUserId());
+        if (user.getTelegramChatId() != null) {
+            sendNotification("Your order: " + event.getOrderNumber() + actionMessage, user.getTelegramChatId());
+        }
+    }
 
     @Override
     public String getBotUsername() {
@@ -251,12 +288,12 @@ public class TelegramBotNotificationService
 
     private void executingGetDryRedWineLinkCommand(Long chatId) {
         sendInnerMessageToChat(chatId, "Use the link to view dry red wines: "
-                + MAIN_FRONT_END_URL + RED_DRY_WINES_LINK, getMainButtons());
+                + mainFrontEndUrl + RED_DRY_WINES_LINK, getMainButtons());
     }
 
     private void executingGetSemiDryRedWhineLinkCommand(Long chatId) {
         sendInnerMessageToChat(chatId, "Use the link to view Semi-dry red whines: "
-                + MAIN_FRONT_END_URL + RED_SEMI_DRY_RED_WINES_LINK, getMainButtons());
+                + mainFrontEndUrl + RED_SEMI_DRY_RED_WINES_LINK, getMainButtons());
     }
 
     private void executingWhiteWineCommand(Long chatId) {
@@ -284,12 +321,12 @@ public class TelegramBotNotificationService
 
     private void executingGetDryWhiteWhineLinkCommand(Long chatId) {
         sendInnerMessageToChat(chatId, "Use the link to view dry white wines: "
-                + MAIN_FRONT_END_URL + WHITE_DRY_WHITE_WINES_LINK, getMainButtons());
+                + mainFrontEndUrl + WHITE_DRY_WHITE_WINES_LINK, getMainButtons());
     }
 
     private void executingGetSemiDryWhiteWhineLinkCommand(Long chatId) {
         sendInnerMessageToChat(chatId, "Use the link to view Semi-dry white whines: "
-                + MAIN_FRONT_END_URL + WHITE_SEMI_DRY_WHITE_WINES_LINK, getMainButtons());
+                + mainFrontEndUrl + WHITE_SEMI_DRY_WHITE_WINES_LINK, getMainButtons());
     }
 
     private void sendInnerMessageToChat(

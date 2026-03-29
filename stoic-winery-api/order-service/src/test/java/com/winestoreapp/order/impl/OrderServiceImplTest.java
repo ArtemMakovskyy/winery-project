@@ -1,6 +1,7 @@
 package com.winestoreapp.order.impl;
 
 import com.winestoreapp.common.config.AbstractMySQLContainerTest;
+import com.winestoreapp.common.event.OrderCreatedEvent;
 import com.winestoreapp.common.exception.EntityNotFoundException;
 import com.winestoreapp.common.exception.RegistrationException;
 import com.winestoreapp.common.observability.SpanTagger;
@@ -19,20 +20,19 @@ import com.winestoreapp.order.model.OrderDeliveryInformation;
 import com.winestoreapp.order.repository.OrderDeliveryInformationRepository;
 import com.winestoreapp.order.repository.OrderRepository;
 import com.winestoreapp.order.repository.ShoppingCardRepository;
-import com.winestoreapp.telegram.api.NotificationService;
 import com.winestoreapp.user.api.UserService;
 import com.winestoreapp.user.api.dto.UserResponseDto;
 import com.winestoreapp.wine.api.WineService;
 import com.winestoreapp.wine.api.dto.WineDto;
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -45,8 +45,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.contains;
-import static org.mockito.ArgumentMatchers.eq;
 
 @SpringBootTest(classes = TestServiceConfig.class)
 @Transactional
@@ -160,14 +158,13 @@ class OrderServiceImplTest extends AbstractMySQLContainerTest {
                     return d;
                 });
 
-        NotificationService notificationService = Mockito.mock(NotificationService.class);
-        ReflectionTestUtils.setField(orderService, "notificationService", Optional.of(notificationService));
+        ApplicationEventPublisher eventPublisher = Mockito.mock(ApplicationEventPublisher.class);
+        ReflectionTestUtils.setField(orderService, "eventPublisher", eventPublisher);
         ReflectionTestUtils.setField(orderService, "telegramBotEnable", true);
 
         orderService.createOrder(dto);
 
-        Mockito.verify(notificationService)
-                .sendNotification(contains("is created"), eq(111L));
+        Mockito.verify(eventPublisher).publishEvent(any(OrderCreatedEvent.class));
     }
 
     @Test
