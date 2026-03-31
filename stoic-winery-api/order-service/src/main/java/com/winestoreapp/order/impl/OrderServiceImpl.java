@@ -1,8 +1,6 @@
 package com.winestoreapp.order.impl;
 
-import com.winestoreapp.common.event.OrderCreatedEvent;
-import com.winestoreapp.common.event.OrderDeletedEvent;
-import com.winestoreapp.common.event.OrderPaidEvent;
+import com.winestoreapp.common.event.OrderEvent;
 import com.winestoreapp.common.exception.EntityNotFoundException;
 import com.winestoreapp.common.exception.RegistrationException;
 import com.winestoreapp.common.observability.ObservationNames;
@@ -32,7 +30,6 @@ import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -48,8 +45,6 @@ public class OrderServiceImpl implements OrderService {
     private static final String SPACE = " ";
     private static final int WORD_QUANTITY = 2;
 
-    @Value("${telegram.bot.enabled:false}")
-    private boolean telegramBotEnable;
     private final OrderRepository orderRepository;
     private final UserService userService;
     private final OrderDeliveryInformationMapper orderDeliveryInformationMapper;
@@ -94,12 +89,8 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.save(order);
         log.info("Order created successfully with number: {}", order.getOrderNumber());
 
-        OrderDto orderDto = orderMapper.toDto(order);
-
-        if (telegramBotEnable) {
-            eventPublisher.publishEvent(new OrderCreatedEvent(this, order.getId(), order.getOrderNumber(), userDto.getId()));
-        }
-        return orderDto;
+        eventPublisher.publishEvent(new OrderEvent(this, order.getId(), order.getOrderNumber(), userDto.getId(), OrderEvent.AccessType.CREATE));
+        return orderMapper.toDto(order);
     }
 
     @Override
@@ -117,9 +108,7 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.save(order);
 
         UserResponseDto userDto = userService.loadUserById(order.getUserId());
-        if (telegramBotEnable) {
-            eventPublisher.publishEvent(new OrderPaidEvent(this, order.getId(), order.getOrderNumber(), userDto.getId()));
-        }
+        eventPublisher.publishEvent(new OrderEvent(this, order.getId(), order.getOrderNumber(), userDto.getId(), OrderEvent.AccessType.PAID));
         return true;
     }
 
@@ -137,9 +126,7 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.deleteById(id);
 
         UserResponseDto userDto = userService.loadUserById(order.getUserId());
-        if (telegramBotEnable) {
-            eventPublisher.publishEvent(new OrderDeletedEvent(this, order.getId(), order.getOrderNumber(), userDto.getId()));
-        }
+        eventPublisher.publishEvent(new OrderEvent(this, order.getId(), order.getOrderNumber(), userDto.getId(), OrderEvent.AccessType.DELETE));
         return true;
     }
 

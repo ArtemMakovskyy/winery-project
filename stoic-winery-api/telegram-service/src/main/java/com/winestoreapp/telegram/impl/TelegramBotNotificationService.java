@@ -1,9 +1,6 @@
 package com.winestoreapp.telegram.impl;
 
-import com.winestoreapp.common.event.OrderCreatedEvent;
-import com.winestoreapp.common.event.OrderDeletedEvent;
 import com.winestoreapp.common.event.OrderEvent;
-import com.winestoreapp.common.event.OrderPaidEvent;
 import com.winestoreapp.common.exception.EntityNotFoundException;
 import com.winestoreapp.common.observability.ObservationNames;
 import com.winestoreapp.order.api.OrderService;
@@ -81,30 +78,44 @@ public class TelegramBotNotificationService
     private final Tracer tracer;
 
     @Async
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @TransactionalEventListener(
+            phase = TransactionPhase.AFTER_COMMIT,
+            condition = "#event.accessType.name == 'CREATE'"
+    )
     @Observed(name = ObservationNames.TELEGRAM_SEND_NOTIFICATION)
-    public void handleOrderCreated(OrderCreatedEvent event) {
+    public void handleOrderEvent(OrderEvent event) {
         sendOrderNotification(event, " is created.");
     }
 
     @Async
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @TransactionalEventListener(
+            phase = TransactionPhase.AFTER_COMMIT,
+            condition = "#event.accessType.name == 'PAID'"
+    )
     @Observed(name = ObservationNames.TELEGRAM_SEND_NOTIFICATION)
-    public void handleOrderPaid(OrderPaidEvent event) {
+    public void handleOrderPaid(OrderEvent event) {
         sendOrderNotification(event, " has been paid.");
     }
 
     @Async
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @TransactionalEventListener(
+            phase = TransactionPhase.AFTER_COMMIT,
+            condition = "#event.accessType.name == 'DELETE'"
+    )
     @Observed(name = ObservationNames.TELEGRAM_SEND_NOTIFICATION)
-    public void handleOrderDeleted(OrderDeletedEvent event) {
+    public void handleOrderDeleted(OrderEvent event) {
         sendOrderNotification(event, " has been deleted.");
     }
 
     private void sendOrderNotification(OrderEvent event, String actionMessage) {
-        UserResponseDto user = userService.loadUserById(event.getUserId());
-        if (user.getTelegramChatId() != null) {
-            sendNotification("Your order: " + event.getOrderNumber() + actionMessage, user.getTelegramChatId());
+        try {
+            UserResponseDto user = userService.loadUserById(event.getUserId());
+            if (user.getTelegramChatId() != null) {
+                sendNotification("Your order: " + event.getOrderNumber() + actionMessage, user.getTelegramChatId());
+            }
+        } catch (Exception e) {
+            log.error("Failed to send Telegram notification for order {} (action: {}): {}", 
+                    event.getOrderNumber(), actionMessage, e.getMessage(), e);
         }
     }
 

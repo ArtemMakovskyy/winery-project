@@ -1,7 +1,7 @@
 package com.winestoreapp.order.impl;
 
 import com.winestoreapp.common.config.AbstractMySQLContainerTest;
-import com.winestoreapp.common.event.OrderCreatedEvent;
+import com.winestoreapp.common.event.OrderEvent;
 import com.winestoreapp.common.exception.EntityNotFoundException;
 import com.winestoreapp.common.exception.RegistrationException;
 import com.winestoreapp.common.observability.SpanTagger;
@@ -26,6 +26,7 @@ import com.winestoreapp.wine.api.WineService;
 import com.winestoreapp.wine.api.dto.WineDto;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -160,11 +161,10 @@ class OrderServiceImplTest extends AbstractMySQLContainerTest {
 
         ApplicationEventPublisher eventPublisher = Mockito.mock(ApplicationEventPublisher.class);
         ReflectionTestUtils.setField(orderService, "eventPublisher", eventPublisher);
-        ReflectionTestUtils.setField(orderService, "telegramBotEnable", true);
 
         orderService.createOrder(dto);
 
-        Mockito.verify(eventPublisher).publishEvent(any(OrderCreatedEvent.class));
+        Mockito.verify(eventPublisher).publishEvent(any(OrderEvent.class));
     }
 
     @Test
@@ -175,9 +175,7 @@ class OrderServiceImplTest extends AbstractMySQLContainerTest {
 
         UserResponseDto user = new UserResponseDto();
         user.setId(1L);
-
         Mockito.when(userService.loadUserById(anyLong())).thenReturn(user);
-        ReflectionTestUtils.setField(orderService, "telegramBotEnable", false);
 
         boolean result = orderService.markAsPaid(order.getId());
 
@@ -195,9 +193,7 @@ class OrderServiceImplTest extends AbstractMySQLContainerTest {
 
         UserResponseDto user = new UserResponseDto();
         user.setId(1L);
-
         Mockito.when(userService.loadUserById(anyLong())).thenReturn(user);
-        ReflectionTestUtils.setField(orderService, "telegramBotEnable", false);
 
         boolean result = orderService.deleteById(order.getId());
 
@@ -243,20 +239,24 @@ class OrderServiceImplTest extends AbstractMySQLContainerTest {
         assertEquals(1, result.size());
     }
 
-//    @Test
-//    void findByOrderNumber_Success() {
-//        Order order = new Order();
-//        order.setUserId(1L);
-//        order.setOrderNumber("ORD-123");
-//        orderRepository.save(order);
-//
-//        Mockito.when(orderMapper.toDto(any())).thenReturn(new OrderDto());
-//
-//        Optional<OrderDto> result =
-//                orderService.findByOrderNumber("ORD-123");
-//
-//        assertTrue(result.isPresent());
-//    }
+    @Test
+    void findByOrderNumber_Success() {
+        Order order = new Order();
+        order.setUserId(1L);
+        order.initializeNewOrder(1L);
+        order = orderRepository.save(order);
+        order.generateAndSetOrderNumber();
+        orderRepository.save(order);
+
+        String generatedNumber = order.getOrderNumber();
+
+        Mockito.when(orderMapper.toDto(any(Order.class))).thenReturn(new OrderDto());
+
+        Optional<OrderDto> result = orderService.findByOrderNumber(generatedNumber);
+
+        assertTrue(result.isPresent());
+        Mockito.verify(orderMapper).toDto(any(Order.class));
+    }
 
     private CreateOrderDto createOrderDto() {
         CreateOrderDto dto = new CreateOrderDto();
