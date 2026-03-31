@@ -28,6 +28,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
@@ -64,6 +65,7 @@ class WineServiceCacheTest {
     }
 
     @EnableCaching
+    @EnableAsync(proxyTargetClass = true)
     static class TestRedisConfig {
 
         @Bean

@@ -1,5 +1,7 @@
 package com.winestoreapp.review.impl;
 
+import com.winestoreapp.common.event.ReviewAccessType;
+import com.winestoreapp.common.event.ReviewEvent;
 import com.winestoreapp.common.exception.EntityNotFoundException;
 import com.winestoreapp.common.exception.RegistrationException;
 import com.winestoreapp.common.observability.ObservationNames;
@@ -21,6 +23,7 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +36,7 @@ public class ReviewServiceImpl implements ReviewService {
     private final ReviewMapper reviewMapper;
     private final UserService userService;
     private final WineService wineService;
+    private final ApplicationEventPublisher eventPublisher;
     private final SpanTagger spanTagger;
 
     @Value("${limiter.number.of.recorded.ratings}")
@@ -114,8 +118,8 @@ public class ReviewServiceImpl implements ReviewService {
         Double dbAvg = reviewRepository.findAverageRatingByWineId(wineId);
         double avg = (dbAvg != null ? dbAvg : 0.0);
 
-        wineService.updateAverageRatingScore(wineId, avg);
-        log.debug("Updated average rating for wine {}: {}", wineId, avg);
+        eventPublisher.publishEvent(new ReviewEvent(this, wineId, avg, ReviewAccessType.CREATE));
+        log.debug("Published ReviewEvent (ADD) for wine {}: {}", wineId, avg);
     }
 
 }

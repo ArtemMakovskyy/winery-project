@@ -1,5 +1,6 @@
 package com.winestoreapp.order.impl;
 
+import com.winestoreapp.common.event.OrderAccessType;
 import com.winestoreapp.common.event.OrderEvent;
 import com.winestoreapp.common.exception.EntityNotFoundException;
 import com.winestoreapp.common.exception.RegistrationException;
@@ -89,7 +90,7 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.save(order);
         log.info("Order created successfully with number: {}", order.getOrderNumber());
 
-        eventPublisher.publishEvent(new OrderEvent(this, order.getId(), order.getOrderNumber(), userDto.getId(), OrderEvent.AccessType.CREATE));
+        eventPublisher.publishEvent(new OrderEvent(this, order.getId(), order.getOrderNumber(), userDto.getId(), OrderAccessType.CREATE));
         return orderMapper.toDto(order);
     }
 
@@ -108,7 +109,7 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.save(order);
 
         UserResponseDto userDto = userService.loadUserById(order.getUserId());
-        eventPublisher.publishEvent(new OrderEvent(this, order.getId(), order.getOrderNumber(), userDto.getId(), OrderEvent.AccessType.PAID));
+        eventPublisher.publishEvent(new OrderEvent(this, order.getId(), order.getOrderNumber(), userDto.getId(), OrderAccessType.PAID));
         return true;
     }
 
@@ -126,7 +127,7 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.deleteById(id);
 
         UserResponseDto userDto = userService.loadUserById(order.getUserId());
-        eventPublisher.publishEvent(new OrderEvent(this, order.getId(), order.getOrderNumber(), userDto.getId(), OrderEvent.AccessType.DELETE));
+        eventPublisher.publishEvent(new OrderEvent(this, order.getId(), order.getOrderNumber(), userDto.getId(), OrderAccessType.DELETE));
         return true;
     }
 

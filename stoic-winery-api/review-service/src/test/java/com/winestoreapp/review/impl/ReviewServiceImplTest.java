@@ -30,7 +30,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 
@@ -78,7 +77,6 @@ class ReviewServiceImplTest extends AbstractMySQLContainerTest {
         assertNotNull(result);
         List<Review> savedReviews = reviewRepository.findAllByWineId(1L);
         assertEquals(1, savedReviews.size());
-        Mockito.verify(wineService, Mockito.atLeastOnce()).updateAverageRatingScore(anyLong(), anyDouble());
     }
 
     @Test

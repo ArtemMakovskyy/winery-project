@@ -1,5 +1,6 @@
 package com.winestoreapp.wine.impl;
 
+import com.winestoreapp.common.event.ReviewEvent;
 import com.winestoreapp.common.exception.EntityNotFoundException;
 import com.winestoreapp.common.observability.ObservationMetrics;
 import com.winestoreapp.common.observability.ObservationNames;
@@ -20,7 +21,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -132,5 +135,14 @@ public class WineServiceImpl implements WineService {
         spanTagger.tag(ObservationTags.WINE_ID, id);
         return wineRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Can't find wine by id: " + id));
+    }
+
+    @EventListener
+    @Async
+    @Transactional
+    public void handleReview(ReviewEvent event) {
+        log.debug("Handling ReviewEvent ({}) for wineId: {}, newAverageRating: {}",
+                event.getAccessType(), event.getWineId(), event.getNewAverageRating());
+        wineRepository.updateAverageRating(event.getWineId(), BigDecimal.valueOf(event.getNewAverageRating()));
     }
 }
