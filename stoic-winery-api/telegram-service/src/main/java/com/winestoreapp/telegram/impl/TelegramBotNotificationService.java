@@ -114,7 +114,7 @@ public class TelegramBotNotificationService
                 sendNotification("Your order: " + event.getOrderNumber() + actionMessage, user.getTelegramChatId());
             }
         } catch (Exception e) {
-            log.error("Failed to send Telegram notification for order {} (action: {}): {}", 
+            log.error("Failed to send Telegram notification for order {} (action: {}): {}",
                     event.getOrderNumber(), actionMessage, e.getMessage(), e);
         }
     }

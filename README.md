@@ -160,14 +160,9 @@ It provides:
 ---
 ## 📚 Detailed project documentation
 
-👓 **Stoic Winery site frontend**
-[https://github.com/ArtemMakovskyy/winery-project/blob/master/wine_site_project/README.md](https://github.com/ArtemMakovskyy/winery-project/blob/master/wine_site_project/README.md)
-
-👓 **Stoic Winery API backend**
-[https://github.com/ArtemMakovskyy/winery-project/blob/master/stoic-winery-api/README.md](https://github.com/ArtemMakovskyy/winery-project/blob/master/stoic-winery-api/README.md)
-
-👓 **Stoic Winery ADMIN PANEL**
-[https://github.com/ArtemMakovskyy/winery-project/blob/winery-admin-ui/winery-admin-ui/README.md](https://github.com/ArtemMakovskyy/winery-project/blob/winery-admin-ui/winery-admin-ui/README.md)
+- [**Stoic Winery site frontend**](https://github.com/ArtemMakovskyy/winery-project/blob/master/wine_site_project/README.md) — customer-facing React application
+- [**Stoic Winery API backend**](https://github.com/ArtemMakovskyy/winery-project/blob/master/stoic-winery-api/README.md) — REST API, domain events, observability
+- [**Stoic Winery Admin Panel**](https://github.com/ArtemMakovskyy/winery-project/blob/winery-admin-ui/winery-admin-ui/README.md) — internal management UI
 
 ---
 

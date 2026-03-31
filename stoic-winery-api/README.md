@@ -17,6 +17,40 @@ The project evolved through several patterns to improve maintainability and scal
 
 ---
 
+## 📬 Domain Events Architecture
+
+The application uses **Spring Domain Events** for loose coupling between services:
+
+| Event                                                                                                 | Trigger                    | Listeners              |
+|-------------------------------------------------------------------------------------------------------|----------------------------|------------------------|
+| [`OrderEvent`](stoic-winery-api/common/src/main/java/com/winestoreapp/common/event/OrderEvent.java)   | Order created/paid/deleted | Telegram notifications |
+| [`ReviewEvent`](stoic-winery-api/common/src/main/java/com/winestoreapp/common/event/ReviewEvent.java) | Review created/deleted     | Wine rating updates    |
+
+**Event Flow Example (Order Notification):**
+
+```
+1. User creates order → OrderEvent published (AccessType.CREATE)
+2. TelegramBotNotificationService listens (@Async, @TransactionalEventListener AFTER_COMMIT)
+3. Notification sent to user's Telegram chat
+```
+
+**Event Flow Example (Review Rating Update):**
+
+```
+1. User creates review → ReviewEvent published (AccessType.CREATE)
+2. WineServiceImpl listens (@Async, @EventListener)
+3. Wine average rating updated in database
+```
+
+**Benefits:**
+
+- Decoupled services (ReviewService ↔ WineService)
+- Async processing via `@Async` listeners
+- Transactional consistency (`@TransactionalEventListener`)
+- Better scalability and maintainability
+
+---
+
 ## 🚀 Features
 
 - View all wines sorted by rating.
@@ -49,6 +83,7 @@ The project evolved through several patterns to improve maintainability and scal
 | Lombok & MapStruct             | DTO mapping & boilerplate reduction |
 | Telegram Bots                  | Notifications                       |
 | Redis                          | Cache & Rate Limiting               |
+| Spring Domain Events           | Loose coupling between services     |
 | JUnit, Mockito, Testcontainers | Testing                             |
 | Springdoc OpenAPI              | API documentation                   |
 
@@ -176,14 +211,15 @@ See detailed load test results in **[PERFORMANCE_TESTS.md](PERFORMANCE_TESTS.md)
 
 **Key Results:**
 
-| Metric | Value |
-|--------|-------|
-| Average Response Time | 11-15ms |
-| Throughput | 865+ req/sec |
-| Max Response Time | 31ms |
-| Error Rate | < 1% |
+| Metric                | Value        |
+|-----------------------|--------------|
+| Average Response Time | 11-15ms      |
+| Throughput            | 865+ req/sec |
+| Max Response Time     | 31ms         |
+| Error Rate            | < 1%         |
 
 **Optimization Impact** (after adding 25 database indexes):
+
 - Average response time: 27% faster (15ms -> 11ms)
 - Max response time: 88% faster (255ms -> 31ms)
 
